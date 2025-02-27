@@ -8,6 +8,7 @@ export default function Testimonials() {
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   
   const testimonials = [
+    // Your testimonial data remains unchanged
     {
       name: "Sarah Johnson",
       location: "New York, NY",
@@ -56,28 +57,31 @@ export default function Testimonials() {
           {testimonials.map((testimonial, index) => (
             <motion.div 
               key={index} 
-              className="bg-white rounded-xl p-6 shadow-md will-change-transform hover:shadow-lg"
+              className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transform-gpu"
               variants={cardVariants}
               initial="hidden"
               animate={isInView ? "visible" : "hidden"}
-              transition={{ delay: index * 0.2 }}
-              style={{
-                transform: "translateZ(0)" // Force hardware acceleration
-              }}
               whileHover={{ y: -8 }}
-              // Use custom transition with better performance settings
-              whileHoverTransition={{
-                type: "tween",
-                ease: "easeOut",
-                duration: 0.2
+              // Fix: Proper hover transition configuration
+              transition ={{
+                type: "spring",
+                stiffness: 400,
+                damping: 17,
+                // Make hover animations independent from initial animations
+                hover: { type: "tween", duration: 0.2, ease: "easeOut" }
+              }}
+              style={{
+                willChange: "transform",
+                backfaceVisibility: "hidden",
+                perspective: 1000,
+                transformStyle: "preserve-3d"
               }}
             >
               <div className="flex items-center mb-4">
-                {/* Use regular img with CSS transitions instead of motion.img */}
                 <img 
                   src={testimonial.image} 
                   alt={testimonial.name}
-                  className="w-12 h-12 rounded-full mr-4 object-cover border-2 border-indigo-100 transition-transform duration-200 hover:scale-110" 
+                  className="w-12 h-12 rounded-full mr-4 object-cover border-2 border-indigo-100"
                 />
                 <div>
                   <h4 className="font-bold text-gray-900">{testimonial.name}</h4>
@@ -102,7 +106,6 @@ export default function Testimonials() {
           ))}
         </div>
         
-        {/* Optimized background elements - using CSS-based animations for better performance */}
         <div className="hidden md:block absolute -top-10 left-10 w-20 h-20 rounded-full bg-indigo-100 opacity-50 z-0 animate-float-slow" />
         <div className="hidden md:block absolute bottom-20 right-10 w-32 h-32 rounded-full bg-purple-100 opacity-50 z-0 animate-float-medium" />
       </div>
