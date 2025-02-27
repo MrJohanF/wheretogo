@@ -63,7 +63,7 @@ export default function CategorySection() {
             <motion.div 
               key={index}
               className="flex flex-col items-center p-4 rounded-xl bg-gray-50 
-                         cursor-pointer transition-colors transition-shadow duration-200 
+                         cursor-pointer transition-shadow duration-200 
                          hover:bg-indigo-50 hover:shadow-md will-change-transform"
               variants={item}
               style={{ transform: "translateZ(0)" }} // Enable hardware acceleration
