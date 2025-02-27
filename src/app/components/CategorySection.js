@@ -62,15 +62,18 @@ export default function CategorySection() {
           {categories.map((category, index) => (
             <motion.div 
               key={index}
-              className="flex flex-col items-center p-4 rounded-xl bg-gray-50 hover:bg-indigo-50 hover:shadow-md transition-all cursor-pointer"
+              className="flex flex-col items-center p-4 rounded-xl bg-gray-50 
+                         cursor-pointer transition-colors transition-shadow duration-200 
+                         hover:bg-indigo-50 hover:shadow-md will-change-transform"
               variants={item}
-              // Simplify the hover animation
-              whileHover={{ 
-                scale: 1.05,
-                backgroundColor: "rgb(238, 242, 255)", // indigo-50
-                boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)"
+              style={{ transform: "translateZ(0)" }} // Enable hardware acceleration
+              whileHover={{ scale: 1.05 }}
+              transition={{ 
+                type: "spring", 
+                stiffness: 400, 
+                damping: 17,
+                mass: 0.5  // Lower mass for smoother animation
               }}
-              transition={{ duration: 0.2 }}
             >
               <div className="w-12 h-12 flex items-center justify-center bg-indigo-100 text-indigo-600 rounded-full mb-3">
                 {category.icon}
