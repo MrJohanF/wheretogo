@@ -1,7 +1,6 @@
 "use client";
 import { Star, Quote } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { useInView } from 'framer-motion';
+import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
 
 export default function Testimonials() {
@@ -32,7 +31,7 @@ export default function Testimonials() {
     }
   ];
 
-  // Simpler animation variants
+  // Optimized animation variants
   const cardVariants = {
     hidden: { opacity: 0, y: 50 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
@@ -57,23 +56,28 @@ export default function Testimonials() {
           {testimonials.map((testimonial, index) => (
             <motion.div 
               key={index} 
-              className="bg-white rounded-xl p-6 shadow-md transition-all"
+              className="bg-white rounded-xl p-6 shadow-md will-change-transform hover:shadow-lg"
               variants={cardVariants}
               initial="hidden"
               animate={isInView ? "visible" : "hidden"}
-              transition={{ delay: index * 0.2 }} // Stagger the animations
-              whileHover={{ 
-                y: -8,
-                boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
+              transition={{ delay: index * 0.2 }}
+              style={{
+                transform: "translateZ(0)" // Force hardware acceleration
+              }}
+              whileHover={{ y: -8 }}
+              // Use custom transition with better performance settings
+              whileHoverTransition={{
+                type: "tween",
+                ease: "easeOut",
+                duration: 0.2
               }}
             >
               <div className="flex items-center mb-4">
-                <motion.img 
+                {/* Use regular img with CSS transitions instead of motion.img */}
+                <img 
                   src={testimonial.image} 
                   alt={testimonial.name}
-                  className="w-12 h-12 rounded-full mr-4 object-cover border-2 border-indigo-100" 
-                  whileHover={{ scale: 1.1 }}
-                  transition={{ duration: 0.2 }}
+                  className="w-12 h-12 rounded-full mr-4 object-cover border-2 border-indigo-100 transition-transform duration-200 hover:scale-110" 
                 />
                 <div>
                   <h4 className="font-bold text-gray-900">{testimonial.name}</h4>
@@ -98,31 +102,9 @@ export default function Testimonials() {
           ))}
         </div>
         
-        {/* Add subtle floating animations to background elements */}
-        <motion.div 
-          className="hidden md:block absolute -top-10 left-10 w-20 h-20 rounded-full bg-indigo-100 opacity-50 z-0"
-          animate={{ 
-            y: [0, -15, 0],
-            opacity: [0.5, 0.8, 0.5] 
-          }}
-          transition={{ 
-            duration: 5,
-            repeat: Infinity, 
-            repeatType: "reverse" 
-          }}
-        />
-        <motion.div 
-          className="hidden md:block absolute bottom-20 right-10 w-32 h-32 rounded-full bg-purple-100 opacity-50 z-0"
-          animate={{ 
-            y: [0, 20, 0],
-            opacity: [0.5, 0.7, 0.5] 
-          }}
-          transition={{ 
-            duration: 7,
-            repeat: Infinity, 
-            repeatType: "reverse" 
-          }}
-        />
+        {/* Optimized background elements - using CSS-based animations for better performance */}
+        <div className="hidden md:block absolute -top-10 left-10 w-20 h-20 rounded-full bg-indigo-100 opacity-50 z-0 animate-float-slow" />
+        <div className="hidden md:block absolute bottom-20 right-10 w-32 h-32 rounded-full bg-purple-100 opacity-50 z-0 animate-float-medium" />
       </div>
     </section>
   );
