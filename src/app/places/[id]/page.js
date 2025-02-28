@@ -246,7 +246,7 @@ export default function PlaceDetail() {
 
             <button
               onClick={() => setIsFavorite(!isFavorite)}
-              className={`p-2.5 rounded-full transition-all shadow-md focus:outline-none focus:ring-2 focus:ring-white/50 \${
+              className={`p-2.5 rounded-full transition-all shadow-md focus:outline-none focus:ring-2 focus:ring-white/50 ${
                 isFavorite 
                   ? 'bg-red-500 text-white' 
                   : 'bg-white/90 hover:bg-white text-gray-800'
@@ -346,31 +346,31 @@ export default function PlaceDetail() {
           <div className="flex space-x-8 overflow-x-auto">
             <button
               onClick={() => scrollToSection("info")}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap \${
-          activeSection === 'info' 
-            ? 'border-indigo-600 text-indigo-600' 
-            : 'border-transparent text-gray-500 hover:text-gray-700'
-        }`}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+                activeSection === 'info' 
+                  ? 'border-indigo-600 text-indigo-600' 
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
             >
               Información
             </button>
             <button
               onClick={() => scrollToSection("reviews")}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap \${
-          activeSection === 'reviews' 
-            ? 'border-indigo-600 text-indigo-600' 
-            : 'border-transparent text-gray-500 hover:text-gray-700'
-        }`}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+                activeSection === 'reviews' 
+                  ? 'border-indigo-600 text-indigo-600' 
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
             >
               Reseñas ({mockPlace.reviews.length})
             </button>
             <button
               onClick={() => scrollToSection("photos")}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap \${
-          activeSection === 'photos' 
-            ? 'border-indigo-600 text-indigo-600' 
-            : 'border-transparent text-gray-500 hover:text-gray-700'
-        }`}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+                activeSection === 'photos' 
+                  ? 'border-indigo-600 text-indigo-600' 
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
             >
               Fotos ({mockPlace.images.length})
             </button>
@@ -409,7 +409,7 @@ export default function PlaceDetail() {
                           </h4>
                           <p className="text-gray-600">{mockPlace.address}</p>
                           <a
-                            href={`https://maps.google.com/?q=\${mockPlace.address}`}
+                            href={`https://maps.google.com/?q=${mockPlace.address}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-indigo-600 hover:text-indigo-800 text-sm font-medium flex items-center mt-1"
@@ -431,7 +431,7 @@ export default function PlaceDetail() {
                           </h4>
                           <p className="text-gray-600">{mockPlace.phone}</p>
                           <a
-                            href={`tel:\${mockPlace.phone.replace(/\s/g, '')}`}
+                            href={`tel:${mockPlace.phone.replace(/\s/g, '')}`}
                             className="text-indigo-600 hover:text-indigo-800 text-sm font-medium flex items-center mt-1"
                           >
                             <Phone size={14} className="mr-1" />
@@ -492,14 +492,14 @@ export default function PlaceDetail() {
                       ([day, hours], index) => (
                         <div
                           key={day}
-                          className={`flex justify-between py-2 px-3 rounded-lg \${
+                          className={`flex justify-between py-2 px-3 rounded-lg ${
                           index === new Date().getDay() 
                             ? 'bg-green-50 text-green-800' 
                             : 'hover:bg-gray-50'
                         }`}
                         >
                           <span
-                            className={`\${index === new Date().getDay() ? 'font-medium' : ''}`}
+                            className={`${index === new Date().getDay() ? 'font-medium' : ''}`}
                           >
                             {day}
                           </span>
@@ -550,7 +550,7 @@ export default function PlaceDetail() {
                             <Star
                               key={i}
                               size={16}
-                              className={`\${
+                              className={`${
                               i < Math.floor(avgRating) 
                                 ? 'text-yellow-400 fill-current' 
                                 : 'text-gray-300'
@@ -584,12 +584,12 @@ export default function PlaceDetail() {
                             <div className="w-3 mr-2">{rating}</div>
                             <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
                               <div
-                                className={`h-full rounded-full \${
+                                className={`h-full rounded-full ${
                                   rating >= 4 ? 'bg-green-500' : 
                                   rating === 3 ? 'bg-yellow-500' :
                                   'bg-red-500'
                                 }`}
-                                style={{ width: `\${percentage}%` }}
+                                style={{ width: `${percentage}%` }}
                               ></div>
                             </div>
                             <div className="w-9 text-right text-xs text-gray-500">
@@ -698,7 +698,7 @@ export default function PlaceDetail() {
                       >
                         <img
                           src={image}
-                          alt={`\${mockPlace.name} - imagen \${index + 1}`}
+                          alt={`${mockPlace.name} - imagen ${index + 1}`}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
@@ -778,14 +778,14 @@ export default function PlaceDetail() {
                   </h4>
                   <div className="flex flex-col space-y-2">
                     <a
-                      href={`tel:\${mockPlace.phone.replace(/\s/g, '')}`}
+                      href={`tel:${mockPlace.phone.replace(/\s/g, '')}`}
                       className="text-indigo-600 hover:text-indigo-800 text-sm font-medium flex items-center"
                     >
                       <Phone size={14} className="mr-2" />
                       Llamar directamente
                     </a>
                     <a
-                      href={`https://maps.google.com/?q=\${mockPlace.address}`}
+                      href={`https://maps.google.com/?q=${mockPlace.address}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-indigo-600 hover:text-indigo-800 text-sm font-medium flex items-center"
@@ -927,13 +927,13 @@ export default function PlaceDetail() {
                         setCurrentImageIndex(index);
                         setGalleryView("single");
                       }}
-                      className={`aspect-square rounded-lg overflow-hidden cursor-pointer relative \${
+                      className={`aspect-square rounded-lg overflow-hidden cursor-pointer relative ${
                         index === currentImageIndex ? 'ring-4 ring-indigo-500' : ''
                       }`}
                     >
                       <img
                         src={image}
-                        alt={`\${mockPlace.name} - foto \${index + 1}`}
+                        alt={`${mockPlace.name} - foto ${index + 1}`}
                         className="w-full h-full object-cover hover:opacity-90 transition-opacity"
                       />
                     </div>
