@@ -31,12 +31,12 @@ export default function MapComponent({ places, onPlaceClick, favorites, onToggle
           longitude={place.longitude}
           anchor="bottom"
         >
-          <button
+          <div
             onClick={(e) => {
               e.stopPropagation();
               setPopupInfo(place);
             }}
-            className="relative group"
+            className="relative group cursor-pointer"
           >
             <div className="absolute -top-2 -right-2">
               <button
@@ -59,7 +59,7 @@ export default function MapComponent({ places, onPlaceClick, favorites, onToggle
             <div className="bg-white p-2 rounded-full shadow-lg group-hover:shadow-xl transition-all">
               <MapPin className="text-indigo-600" />
             </div>
-          </button>
+          </div>
         </Marker>
       ))}
 
