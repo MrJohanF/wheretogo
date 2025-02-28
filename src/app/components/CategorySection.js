@@ -6,21 +6,27 @@ import {
 import { motion } from 'framer-motion';
 import { useInView } from 'framer-motion';
 import { useRef } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function CategorySection() {
+  const router = useRouter();
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   
   const categories = [
-    { icon: <Utensils />, name: "Restaurantes" },
-    { icon: <Coffee />, name: "Cafeterías" },
-    { icon: <ShoppingBag />, name: "Tiendas Locales" },
-    { icon: <Camera />, name: "Spot Fotográficos" },
-    { icon: <Mountain />, name: "Naturaleza" },
-    { icon: <Landmark />, name: "Monumentos" },
-    { icon: <Palmtree />, name: "Lugares Secretos" },
-    { icon: <Ticket />, name: "Actividades" },
+    { id: 1, icon: <Utensils />, name: "Restaurantes" },
+    { id: 2, icon: <Coffee />, name: "Cafeterías" },
+    { id: 3, icon: <ShoppingBag />, name: "Bares" },
+    { id: 4, icon: <Landmark />, name: "Museos" },
+    { id: 5, icon: <Mountain />, name: "Parques" },
+    { id: 6, icon: <Camera />, name: "Cines" },
+    { id: 7, icon: <Ticket />, name: "Teatros" },
+    { id: 8, icon: <Palmtree />, name: "Deportes" },
   ];
+
+  const handleCategoryClick = (categoryId) => {
+    router.push(`/categories/${categoryId}`);
+  };
 
   const container = {
     hidden: { opacity: 0 },
@@ -59,26 +65,27 @@ export default function CategorySection() {
           initial="hidden"
           animate={isInView ? "show" : "hidden"}
         >
-          {categories.map((category, index) => (
+          {categories.map((category) => (
             <motion.div 
-              key={index}
+              key={category.id}
               className="flex flex-col items-center p-4 rounded-xl bg-gray-50 
                          cursor-pointer transition-shadow duration-200 
                          hover:bg-indigo-50 hover:shadow-md will-change-transform"
               variants={item}
-              style={{ transform: "translateZ(0)" }} // Enable hardware acceleration
+              style={{ transform: "translateZ(0)" }}
               whileHover={{ scale: 1.05 }}
               transition={{ 
                 type: "spring", 
                 stiffness: 400, 
                 damping: 17,
-                mass: 0.5  // Lower mass for smoother animation
+                mass: 0.5
               }}
+              onClick={() => handleCategoryClick(category.id)}
             >
               <div className="w-12 h-12 flex items-center justify-center bg-indigo-100 text-indigo-600 rounded-full mb-3">
                 {category.icon}
               </div>
-              <span className="text-gray-800 font-medium text-sm">{category.name}</span>
+              <span className="text-gray-800 font-medium text-sm text-center">{category.name}</span>
             </motion.div>
           ))}
         </motion.div>
