@@ -15,7 +15,7 @@ export default function CategorySection() {
     { icon: <Utensils />, name: "Restaurantes" },
     { icon: <Coffee />, name: "Cafeterías" },
     { icon: <ShoppingBag />, name: "Tiendas Locales" },
-    { icon: <Camera />, name: "Lugares Fotográficos" },
+    { icon: <Camera />, name: "Spot Fotográficos" },
     { icon: <Mountain />, name: "Naturaleza" },
     { icon: <Landmark />, name: "Monumentos" },
     { icon: <Palmtree />, name: "Lugares Secretos" },
