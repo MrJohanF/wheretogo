@@ -5,10 +5,10 @@ import { ArrowDown, CheckCircle } from 'lucide-react';
 
 export default function CtaSection() {
   const features = [
-    "Personalized recommendations based on your interests",
-    "Discover hidden local gems not found on typical tourist sites",
-    "Create sharable travel itineraries with friends",
-    "Access all recommendations offline while traveling"
+    "Recomendaciones personalizadas basadas en tus intereses",
+    "Descubre joyas locales ocultas que no encontrarás en sitios turísticos típicos",
+    "Crea itinerarios de viaje compartibles con amigos", 
+    "Accede a todas las recomendaciones sin conexión mientras viajas"
   ];
 
   return (
@@ -17,10 +17,10 @@ export default function CtaSection() {
         <div className="flex flex-col md:flex-row items-center">
           <div className="md:w-1/2 mb-10 md:mb-0">
             <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Download the App and Start Exploring Today
+              Descarga la App y Empieza a Explorar Hoy
             </h2>
             <p className="text-lg md:text-xl mb-8 text-indigo-100">
-              Get access to thousands of curated recommendations right in your pocket.
+              Obtén acceso a miles de recomendaciones seleccionadas directamente en tu bolsillo.
             </p>
             
             <ul className="space-y-3 mb-10">
@@ -41,7 +41,7 @@ export default function CtaSection() {
                   </svg>
                 </span>
                 <div className="text-left">
-                  <div className="text-xs">Download on the</div>
+                  <div className="text-xs">Descarga en el</div>
                   <div className="text-sm font-semibold">App Store</div>
                 </div>
               </button>
@@ -58,7 +58,7 @@ export default function CtaSection() {
                   </svg>
                 </span>
                 <div className="text-left">
-                  <div className="text-xs">GET IT ON</div>
+                  <div className="text-xs">CONSÍGUELO EN</div>
                   <div className="text-sm font-semibold">Google Play</div>
                 </div>
               </button>
@@ -69,15 +69,15 @@ export default function CtaSection() {
             <div className="relative">
               <img 
                 src="/app-mockup.png" 
-                alt="App mockup" 
+                alt="Maqueta de la app" 
                 className="max-w-full rounded-3xl shadow-2xl"
                 onError={(e) => {
-                  // Fallback if image is not available
+                  // Fallback si la imagen no está disponible
                   e.target.src = "https://placehold.co/300x600/4f46e5/ffffff?text=Localist+App";
                 }}
               />
               <div className="absolute -bottom-6 -right-6 bg-white/20 backdrop-blur-sm p-4 rounded-2xl shadow-lg">
-                <div className="text-sm font-semibold">Starting exploring now!</div>
+                <div className="text-sm font-semibold">¡Empieza a explorar ahora!</div>
                 <ArrowDown className="mt-2 h-5 w-5 animate-bounce" />
               </div>
             </div>

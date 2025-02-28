@@ -11,23 +11,23 @@ export default function Testimonials() {
     // Your testimonial data remains unchanged
     {
       name: "Sarah Johnson",
-      location: "New York, NY",
+      location: "Nueva York, NY",
       image: "https://randomuser.me/api/portraits/women/12.jpg",
-      text: "Localist completely changed how I explore new cities! I discovered the most amazing local bakery in Paris that wasn't on any of the usual tourist sites.",
+      text: "¡Localist cambió completamente la forma en que exploro nuevas ciudades! Descubrí una increíble panadería local en París que no estaba en ninguno de los sitios turísticos habituales.",
       rating: 5
     },
     {
-      name: "Michael Chen",
+      name: "Michael Chen", 
       location: "San Francisco, CA",
       image: "https://randomuser.me/api/portraits/men/32.jpg",
-      text: "The photo spot recommendations were perfect! I got incredible shots for my Instagram that made all my friends ask where I found these hidden gems.",
+      text: "¡Las recomendaciones de lugares para fotos fueron perfectas! Conseguí tomas increíbles para mi Instagram que hicieron que todos mis amigos preguntaran dónde encontré estas joyas escondidas.",
       rating: 5
     },
     {
       name: "Emily Rodriguez",
-      location: "Chicago, IL",
+      location: "Chicago, IL", 
       image: "https://randomuser.me/api/portraits/women/22.jpg",
-      text: "As a foodie, I appreciate that Localist helped me find authentic local restaurants that I wouldn't have discovered otherwise. The personalized recommendations were spot on!",
+      text: "Como amante de la comida, aprecio que Localist me ayudara a encontrar restaurantes locales auténticos que no hubiera descubierto de otra manera. ¡Las recomendaciones personalizadas fueron excelentes!",
       rating: 4
     }
   ];
@@ -47,9 +47,9 @@ export default function Testimonials() {
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="text-3xl font-bold text-gray-900">What Our Users Say</h2>
+          <h2 className="text-3xl font-bold text-gray-900">Lo Que Dicen Nuestros Usuarios</h2>
           <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
-            Join thousands of travelers who have discovered extraordinary places with Localist
+            Únete a miles de viajeros que han descubierto lugares extraordinarios con Localist
           </p>
         </motion.div>
         
@@ -93,7 +93,7 @@ export default function Testimonials() {
                 {[...Array(5)].map((_, i) => (
                   <Star 
                     key={i}
-                    className={`h-4 w-4 \${i < testimonial.rating ? "text-yellow-500 fill-yellow-500" : "text-gray-300"}`} 
+                    className={`h-4 w-4 ${i < testimonial.rating ? "text-yellow-500 fill-yellow-500" : "text-gray-300"}`} 
                   />
                 ))}
               </div>

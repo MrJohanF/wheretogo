@@ -16,9 +16,9 @@ export default function Header() {
         
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-8">
-          <Link href="/explore" className="text-gray-600 hover:text-indigo-600">Explore</Link>
-          <Link href="/categories" className="text-gray-600 hover:text-indigo-600">Categories</Link>
-          <Link href="/about" className="text-gray-600 hover:text-indigo-600">About Us</Link>
+          <Link href="/explore" className="text-gray-600 hover:text-indigo-600">Explorar</Link>
+          <Link href="/categories" className="text-gray-600 hover:text-indigo-600">Categorías</Link>
+          <Link href="/about" className="text-gray-600 hover:text-indigo-600">Sobre Nosotros</Link>
         </nav>
         
         <div className="hidden md:flex items-center gap-4">
@@ -26,7 +26,7 @@ export default function Header() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
             <input 
               type="text" 
-              placeholder="Search places..." 
+              placeholder="Buscar lugares..." 
               className="pl-10 pr-4 py-2 border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64"
             />
           </div>
@@ -51,15 +51,15 @@ export default function Header() {
             <Search className="text-gray-400 h-5 w-5 ml-3 absolute" />
             <input 
               type="text" 
-              placeholder="Search places..." 
+              placeholder="Buscar lugares..." 
               className="pl-10 pr-4 py-2 border rounded-full text-sm w-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
           <div className="space-y-3">
-            <Link href="/explore" className="block text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-md">Explore</Link>
-            <Link href="/categories" className="block text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-md">Categories</Link>
-            <Link href="/about" className="block text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-md">About Us</Link>
-            <Link href="/profile" className="block text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-md">Profile</Link>
+            <Link href="/explore" className="block text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-md">Explorar</Link>
+            <Link href="/categories" className="block text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-md">Categorías</Link>
+            <Link href="/about" className="block text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-md">Sobre Nosotros</Link>
+            <Link href="/profile" className="block text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-md">Perfil</Link>
           </div>
         </div>
       )}

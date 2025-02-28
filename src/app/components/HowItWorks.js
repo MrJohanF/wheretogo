@@ -11,23 +11,23 @@ export default function HowItWorks() {
   const steps = [
     {
       icon: <MapPin className="h-8 w-8" />,
-      title: "Choose Your Destination",
-      description: "Select the city or area you want to explore and get ready for personalized recommendations."
+      title: "Elige tu Destino",
+      description: "Selecciona la ciudad o área que quieres explorar y obtén recomendaciones personalizadas."
     },
     {
       icon: <Search className="h-8 w-8" />,
-      title: "Discover Places",
-      description: "Browse through curated lists of restaurants, attractions, photo spots, and hidden gems."
+      title: "Descubre Lugares",
+      description: "Explora listas curadas de restaurantes, atracciones, puntos fotográficos y lugares ocultos."
     },
     {
       icon: <ThumbsUp className="h-8 w-8" />,
-      title: "Get Personalized Suggestions",
-      description: "Tell us what you like, and we'll suggest places that match your preferences and interests."
+      title: "Obtén Sugerencias Personalizadas",
+      description: "Cuéntanos lo que te gusta y te sugeriremos lugares que coincidan con tus preferencias e intereses."
     },
     {
       icon: <Smartphone className="h-8 w-8" />,
-      title: "Plan Your Visit",
-      description: "Save favorites, create itineraries, and access them offline during your adventure."
+      title: "Planifica tu Visita",
+      description: "Guarda tus favoritos, crea itinerarios y accede a ellos sin conexión durante tu aventura."
     }
   ];
 
@@ -54,9 +54,9 @@ export default function HowItWorks() {
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
           transition={{ duration: 0.7 }}
         >
-          <h2 className="text-3xl font-bold text-gray-900">How It Works</h2>
+          <h2 className="text-3xl font-bold text-gray-900">Cómo Funciona</h2>
           <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
-            Discover how Localist helps you find amazing places in just a few simple steps
+            Descubre cómo Localist te ayuda a encontrar lugares increíbles en unos simples pasos
           </p>
         </motion.div>
         
@@ -107,7 +107,7 @@ export default function HowItWorks() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            Get Started Now
+            Empezar Ahora
           </motion.button>
         </motion.div>
       </div>

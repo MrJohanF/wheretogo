@@ -12,14 +12,14 @@ export default function CategorySection() {
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   
   const categories = [
-    { icon: <Utensils />, name: "Restaurants" },
-    { icon: <Coffee />, name: "Cafés" },
-    { icon: <ShoppingBag />, name: "Local Shops" },
-    { icon: <Camera />, name: "Photo Spots" },
-    { icon: <Mountain />, name: "Nature" },
-    { icon: <Landmark />, name: "Landmarks" },
-    { icon: <Palmtree />, name: "Hidden Gems" },
-    { icon: <Ticket />, name: "Activities" },
+    { icon: <Utensils />, name: "Restaurantes" },
+    { icon: <Coffee />, name: "Cafeterías" },
+    { icon: <ShoppingBag />, name: "Tiendas Locales" },
+    { icon: <Camera />, name: "Lugares Fotográficos" },
+    { icon: <Mountain />, name: "Naturaleza" },
+    { icon: <Landmark />, name: "Monumentos" },
+    { icon: <Palmtree />, name: "Lugares Secretos" },
+    { icon: <Ticket />, name: "Actividades" },
   ];
 
   const container = {
@@ -47,9 +47,9 @@ export default function CategorySection() {
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
           transition={{ duration: 0.7 }}
         >
-          <h2 className="text-3xl font-bold text-gray-900">Explore by Category</h2>
+          <h2 className="text-3xl font-bold text-gray-900">Explorar por Categoría</h2>
           <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
-            Find exactly what you're looking for with our curated categories
+            Encuentra exactamente lo que buscas con nuestras categorías seleccionadas
           </p>
         </motion.div>
         

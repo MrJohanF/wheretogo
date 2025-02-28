@@ -34,7 +34,7 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.8 }}
             >
-              Discover the Best Local Experiences
+              Descubre las Mejores Experiencias Locales
             </motion.h1>
             <motion.p 
               className="text-lg md:text-xl mb-8 text-indigo-100"
@@ -42,7 +42,7 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.8 }}
             >
-              Personalized recommendations for places to visit, eat, shop, and more—all curated by locals who know best.
+              Recomendaciones personalizadas de lugares para visitar, comer, comprar y más, todo seleccionado por locales que conocen mejor.
             </motion.p>
             
             <motion.div 
@@ -55,7 +55,7 @@ export default function HeroSection() {
               <MapPin className="h-5 w-5 text-indigo-200 mr-2 flex-shrink-0" />
               <input 
                 type="text" 
-                placeholder="Where are you going?" 
+                placeholder="¿A dónde vas?" 
                 className="bg-transparent border-none outline-none text-white placeholder-indigo-200 w-full"
               />
               <motion.button 
@@ -64,7 +64,7 @@ export default function HeroSection() {
                 whileTap={{ scale: 0.95 }}
               >
                 <Compass className="h-4 w-4 mr-2" />
-                Explore
+                Explorar
               </motion.button>
             </motion.div>
             
@@ -74,7 +74,7 @@ export default function HeroSection() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.8, duration: 0.8 }}
             >
-              {['100K+ Users', '50K+ Places', '120+ Cities'].map((stat, index) => (
+              {['100K+ Usuarios', '50K+ Lugares', '120+ Ciudades'].map((stat, index) => (
                 <motion.span 
                   key={stat}
                   className="mr-4 flex items-center last:mr-0"
@@ -106,7 +106,7 @@ export default function HeroSection() {
               >
                 <img 
                   src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" 
-                  alt="City viewpoint" 
+                  alt="Mirador de la ciudad" 
                   className="w-full h-72 object-cover"
                 />
               </motion.div>
@@ -119,7 +119,7 @@ export default function HeroSection() {
               >
                 <img 
                   src="https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&q=80" 
-                  alt="Venice canals" 
+                  alt="Canales de Venecia" 
                   className="w-full h-full object-cover"
                 />
               </motion.div>
