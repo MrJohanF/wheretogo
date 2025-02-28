@@ -135,7 +135,7 @@ export default function FeaturedPlaces() {
                       <span className="text-gray-500 ml-1">({place.reviews})</span>
                     </div>
                     <button className="text-sm font-medium text-indigo-600 hover:underline details-button">
-                      Detalles
+                      Details
                     </button>
                   </div>
                 </div>
@@ -146,12 +146,12 @@ export default function FeaturedPlaces() {
         
         <div className="mt-8 text-center md:hidden">
           <button className="px-6 py-2 text-indigo-600 border border-indigo-600 rounded-lg hover:bg-indigo-50 transform hover:scale-105 active:scale-95 transition-transform duration-150">
-            Ver Todos los Lugares
+            View All Places
           </button>
         </div>
       </div>
 
-      {/* Agregar este estilo para animaciones ultra suaves al pasar el mouse */}
+      {/* Add this style tag for ultra-smooth hover animations */}
       <style jsx global>{`
         .place-card {
           transform-style: preserve-3d;
