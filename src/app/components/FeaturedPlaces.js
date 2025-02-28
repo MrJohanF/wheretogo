@@ -111,7 +111,7 @@ export default function FeaturedPlaces() {
                     onMouseLeave={() => setHoveredHearts({...hoveredHearts, [place.id]: false})}
                   >
                     <Heart 
-                      className={`h-5 w-5 \${hoveredHearts[place.id] ? 'text-red-500' : 'text-gray-600'}`} 
+                      className={`h-5 w-5 ${hoveredHearts[place.id] ? 'text-red-500' : 'text-gray-600'}`} 
                     />
                   </button>
                   <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm py-1 px-3 rounded-full text-xs font-medium text-indigo-700">

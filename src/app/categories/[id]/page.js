@@ -156,7 +156,7 @@ export default function CategoryDetail() {
   };
 
   const handlePlaceClick = (place) => {
-    router.push(`/places/\${place.id}`);
+    router.push(`/places/${place.id}`);
   };
 
   const toggleFilter = (filter) => {
@@ -287,7 +287,7 @@ export default function CategoryDetail() {
             {/* Filter Button */}
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center justify-center px-4 py-2.5 rounded-lg transition-all font-medium \${
+              className={`flex items-center justify-center px-4 py-2.5 rounded-lg transition-all font-medium ${
                 showFilters || activeFilters.length > 0 
                   ? 'bg-indigo-100 text-indigo-700' 
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -322,19 +322,19 @@ export default function CategoryDetail() {
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-10 hidden">
                 <button
                   onClick={() => setSortBy("rating")}
-                  className={`w-full text-left px-4 py-2 text-sm \${sortBy === 'rating' ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-gray-50'}`}
+                  className={`w-full text-left px-4 py-2 text-sm ${sortBy === 'rating' ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-gray-50'}`}
                 >
                   Mejor valorados
                 </button>
                 <button
                   onClick={() => setSortBy("distance")}
-                  className={`w-full text-left px-4 py-2 text-sm \${sortBy === 'distance' ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-gray-50'}`}
+                  className={`w-full text-left px-4 py-2 text-sm ${sortBy === 'distance' ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-gray-50'}`}
                 >
                   Más cercanos
                 </button>
                 <button
                   onClick={() => setSortBy("reviews")}
-                  className={`w-full text-left px-4 py-2 text-sm \${sortBy === 'reviews' ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-gray-50'}`}
+                  className={`w-full text-left px-4 py-2 text-sm ${sortBy === 'reviews' ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-gray-50'}`}
                 >
                   Más reseñas
                 </button>
@@ -345,7 +345,7 @@ export default function CategoryDetail() {
             <div className="bg-gray-100 rounded-lg p-1 flex">
               <button
                 onClick={() => setViewMode("grid")}
-                className={`flex items-center justify-center rounded-md w-10 h-8 transition-colors \${
+                className={`flex items-center justify-center rounded-md w-10 h-8 transition-colors ${
                   viewMode === 'grid'
                     ? 'bg-white text-indigo-600 shadow-sm'
                     : 'text-gray-500 hover:text-gray-700'
@@ -356,7 +356,7 @@ export default function CategoryDetail() {
               </button>
               <button
                 onClick={() => setViewMode("map")}
-                className={`flex items-center justify-center rounded-md w-10 h-8 transition-colors \${
+                className={`flex items-center justify-center rounded-md w-10 h-8 transition-colors ${
                   viewMode === 'map'
                     ? 'bg-white text-indigo-600 shadow-sm'
                     : 'text-gray-500 hover:text-gray-700'
@@ -395,7 +395,7 @@ export default function CategoryDetail() {
                       <button
                         key={filter}
                         onClick={() => toggleFilter(filter)}
-                        className={`px-4 py-2 rounded-full text-sm transition-all \${
+                        className={`px-4 py-2 rounded-full text-sm transition-all ${
                           activeFilters.includes(filter)
                             ? 'bg-indigo-600 text-white shadow-sm' 
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'

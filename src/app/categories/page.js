@@ -147,7 +147,7 @@ export default function CategoriesPage() {
   const handleCategoryClick = (category) => {
     setSelectedCategory(category);
     // Navigate to the category detail page
-    router.push(`/categories/\${category.id}`);
+    router.push(`/categories/${category.id}`);
   };
 
   const toggleSaveCategory = (e, categoryId) => {
@@ -202,11 +202,11 @@ export default function CategoriesPage() {
       whileHover={{ y: -5 }}
       whileTap={{ scale: 0.98 }}
       onClick={() => handleCategoryClick(category)}
-      className={`bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden h-full \${
+      className={`bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden h-full ${
         isFeatured ? 'col-span-1 md:col-span-2 lg:col-span-2' : ''
       }`}
     >
-      <div className={`relative \${isFeatured ? 'h-48' : 'h-32'} overflow-hidden`}>
+      <div className={`relative ${isFeatured ? 'h-48' : 'h-32'} overflow-hidden`}>
         {category.image && (
           <Image
             src={category.image}
@@ -218,7 +218,7 @@ export default function CategoriesPage() {
             quality={85}
           />
         )}
-        <div className={`absolute inset-0 bg-gradient-to-br \${category.color} opacity-80`}></div>
+        <div className={`absolute inset-0 bg-gradient-to-br ${category.color} opacity-80`}></div>
         
         {/* Category Icon and Badge */}
         <div className="absolute inset-0 p-6 flex flex-col justify-between">
@@ -233,7 +233,7 @@ export default function CategoriesPage() {
               )}
               <button
                 onClick={(e) => toggleSaveCategory(e, category.id)}
-                className={`p-1.5 rounded-full \${
+                className={`p-1.5 rounded-full ${
                   savedCategories.has(category.id) 
                     ? 'bg-white text-indigo-600' 
                     : 'bg-white/30 backdrop-blur-sm text-white hover:bg-white/50'
@@ -362,7 +362,7 @@ export default function CategoriesPage() {
             </div>
             <button
               onClick={() => setFilterMode("all")}
-              className={`px-3 py-1.5 rounded-lg text-sm transition-colors \${
+              className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
                 filterMode === "all"
                   ? "bg-indigo-100 text-indigo-700 font-medium"
                   : "text-gray-600 hover:bg-gray-100"
@@ -372,7 +372,7 @@ export default function CategoriesPage() {
             </button>
             <button
               onClick={() => setFilterMode("trending")}
-              className={`px-3 py-1.5 rounded-lg text-sm transition-colors flex items-center \${
+              className={`px-3 py-1.5 rounded-lg text-sm transition-colors flex items-center ${
                 filterMode === "trending"
                   ? "bg-indigo-100 text-indigo-700 font-medium"
                   : "text-gray-600 hover:bg-gray-100"
@@ -386,7 +386,7 @@ export default function CategoriesPage() {
           <div className="flex items-center space-x-2 bg-gray-100 p-1 rounded-lg">
             <button
               onClick={() => setViewMode("grid")}
-              className={`p-2 rounded \${
+              className={`p-2 rounded ${
                 viewMode === "grid" ? "bg-white shadow-sm" : "text-gray-500 hover:text-gray-700"
               }`}
               aria-label="Ver en cuadrícula"
@@ -397,7 +397,7 @@ export default function CategoriesPage() {
             </button>
             <button
               onClick={() => setViewMode("list")}
-              className={`p-2 rounded \${
+              className={`p-2 rounded ${
                 viewMode === "list" ? "bg-white shadow-sm" : "text-gray-500 hover:text-gray-700"
               }`}
               aria-label="Ver en lista"
@@ -449,7 +449,7 @@ export default function CategoriesPage() {
                   className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
                 >
                   <div className="flex items-center p-4">
-                    <div className={`w-14 h-14 rounded-xl bg-gradient-to-br \${category.color} flex items-center justify-center text-white text-2xl mr-5`}>
+                    <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${category.color} flex items-center justify-center text-white text-2xl mr-5`}>
                       {category.icon}
                     </div>
                     
@@ -489,7 +489,7 @@ export default function CategoriesPage() {
                     <div className="flex items-center">
                       <button
                         onClick={(e) => toggleSaveCategory(e, category.id)}
-                        className={`p-2 rounded-full mr-2 \${
+                        className={`p-2 rounded-full mr-2 ${
                           savedCategories.has(category.id) 
                             ? 'text-indigo-600' 
                             : 'text-gray-400 hover:text-gray-700'
