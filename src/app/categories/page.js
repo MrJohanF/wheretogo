@@ -1,45 +1,45 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Search, ChevronRight } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Search, ChevronRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const categories = [
-  { 
-    id: 1, 
-    name: 'Restaurantes', 
-    icon: '🍽️', 
+  {
+    id: 1,
+    name: "Restaurantes",
+    icon: "🍽️",
     count: 128,
-    description: 'Descubre los mejores restaurantes de la ciudad',
-    features: ['Reservas', 'Menús', 'Reseñas', 'Fotos']
+    description: "Descubre los mejores restaurantes de la ciudad",
+    features: ["Reservas", "Menús", "Reseñas", "Fotos"],
   },
-  { 
-    id: 2, 
-    name: 'Cafeterías', 
-    icon: '☕', 
+  {
+    id: 2,
+    name: "Cafeterías",
+    icon: "☕",
     count: 85,
-    description: 'Encuentra tu café favorito',
-    features: ['Especialidad', 'Ambiente', 'WiFi', 'Para llevar']
+    description: "Encuentra tu café favorito",
+    features: ["Especialidad", "Ambiente", "WiFi", "Para llevar"],
   },
-  { id: 3, name: 'Bares', icon: '🍸', count: 64 },
-  { id: 4, name: 'Museos', icon: '🏛️', count: 42 },
-  { id: 5, name: 'Parques', icon: '🌳', count: 37 },
-  { id: 6, name: 'Cines', icon: '🎬', count: 23 },
-  { id: 7, name: 'Teatros', icon: '🎭', count: 18 },
-  { id: 8, name: 'Deportes', icon: '⚽', count: 56 },
-  { id: 9, name: 'Compras', icon: '🛍️', count: 94 },
-  { id: 10, name: 'Eventos', icon: '🎉', count: 73 },
-  { id: 11, name: 'Hoteles', icon: '🏨', count: 45 },
-  { id: 12, name: 'Playas', icon: '🏖️', count: 31 }
+  { id: 3, name: "Bares", icon: "🍸", count: 64 },
+  { id: 4, name: "Museos", icon: "🏛️", count: 42 },
+  { id: 5, name: "Parques", icon: "🌳", count: 37 },
+  { id: 6, name: "Cines", icon: "🎬", count: 23 },
+  { id: 7, name: "Teatros", icon: "🎭", count: 18 },
+  { id: 8, name: "Deportes", icon: "⚽", count: 56 },
+  { id: 9, name: "Compras", icon: "🛍️", count: 94 },
+  { id: 10, name: "Eventos", icon: "🎉", count: 73 },
+  { id: 11, name: "Hoteles", icon: "🏨", count: 45 },
+  { id: 12, name: "Playas", icon: "🏖️", count: 31 },
 ];
 
 export default function CategoriesPage() {
   const router = useRouter();
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  
+
   useEffect(() => {
     setIsInitialLoad(false);
   }, []);
@@ -50,7 +50,7 @@ export default function CategoriesPage() {
     router.push(`/categories/${category.id}`);
   };
 
-  const filteredCategories = categories.filter(category =>
+  const filteredCategories = categories.filter((category) =>
     category.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -59,14 +59,14 @@ export default function CategoriesPage() {
     show: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
-      }
-    }
+        staggerChildren: 0.1,
+      },
+    },
   };
 
   const item = {
     hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
+    show: { opacity: 1, y: 0 },
   };
 
   return (
@@ -127,13 +127,17 @@ export default function CategoriesPage() {
                   <div className="flex items-center space-x-4">
                     <span className="text-3xl">{category.icon}</span>
                     <div>
-                      <h3 className="font-semibold text-gray-800">{category.name}</h3>
-                      <p className="text-sm text-gray-500">{category.count} lugares</p>
+                      <h3 className="font-semibold text-gray-800">
+                        {category.name}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        {category.count} lugares
+                      </p>
                     </div>
                   </div>
-                  <ChevronRight 
-                    size={20} 
-                    className="text-gray-400 transform transition-transform duration-200 group-hover:translate-x-1" 
+                  <ChevronRight
+                    size={20}
+                    className="text-gray-400 transform transition-transform duration-200 group-hover:translate-x-1"
                   />
                 </div>
               </div>
