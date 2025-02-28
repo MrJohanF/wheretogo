@@ -806,30 +806,78 @@ export default function PlaceDetail() {
                 </div>
               </div>
 
-              {/* Similar Places - You would need to implement this with real data */}
+              {/* Similar Places */}
               <div className="mt-6 bg-white rounded-xl shadow-md border border-gray-100 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <Coffee size={18} className="mr-2 text-indigo-600" />
                   Lugares similares
                 </h3>
                 <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="flex items-start">
-                      <div className="h-14 w-14 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                        {/* Replace with actual image */}
-                        <div className="h-full w-full bg-indigo-100"></div>
+                  {[
+                    {
+                      id: 1,
+                      name: "Casa Lucio",
+                      image: "https://images.unsplash.com/photo-1466978913421-dad2ebd01d17",
+                      rating: 4.7,
+                      reviews: 847,
+                      distance: "350m",
+                      cuisine: "Española",
+                      price: "€€€"
+                    },
+                    {
+                      id: 2,
+                      name: "El Paraguas",
+                      image: "https://images.unsplash.com/photo-1537047902294-62a40c20a6ae",
+                      rating: 4.9,
+                      reviews: 1243,
+                      distance: "500m",
+                      cuisine: "Mediterránea",
+                      price: "€€€€"
+                    },
+                    {
+                      id: 3,
+                      name: "Botín",
+                      image: "https://images.unsplash.com/photo-1424847651672-bf20a4b0982b",
+                      rating: 4.6,
+                      reviews: 2391,
+                      distance: "750m",
+                      cuisine: "Tradicional",
+                      price: "€€€"
+                    }
+                  ].map((place) => (
+                    <div key={place.id} className="flex items-start space-x-4 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+                      <div className="h-20 w-20 flex-shrink-0 rounded-lg overflow-hidden">
+                        <img
+                          src={place.image}
+                          alt={place.name}
+                          className="h-full w-full object-cover"
+                        />
                       </div>
-                      <div className="ml-3">
-                        <h4 className="font-medium text-gray-900">
-                          Restaurante {i}
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-gray-900 truncate">
+                          {place.name}
                         </h4>
-                        <div className="flex items-center text-sm text-gray-500">
-                          <Star
-                            size={12}
-                            className="text-yellow-400 fill-current"
-                          />
-                          <span className="ml-1">4.{i}</span>
-                          <span className="mx-1">•</span>
-                          <span>{2 * i}0m</span>
+                        <div className="flex items-center mt-1">
+                          <div className="flex items-center">
+                            <Star size={14} className="text-yellow-400 fill-current" />
+                            <span className="ml-1 text-sm font-medium text-gray-700">
+                              {place.rating}
+                            </span>
+                          </div>
+                          <span className="mx-1.5 text-gray-500">·</span>
+                          <span className="text-sm text-gray-500">
+                            {place.reviews} reseñas
+                          </span>
+                        </div>
+                        <div className="flex items-center mt-1 text-sm text-gray-500">
+                          <span className="flex items-center">
+                            <MapPin size={12} className="mr-1" />
+                            {place.distance}
+                          </span>
+                          <span className="mx-1.5">·</span>
+                          <span>{place.cuisine}</span>
+                          <span className="mx-1.5">·</span>
+                          <span>{place.price}</span>
                         </div>
                       </div>
                     </div>
