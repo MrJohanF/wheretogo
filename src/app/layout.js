@@ -7,8 +7,8 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: 'Localist - Your Personal Travel Guide',
-  description: 'Discover the best places, restaurants, attractions and hidden gems recommended by locals',
+  title: 'Localist - Tu Guía de Viaje Personal',
+  description: 'Descubre los mejores lugares, restaurantes, atracciones y joyas ocultas recomendadas por locales',
 };
 
 export default function RootLayout({ children }) {
