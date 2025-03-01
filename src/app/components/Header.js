@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, X, Search, User, MapPin, ArrowLeft } from 'lucide-react';
+import { Menu, X, Search, User, MapPin, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -113,18 +113,14 @@ export default function Header() {
           <span className="font-bold text-xl text-gray-800">Localist</span>
         </Link>
         
-        {/* Desktop Navigation with fixed positioning */}
+        {/* Desktop Navigation with fixed positioning - removed x animation */}
         <div className="hidden md:block flex-1">
           <motion.nav 
             animate={{ 
               opacity: isSearchExpanded ? 0.5 : 1,
-              x: isSearchExpanded ? -20 : 0,
               pointerEvents: isSearchExpanded ? "none" : "auto"
             }}
-            transition={{ 
-              duration: 0.4, 
-              ease: [0.19, 1.0, 0.22, 1.0] 
-            }}
+            transition={{ duration: 0.4, ease: "easeInOut" }}
             className="flex items-center gap-8"
           >
             <Link href="/explore" className="text-gray-600 hover:text-indigo-600">Explorar</Link>
