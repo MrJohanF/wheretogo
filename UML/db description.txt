@@ -1,0 +1,138 @@
+# WhereToGo Database Structure
+
+## Core Entities
+
+### `users`
+- `id` (Primary Key)
+- `name`
+- `email`
+- `password`
+- `avatar`
+- `created_at`
+- `updated_at`
+
+### `categories`
+- `id` (Primary Key)
+- `name` (e.g., "Restaurantes", "Cafeterías", "Bares")
+- `icon` (emoji or icon reference)
+- `description`
+- `image` (URL to category image)
+- `color` (gradient colors for UI)
+- `count` (number of places in this category)
+- `is_trending` (boolean flag)
+
+### `subcategories`
+- `id` (Primary Key)
+- `category_id` (Foreign Key to categories)
+- `name` (e.g., "Italiano", "Mediterráneo" for Restaurants)
+
+### `places`
+- `id` (Primary Key)
+- `name` (e.g., "La Terraza Restaurant")
+- `description`
+- `rating` (average rating)
+- `price_level` (e.g., "$$")
+- `address`
+- `phone`
+- `website`
+- `cuisine` (for restaurants)
+- `is_open_now` (boolean)
+- `latitude`
+- `longitude`
+- `distance` (calculated field)
+- `created_at`
+- `updated_at`
+
+### `images`
+- `id` (Primary Key)
+- `place_id` (Foreign Key to places)
+- `url`
+- `alt_text`
+- `is_featured` (boolean)
+
+## Relationships
+
+### `place_categories`
+- `place_id` (Foreign Key to places)
+- `category_id` (Foreign Key to categories)
+
+### `place_subcategories`
+- `place_id` (Foreign Key to places)
+- `subcategory_id` (Foreign Key to subcategories)
+
+### `operating_hours`
+- `id` (Primary Key)
+- `place_id` (Foreign Key to places)
+- `day` (e.g., "Lunes", "Martes")
+- `opening_time`
+- `closing_time`
+
+### `reviews`
+- `id` (Primary Key)
+- `place_id` (Foreign Key to places)
+- `user_id` (Foreign Key to users)
+- `rating` (1-5)
+- `comment`
+- `date`
+
+### `favorites`
+- `user_id` (Foreign Key to users)
+- `place_id` (Foreign Key to places)
+
+### `category_favorites`
+- `user_id` (Foreign Key to users)
+- `category_id` (Foreign Key to categories)
+
+## User Interactions
+
+### `reservations`
+- `id` (Primary Key)
+- `place_id` (Foreign Key to places)
+- `user_id` (Foreign Key to users)
+- `date`
+- `time`
+- `guests` (number of people)
+- `name` (reservation name)
+- `email`
+- `phone`
+- `special_requests`
+- `status` (e.g., "pending", "confirmed", "completed")
+- `created_at`
+
+### `popular_items`
+- `id` (Primary Key)
+- `place_id` (Foreign Key to places)
+- `name` (e.g., "Paella", "Sangría")
+
+## Additional Features
+
+### `similar_places`
+- `place_id` (Foreign Key to places)
+- `similar_place_id` (Foreign Key to places)
+- `similarity_score`
+
+### `features`
+- `id` (Primary Key)
+- `name` (e.g., "WiFi", "Reservas", "Menús")
+
+### `place_features`
+- `place_id` (Foreign Key to places)
+- `feature_id` (Foreign Key to features)
+
+### `search_history`
+- `id` (Primary Key)
+- `user_id` (Foreign Key to users)
+- `query`
+- `timestamp`
+
+This structure directly supports all the features I observed in your application:
+
+1. **Category browsing** with subcategories and trending indicators
+2. **Place details** with comprehensive information (ratings, hours, contact info)
+3. **Reviews system** with ratings and comments
+4. **Image galleries** for places
+5. **Favorites/bookmarks** for both places and categories
+6. **Reservation system** with all necessary details
+7. **Similar places** recommendations
+8. **Search functionality** with history tracking
+
