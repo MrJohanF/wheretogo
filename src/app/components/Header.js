@@ -30,7 +30,7 @@ export default function Header() {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(`/search?q=\${encodeURIComponent(searchQuery)}`);
+      router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
       setIsSearchExpanded(false);
     }
   };
@@ -154,7 +154,7 @@ export default function Header() {
                   transition={springTransition}
                   className="absolute top-1/2 transform -translate-y-1/2 z-10"
                 >
-                  <Search className={`h-5 w-5 \${isSearchExpanded ? 'text-indigo-500' : 'text-gray-400'}`} />
+                  <Search className={`h-5 w-5 ${isSearchExpanded ? 'text-indigo-500' : 'text-gray-400'}`} />
                 </motion.div>
                 
                 {/* Input field with custom focus styles */}
@@ -165,10 +165,10 @@ export default function Header() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setIsSearchExpanded(true)}
                   className={`
-                    pl-10 pr-\${isSearchExpanded ? '12' : '4'} py-2 
+                    pl-10 pr-${isSearchExpanded ? '12' : '4'} py-2 
                     border rounded-full text-sm 
                     h-full w-full transition-colors duration-300
-                    \${isSearchExpanded 
+                    ${isSearchExpanded 
                       ? 'border-indigo-300 shadow-sm bg-white' 
                       : 'border-gray-300 bg-gray-50 hover:bg-gray-100'}
                     focus:outline-none focus:ring-0 focus:border-indigo-400
