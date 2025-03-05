@@ -31,6 +31,7 @@ import {
   Image,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import ConfirmationModal from "@/app/components/ConfirmationModal";
 
 const fadeIn = {
   hidden: { opacity: 0 },
@@ -931,46 +932,16 @@ export default function CategoriesManagement() {
         )}
 
         {/* Delete Confirmation Modal */}
-        {showDeleteConfirm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl"
-            >
-              <div className="flex items-start mb-4">
-                <div className="bg-red-100 rounded-full p-2 text-red-600">
-                  <AlertCircle size={24} />
-                </div>
-                <div className="ml-4 flex-1">
-                  <h3 className="text-lg font-medium text-gray-900">
-                    Delete Category
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    Are you sure you want to delete the category "
-                    {categoryToDelete?.name}"? This will also delete all related
-                    subcategories. This action cannot be undone.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3">
-                <button
-                  onClick={() => setShowDeleteConfirm(false)}
-                  className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleConfirmDelete}
-                  className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
-                >
-                  Delete
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
+        <ConfirmationModal
+          isOpen={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={handleConfirmDelete}
+          title="Delete Category"
+          message={`Are you sure you want to delete the category "${categoryToDelete?.name}"? This will also delete all related subcategories. This action cannot be undone.`}
+          confirmText="Delete"
+          cancelText="Cancel"
+          type="delete"
+        />
 
         {/* Subcategory Form Modal */}
         {(isAddingSubcategory || isEditingSubcategory) && (
@@ -1041,45 +1012,16 @@ export default function CategoriesManagement() {
         )}
 
         {/* Delete Subcategory Confirmation Modal */}
-        {showDeleteSubcategoryConfirm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl"
-            >
-              <div className="flex items-start mb-4">
-                <div className="bg-red-100 rounded-full p-2 text-red-600">
-                  <AlertCircle size={24} />
-                </div>
-                <div className="ml-4 flex-1">
-                  <h3 className="text-lg font-medium text-gray-900">
-                    Delete Subcategory
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    Are you sure you want to delete the subcategory "
-                    {subcategoryToDelete?.name}"? This action cannot be undone.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3">
-                <button
-                  onClick={() => setShowDeleteSubcategoryConfirm(false)}
-                  className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleConfirmDeleteSubcategory}
-                  className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
-                >
-                  Delete
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
+        <ConfirmationModal
+          isOpen={showDeleteSubcategoryConfirm}
+          onClose={() => setShowDeleteSubcategoryConfirm(false)}
+          onConfirm={handleConfirmDeleteSubcategory}
+          title="Delete Subcategory"
+          message={`Are you sure you want to delete the subcategory "${subcategoryToDelete?.name}"? This action cannot be undone.`}
+          confirmText="Delete"
+          cancelText="Cancel"
+          type="delete"
+        />
         
       </motion.div>
     </div>
