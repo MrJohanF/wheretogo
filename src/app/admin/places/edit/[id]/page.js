@@ -245,7 +245,7 @@ export default function PlaceFormPage({ params }) {
   }
 
   return (
-    <div className="px-4 py-6 sm:px-6 lg:px-8 bg-white dark:bg-gray-900 rounded-lg shadow">
+    <div className="px-4 py-6 sm:px-6 lg:px-8 dark:bg-gray-900">
       <div className="flex items-center mb-8">
         <button 
           onClick={handleCancel}
