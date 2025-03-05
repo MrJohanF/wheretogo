@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ChevronRight, TrendingUp, Clock, Star, Image as ImageIcon, X, Filter, Bookmark } from "lucide-react";
+import { Search, ChevronRight, TrendingUp, Clock, Star, Image as ImageIcon, X, Filter, Bookmark, Home } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
@@ -136,7 +136,7 @@ export default function CategoriesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [viewMode, setViewMode] = useState("grid"); // "grid" or "list"
+  const [viewMode, setViewMode] = useState("list"); // "grid" or "list"
   const [filterMode, setFilterMode] = useState("all"); // "all", "trending"
   const [savedCategories, setSavedCategories] = useState(new Set());
 
@@ -148,6 +148,10 @@ export default function CategoriesPage() {
     setSelectedCategory(category);
     // Navigate to the category detail page
     router.push(`/categories/${category.id}`);
+  };
+
+  const goToHomePage = () => {
+    router.push('/');
   };
 
   const toggleSaveCategory = (e, categoryId) => {
@@ -199,8 +203,6 @@ export default function CategoriesPage() {
   const CategoryCard = ({ category, isFeatured = false }) => (
     <motion.div
       variants={item}
-      whileHover={{ y: -5 }}
-      whileTap={{ scale: 0.98 }}
       onClick={() => handleCategoryClick(category)}
       className={`bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden h-full ${
         isFeatured ? 'col-span-1 md:col-span-2 lg:col-span-2' : ''
@@ -443,8 +445,6 @@ export default function CategoriesPage() {
                 <motion.div
                   key={category.id}
                   variants={item}
-                  whileHover={{ x: 4 }}
-                  whileTap={{ scale: 0.99 }}
                   onClick={() => handleCategoryClick(category)}
                   className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
                 >
