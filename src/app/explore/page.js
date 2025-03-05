@@ -13,10 +13,12 @@ import {
   List,
   Grid,
   Map as MapIcon,
+  Home,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 
 // Dynamically import the Map component to avoid SSR issues
 const MapComponent = dynamic(() => import("../components/MapComponent"), {
@@ -35,6 +37,7 @@ export default function ExplorePage() {
   const [favorites, setFavorites] = useState(new Set());
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
+  const router = useRouter();
 
   const resultsRef = useRef(null);
   const isResultsInView = useInView(resultsRef, {
@@ -196,6 +199,10 @@ export default function ExplorePage() {
     });
   };
 
+  const goToHomePage = () => {
+    router.push("/");
+  };
+
   const clearFilters = () => {
     setActiveFilters([]);
     setSearchQuery("");
@@ -251,6 +258,14 @@ export default function ExplorePage() {
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section with Search */}
       <div className="relative bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+                {/* Home Button in Header */}
+                <button
+          onClick={goToHomePage}
+          className="absolute top-4 left-4 md:top-6 md:left-6 bg-white/20 hover:bg-white/30 backdrop-blur-sm p-2.5 rounded-full transition-all duration-300"
+          aria-label="Go to home page"
+        >
+          <Home className="w-5 h-5 text-white" />
+        </button>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
           <motion.div
             initial={{ opacity: 0, y: -20 }}

@@ -19,13 +19,15 @@ import {
   Github,
   Linkedin,
   Twitter,
+  Home,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function AboutPage() {
   const [activeFaq, setActiveFaq] = useState(null);
-
+  const router = useRouter();
   const missionRef = useRef(null);
   const featuresRef = useRef(null);
   const teamRef = useRef(null);
@@ -44,6 +46,10 @@ export default function AboutPage() {
 
   const toggleFaq = (index) => {
     setActiveFaq(activeFaq === index ? null : index);
+  };
+
+  const goToHomePage = () => {
+    router.push("/");
   };
 
   const features = [
@@ -140,6 +146,14 @@ export default function AboutPage() {
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50">
       {/* Hero Section */}
       <div className="relative bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+                {/* Home Button in Header */}
+                <button
+          onClick={goToHomePage}
+          className="absolute top-4 left-4 md:top-6 md:left-6 bg-white/20 hover:bg-white/30 backdrop-blur-sm p-2.5 rounded-full transition-all duration-300"
+          aria-label="Go to home page"
+        >
+          <Home className="w-5 h-5 text-white" />
+        </button>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
