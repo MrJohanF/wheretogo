@@ -14,6 +14,7 @@ import {
   Star,
   Info,
   Clock,
+  LayoutList,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { use } from "react";
@@ -41,13 +42,13 @@ export default function PlaceFormPage({ params }) {
     featureIds: [],
     images: [],
     operatingHours: [
-      { day: "Monday", openingTime: "09:00", closingTime: "17:00" },
-      { day: "Tuesday", openingTime: "09:00", closingTime: "17:00" },
-      { day: "Wednesday", openingTime: "09:00", closingTime: "17:00" },
-      { day: "Thursday", openingTime: "09:00", closingTime: "17:00" },
-      { day: "Friday", openingTime: "09:00", closingTime: "17:00" },
-      { day: "Saturday", openingTime: "10:00", closingTime: "15:00" },
-      { day: "Sunday", openingTime: "10:00", closingTime: "15:00" },
+      { day: "Lunes", openingTime: "09:00", closingTime: "17:00" },
+      { day: "Martes", openingTime: "09:00", closingTime: "17:00" },
+      { day: "Miércoles", openingTime: "09:00", closingTime: "17:00" },
+      { day: "Jueves", openingTime: "09:00", closingTime: "17:00" },
+      { day: "Viernes", openingTime: "09:00", closingTime: "17:00" },
+      { day: "Sábado", openingTime: "10:00", closingTime: "15:00" },
+      { day: "Domingo", openingTime: "10:00", closingTime: "15:00" },
     ],
   });
   const [categories, setCategories] = useState([]);
@@ -59,79 +60,79 @@ export default function PlaceFormPage({ params }) {
     1: {
       id: 1,
       name: "Café Deluxe",
-      description: "A cozy café with amazing pastries",
+      description: "Un acogedor café con increíbles pasteles",
       rating: 4.5,
       priceLevel: "$",
       address: "123 Main St",
       phone: "+1 (555) 123-4567",
       website: "https://example.com",
-      cuisine: "French",
+      cuisine: "Francesa",
       isOpenNow: true,
       latitude: 40.7128,
       longitude: -74.0060,
-      categories: [{ id: 2, name: "Cafes" }],
-      subcategories: [{ id: 3, name: "Coffee Shop" }],
-      features: [{ id: 1, name: "Wi-Fi" }, { id: 2, name: "Outdoor Seating" }],
+      categories: [{ id: 2, name: "Cafeterías" }],
+      subcategories: [{ id: 3, name: "Cafetería" }],
+      features: [{ id: 1, name: "Wi-Fi" }, { id: 2, name: "Asientos al aire libre" }],
       images: [{ id: 1, url: "/images/cafe.avif" }],
       operatingHours: [
-        { day: "Monday", openingTime: "09:00", closingTime: "17:00" },
-        { day: "Tuesday", openingTime: "09:00", closingTime: "17:00" },
-        { day: "Wednesday", openingTime: "09:00", closingTime: "17:00" },
-        { day: "Thursday", openingTime: "09:00", closingTime: "17:00" },
-        { day: "Friday", openingTime: "09:00", closingTime: "17:00" },
-        { day: "Saturday", openingTime: "10:00", closingTime: "15:00" },
-        { day: "Sunday", openingTime: "10:00", closingTime: "15:00" },
+        { day: "Lunes", openingTime: "09:00", closingTime: "17:00" },
+        { day: "Martes", openingTime: "09:00", closingTime: "17:00" },
+        { day: "Miércoles", openingTime: "09:00", closingTime: "17:00" },
+        { day: "Jueves", openingTime: "09:00", closingTime: "17:00" },
+        { day: "Viernes", openingTime: "09:00", closingTime: "17:00" },
+        { day: "Sábado", openingTime: "10:00", closingTime: "15:00" },
+        { day: "Domingo", openingTime: "10:00", closingTime: "15:00" },
       ],
     },
     2: {
       id: 2,
-      name: "Seaside Restaurant",
-      description: "Fresh seafood with ocean views",
+      name: "Restaurante Junto al Mar",
+      description: "Mariscos frescos con vistas al océano",
       rating: 4.8,
       priceLevel: "$$$",
       address: "456 Beach Blvd",
       phone: "+1 (555) 987-6543",
       website: "https://seaside.example.com",
-      cuisine: "Seafood",
+      cuisine: "Mariscos",
       isOpenNow: true,
       latitude: 40.7580,
       longitude: -73.9855,
-      categories: [{ id: 1, name: "Restaurants" }],
-      subcategories: [{ id: 1, name: "Italian" }],
-      features: [{ id: 2, name: "Outdoor Seating" }, { id: 3, name: "Parking" }],
+      categories: [{ id: 1, name: "Restaurantes" }],
+      subcategories: [{ id: 1, name: "Italiano" }],
+      features: [{ id: 2, name: "Asientos al aire libre" }, { id: 3, name: "Estacionamiento" }],
       images: [{ id: 2, url: "/images/restaurante.avif" }],
       operatingHours: [
-        { day: "Monday", openingTime: "11:00", closingTime: "22:00" },
-        { day: "Tuesday", openingTime: "11:00", closingTime: "22:00" },
-        { day: "Wednesday", openingTime: "11:00", closingTime: "22:00" },
-        { day: "Thursday", openingTime: "11:00", closingTime: "22:00" },
-        { day: "Friday", openingTime: "11:00", closingTime: "23:00" },
-        { day: "Saturday", openingTime: "11:00", closingTime: "23:00" },
-        { day: "Sunday", openingTime: "11:00", closingTime: "22:00" },
+        { day: "Lunes", openingTime: "11:00", closingTime: "22:00" },
+        { day: "Martes", openingTime: "11:00", closingTime: "22:00" },
+        { day: "Miércoles", openingTime: "11:00", closingTime: "22:00" },
+        { day: "Jueves", openingTime: "11:00", closingTime: "22:00" },
+        { day: "Viernes", openingTime: "11:00", closingTime: "23:00" },
+        { day: "Sábado", openingTime: "11:00", closingTime: "23:00" },
+        { day: "Domingo", openingTime: "11:00", closingTime: "22:00" },
       ],
     }
   };
 
   // Mock API calls
   const fetchCategories = () => Promise.resolve([
-    { id: 1, name: "Restaurants", icon: "🍽️" },
-    { id: 2, name: "Cafes", icon: "☕" },
-    { id: 3, name: "Bars", icon: "🍸" },
+    { id: 1, name: "Restaurantes", icon: "🍽️" },
+    { id: 2, name: "Cafeterías", icon: "☕" },
+    { id: 3, name: "Bares", icon: "🍸" },
   ]);
   
   const fetchSubcategories = () => Promise.resolve([
-    { id: 1, name: "Italian", categoryId: 1 },
-    { id: 2, name: "Japanese", categoryId: 1 },
-    { id: 3, name: "Coffee Shop", categoryId: 2 },
-    { id: 4, name: "Bakery", categoryId: 2 },
-    { id: 5, name: "Cocktail Bar", categoryId: 3 },
+    { id: 1, name: "Italiano", categoryId: 1 },
+    { id: 2, name: "Japonés", categoryId: 1 },
+    { id: 3, name: "Cafetería", categoryId: 2 },
+    { id: 4, name: "Panadería", categoryId: 2 },
+    { id: 5, name: "Bar de Cócteles", categoryId: 3 },
   ]);
   
   const fetchFeatures = () => Promise.resolve([
     { id: 1, name: "Wi-Fi" },
-    { id: 2, name: "Outdoor Seating" },
-    { id: 3, name: "Parking" },
-    { id: 4, name: "Pet-Friendly" },
+    { id: 2, name: "Asientos al aire libre" },
+    { id: 3, name: "Estacionamiento" },
+    { id: 4, name: "Admite mascotas" },
   ]);
   
   const fetchPlace = (id) => Promise.resolve(mockPlaces[id] || null);
@@ -162,7 +163,7 @@ export default function PlaceFormPage({ params }) {
           }
         }
       } catch (error) {
-        console.error("Error loading data:", error);
+        console.error("Error al cargar datos:", error);
       } finally {
         setIsLoading(false);
       }
@@ -228,14 +229,14 @@ export default function PlaceFormPage({ params }) {
       }
       
       if (isEditing) {
-        console.log("Updating place:", formData);
+        console.log("Actualizando lugar:", formData);
       } else {
-        console.log("Creating new place:", formData);
+        console.log("Creando nuevo lugar:", formData);
       }
       
       router.push('/admin/places');
     } catch (error) {
-      console.error("Error saving place:", error);
+      console.error("Error al guardar lugar:", error);
     }
   };
 
@@ -254,28 +255,28 @@ export default function PlaceFormPage({ params }) {
         </button>
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {isEditing ? "Edit Place" : "Add New Place"}
+            {isEditing ? "Editar Lugar" : "Agregar Nuevo Lugar"}
           </h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
             {isEditing 
-              ? "Update the information for this place" 
-              : "Fill in the details to add a new place to your platform"}
+              ? "Actualiza la información de este lugar" 
+              : "Completa los detalles para agregar un nuevo lugar a tu plataforma"}
           </p>
         </div>
       </div>
 
       {isLoading ? (
         <div className="flex justify-center py-12">
-          <div className="animate-pulse text-gray-500 dark:text-gray-400">Loading...</div>
+          <div className="animate-pulse text-gray-500 dark:text-gray-400">Cargando...</div>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Basic Information */}
+          {/* Información Básica */}
           <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
             <div className="px-4 py-5 border-b border-gray-200 dark:border-gray-700 sm:px-6">
               <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white flex items-center">
                 <Info className="w-5 h-5 mr-2 text-indigo-500 dark:text-indigo-400" />
-                Basic Information
+                Información Básica
               </h3>
             </div>
             <div className="px-4 py-5 sm:p-6 space-y-4">
@@ -284,7 +285,7 @@ export default function PlaceFormPage({ params }) {
                   htmlFor="name"
                   className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  Name <span className="text-red-500">*</span>
+                  Nombre <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -294,7 +295,7 @@ export default function PlaceFormPage({ params }) {
                   value={formData.name}
                   onChange={handleInputChange}
                   className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
-                  placeholder="Place name"
+                  placeholder="Nombre del lugar"
                 />
               </div>
 
@@ -303,7 +304,7 @@ export default function PlaceFormPage({ params }) {
                   htmlFor="description"
                   className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  Description
+                  Descripción
                 </label>
                 <textarea
                   id="description"
@@ -312,18 +313,18 @@ export default function PlaceFormPage({ params }) {
                   value={formData.description}
                   onChange={handleInputChange}
                   className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
-                  placeholder="Describe this place"
+                  placeholder="Describe este lugar"
                 />
               </div>
             </div>
           </div>
 
-          {/* Contact & Location */}
+          {/* Contacto y Ubicación */}
           <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
             <div className="px-4 py-5 border-b border-gray-200 dark:border-gray-700 sm:px-6">
               <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white flex items-center">
                 <MapPin className="w-5 h-5 mr-2 text-indigo-500 dark:text-indigo-400" />
-                Contact & Location
+                Contacto y Ubicación
               </h3>
             </div>
             <div className="px-4 py-5 sm:p-6 space-y-4">
@@ -333,7 +334,7 @@ export default function PlaceFormPage({ params }) {
                     htmlFor="address"
                     className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                   >
-                    Address <span className="text-red-500">*</span>
+                    Dirección <span className="text-red-500">*</span>
                   </label>
                   <div className="mt-1 relative rounded-md shadow-sm">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -347,7 +348,7 @@ export default function PlaceFormPage({ params }) {
                       value={formData.address}
                       onChange={handleInputChange}
                       className="block w-full pl-10 rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
-                      placeholder="Street address"
+                      placeholder="Dirección del lugar"
                     />
                   </div>
                 </div>
@@ -357,7 +358,7 @@ export default function PlaceFormPage({ params }) {
                     htmlFor="latitude"
                     className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                   >
-                    Latitude
+                    Latitud
                   </label>
                   <input
                     type="number"
@@ -367,7 +368,7 @@ export default function PlaceFormPage({ params }) {
                     value={formData.latitude || ""}
                     onChange={handleInputChange}
                     className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
-                    placeholder="e.g. 40.7128"
+                    placeholder="ej. 40.7128"
                   />
                 </div>
 
@@ -376,7 +377,7 @@ export default function PlaceFormPage({ params }) {
                     htmlFor="longitude"
                     className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                   >
-                    Longitude
+                    Longitud
                   </label>
                   <input
                     type="number"
@@ -386,7 +387,7 @@ export default function PlaceFormPage({ params }) {
                     value={formData.longitude || ""}
                     onChange={handleInputChange}
                     className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
-                    placeholder="e.g. -74.0060"
+                    placeholder="ej. -74.0060"
                   />
                 </div>
 
@@ -395,7 +396,7 @@ export default function PlaceFormPage({ params }) {
                     htmlFor="phone"
                     className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                   >
-                    Phone Number
+                    Teléfono
                   </label>
                   <div className="mt-1 relative rounded-md shadow-sm">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -408,7 +409,7 @@ export default function PlaceFormPage({ params }) {
                       value={formData.phone || ""}
                       onChange={handleInputChange}
                       className="block w-full pl-10 rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
-                      placeholder="e.g. +1 (555) 123-4567"
+                      placeholder="ej. +1 (555) 123-4567"
                     />
                   </div>
                 </div>
@@ -418,7 +419,7 @@ export default function PlaceFormPage({ params }) {
                     htmlFor="website"
                     className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                   >
-                    Website
+                    Sitio Web
                   </label>
                   <div className="mt-1 relative rounded-md shadow-sm">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -431,7 +432,7 @@ export default function PlaceFormPage({ params }) {
                       value={formData.website || ""}
                       onChange={handleInputChange}
                       className="block w-full pl-10 rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
-                      placeholder="e.g. https://example.com"
+                      placeholder="ej. https://ejemplo.com"
                     />
                   </div>
                 </div>
@@ -439,12 +440,12 @@ export default function PlaceFormPage({ params }) {
             </div>
           </div>
 
-          {/* Additional Details */}
+          {/* Detalles Adicionales */}
           <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
             <div className="px-4 py-5 border-b border-gray-200 dark:border-gray-700 sm:px-6">
               <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white flex items-center">
                 <DollarSign className="w-5 h-5 mr-2 text-indigo-500 dark:text-indigo-400" />
-                Additional Details
+                Detalles Adicionales
               </h3>
             </div>
             <div className="px-4 py-5 sm:p-6 space-y-4">
@@ -454,7 +455,7 @@ export default function PlaceFormPage({ params }) {
                     htmlFor="cuisine"
                     className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                   >
-                    Cuisine Type
+                    Tipo de Cocina
                   </label>
                   <input
                     type="text"
@@ -463,7 +464,7 @@ export default function PlaceFormPage({ params }) {
                     value={formData.cuisine || ""}
                     onChange={handleInputChange}
                     className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
-                    placeholder="e.g. Italian, Japanese, etc."
+                    placeholder="ej. Italiana, Japonesa, etc."
                   />
                 </div>
 
@@ -472,7 +473,7 @@ export default function PlaceFormPage({ params }) {
                     htmlFor="priceLevel"
                     className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                   >
-                    Price Level
+                    Nivel de Precio
                   </label>
                   <div className="mt-1 relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -485,11 +486,11 @@ export default function PlaceFormPage({ params }) {
                       onChange={handleInputChange}
                       className="block w-full pl-10 rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white appearance-none"
                     >
-                      <option value="">Select price level</option>
-                      <option value="$">$ (Budget)</option>
-                      <option value="$$">$$ (Moderate)</option>
-                      <option value="$$$">$$$ (Expensive)</option>
-                      <option value="$$$$">$$$$ (Very Expensive)</option>
+                      <option value="">Seleccionar nivel de precio</option>
+                      <option value="$">$ (Económico)</option>
+                      <option value="$$">$$ (Moderado)</option>
+                      <option value="$$$">$$$ (Costoso)</option>
+                      <option value="$$$$">$$$$ (Muy Costoso)</option>
                     </select>
                   </div>
                 </div>
@@ -499,7 +500,7 @@ export default function PlaceFormPage({ params }) {
                     htmlFor="rating"
                     className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                   >
-                    Initial Rating (0-5)
+                    Calificación Inicial (0-5)
                   </label>
                   <div className="mt-1 relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -515,7 +516,7 @@ export default function PlaceFormPage({ params }) {
                       value={formData.rating || ""}
                       onChange={handleInputChange}
                       className="block w-full pl-10 rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
-                      placeholder="e.g. 4.5"
+                      placeholder="ej. 4.5"
                     />
                   </div>
                 </div>
@@ -534,7 +535,7 @@ export default function PlaceFormPage({ params }) {
                       htmlFor="isOpenNow"
                       className="ml-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
                     >
-                      Currently Open?
+                      ¿Actualmente Abierto?
                     </label>
                   </div>
                 </div>
@@ -542,17 +543,18 @@ export default function PlaceFormPage({ params }) {
             </div>
           </div>
 
-          {/* Categories & Features */}
+          {/* Categorías y Características */}
           <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
             <div className="px-4 py-5 border-b border-gray-200 dark:border-gray-700 sm:px-6">
-              <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">
-                Categories & Features
+            <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white flex items-center">
+              <LayoutList className="w-5 h-5 mr-2 text-indigo-500 dark:text-indigo-400" />
+                Categorías y Características
               </h3>
             </div>
             <div className="px-4 py-5 sm:p-6 space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Categories
+                  Categorías
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                   {categories.map((category) => (
@@ -585,12 +587,12 @@ export default function PlaceFormPage({ params }) {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Subcategories
+                  Subcategorías
                 </label>
                 {formData.categoryIds.length === 0 ? (
                   <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/30 rounded-md p-3">
                     <p className="text-sm text-amber-800 dark:text-amber-200">
-                      Select categories to see available subcategories
+                      Selecciona categorías para ver las subcategorías disponibles
                     </p>
                   </div>
                 ) : (
@@ -628,7 +630,7 @@ export default function PlaceFormPage({ params }) {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Features & Amenities
+                  Características y Comodidades
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                   {features.map((feature) => (
@@ -666,12 +668,12 @@ export default function PlaceFormPage({ params }) {
             <div className="px-4 py-5 border-b border-gray-200 dark:border-gray-700 sm:px-6">
               <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white flex items-center">
                 <Clock className="w-5 h-5 mr-2 text-indigo-500 dark:text-indigo-400" />
-                Operating Hours
+                Horario de Operación
               </h3>
             </div>
             <div className="px-4 py-5 sm:p-6">
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                Set the opening and closing times for each day of the week
+                Establece los horarios de apertura y cierre para cada día de la semana
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {formData.operatingHours.map((hours, index) => (
@@ -684,7 +686,7 @@ export default function PlaceFormPage({ params }) {
                     <div className="p-4 space-y-3">
                       <div>
                         <label className="block text-xs text-gray-500 dark:text-gray-400">
-                          Opening Time
+                          Hora de Apertura
                         </label>
                         <input
                           type="time"
@@ -695,7 +697,7 @@ export default function PlaceFormPage({ params }) {
                       </div>
                       <div>
                         <label className="block text-xs text-gray-500 dark:text-gray-400">
-                          Closing Time
+                          Hora de Cierre
                         </label>
                         <input
                           type="time"
@@ -716,7 +718,7 @@ export default function PlaceFormPage({ params }) {
             <div className="px-4 py-5 border-b border-gray-200 dark:border-gray-700 sm:px-6">
               <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white flex items-center">
                 <ImageIcon className="w-5 h-5 mr-2 text-indigo-500 dark:text-indigo-400" />
-                Images
+                Imágenes
               </h3>
             </div>
             <div className="px-4 py-5 sm:p-6 space-y-4">
@@ -735,10 +737,10 @@ export default function PlaceFormPage({ params }) {
                 >
                   <ImageIcon className="h-8 w-8 text-gray-400 mb-2" />
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Click to upload images
+                    Haz clic para subir imágenes
                   </span>
                   <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    PNG, JPG, GIF up to 10MB
+                    PNG, JPG, GIF hasta 10MB
                   </span>
                 </label>
               </div>
@@ -746,7 +748,7 @@ export default function PlaceFormPage({ params }) {
               {formData.images.length > 0 && (
                 <div>
                   <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                    Uploaded Images ({formData.images.length})
+                    Imágenes Subidas ({formData.images.length})
                   </h4>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                     {formData.images.map((image) => (
@@ -757,7 +759,7 @@ export default function PlaceFormPage({ params }) {
                         <div className="aspect-square rounded-md overflow-hidden shadow-sm border border-gray-200 dark:border-gray-700">
                           <img
                             src={image.url}
-                            alt={image.altText || "Place image"}
+                            alt={image.altText || "Imagen del lugar"}
                             className="h-full w-full object-cover"
                           />
                         </div>
@@ -783,7 +785,7 @@ export default function PlaceFormPage({ params }) {
               onClick={handleCancel}
               className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-medium"
             >
-              Cancel
+              Cancelar
             </button>
             <motion.button
               whileHover={{ scale: 1.02 }}
@@ -792,7 +794,7 @@ export default function PlaceFormPage({ params }) {
               className="px-5 py-2 bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white rounded-lg shadow-sm font-medium flex items-center"
             >
               <Save size={18} className="mr-2" />
-              {isEditing ? "Update Place" : "Save Place"}
+              {isEditing ? "Actualizar Lugar" : "Guardar Lugar"}
             </motion.button>
           </div>
         </form>
