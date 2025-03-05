@@ -215,7 +215,7 @@ export default function CategoriesPage() {
             height={isFeatured ? 384 : 256}
             className="w-full h-full object-cover"
             priority={isFeatured}
-            quality={85}
+            quality={50}
           />
         )}
         <div className={`absolute inset-0 bg-gradient-to-br ${category.color} opacity-80`}></div>
