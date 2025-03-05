@@ -1,3 +1,5 @@
+// src\app\admin\places\page.js
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -23,7 +25,7 @@ import {
   Filter,
   Eye,
 } from "lucide-react";
-import PlaceForm from "@/app/components/PlaceForm";
+import { useRouter } from "next/navigation";
 
 export default function PlacesManagement() {
   const [places, setPlaces] = useState([]);
@@ -36,6 +38,7 @@ export default function PlacesManagement() {
   const [selectedPriceLevel, setSelectedPriceLevel] = useState("");
   const [sortBy, setSortBy] = useState("name");
   const [sortDirection, setSortDirection] = useState("asc");
+  const router = useRouter();
 
   // Modal states
   const [isAddingPlace, setIsAddingPlace] = useState(false);
@@ -146,65 +149,11 @@ export default function PlacesManagement() {
     ]);
 
   const handleAddPlace = () => {
-    setFormData({
-      name: "",
-      description: "",
-      rating: null,
-      priceLevel: "",
-      address: "",
-      phone: "",
-      website: "",
-      cuisine: "",
-      isOpenNow: false,
-      latitude: null,
-      longitude: null,
-      categoryIds: [],
-      subcategoryIds: [],
-      featureIds: [],
-      images: [],
-      operatingHours: [
-        { day: "Monday", openingTime: "09:00", closingTime: "17:00" },
-        { day: "Tuesday", openingTime: "09:00", closingTime: "17:00" },
-        { day: "Wednesday", openingTime: "09:00", closingTime: "17:00" },
-        { day: "Thursday", openingTime: "09:00", closingTime: "17:00" },
-        { day: "Friday", openingTime: "09:00", closingTime: "17:00" },
-        { day: "Saturday", openingTime: "10:00", closingTime: "15:00" },
-        { day: "Sunday", openingTime: "10:00", closingTime: "15:00" },
-      ],
-    });
-    setIsAddingPlace(true);
+    router.push(`/admin/places/edit/add`);
   };
 
   const handleEditPlace = (place) => {
-    setSelectedPlaceId(place.id);
-    // Transform place data to form structure - this would be more complex in real implementation
-    setFormData({
-      name: place.name,
-      description: place.description || "",
-      rating: place.rating || null,
-      priceLevel: place.priceLevel || "",
-      address: place.address || "",
-      phone: place.phone || "",
-      website: place.website || "",
-      cuisine: place.cuisine || "",
-      isOpenNow: place.isOpenNow || false,
-      latitude: place.latitude || null,
-      longitude: place.longitude || null,
-      categoryIds: place.categories?.map((c) => c.id) || [],
-      subcategoryIds: [], // You'd populate this from your actual data
-      featureIds: [], // You'd populate this from your actual data
-      images: place.images || [],
-      operatingHours: place.operatingHours || [
-        { day: "Monday", openingTime: "09:00", closingTime: "17:00" },
-        { day: "Tuesday", openingTime: "09:00", closingTime: "17:00" },
-        { day: "Wednesday", openingTime: "09:00", closingTime: "17:00" },
-        { day: "Thursday", openingTime: "09:00", closingTime: "17:00" },
-        { day: "Friday", openingTime: "09:00", closingTime: "17:00" },
-        { day: "Saturday", openingTime: "10:00", closingTime: "15:00" },
-        { day: "Sunday", openingTime: "10:00", closingTime: "15:00" },
-      ],
-    });
-    setIsEditingPlace(true);
+    router.push(`/admin/places/edit/${place.id}`);
   };
 
   const handleViewPlace = (place) => {
@@ -636,22 +585,6 @@ export default function PlacesManagement() {
           </div>
         </div>
       </div>
-
-      {/* Place Form Modal */}
-      <PlaceForm
-        isOpen={isAddingPlace || isEditingPlace}
-        onClose={() => {
-          setIsAddingPlace(false);
-          setIsEditingPlace(false);
-        }}
-        onSubmit={handleSavePlace}
-        formData={formData}
-        setFormData={setFormData}
-        categories={categories}
-        subcategories={subcategories}
-        features={features}
-        isEditing={isEditingPlace}
-      />
 
       {/* View Place Modal */}
       {isViewingPlace && (
