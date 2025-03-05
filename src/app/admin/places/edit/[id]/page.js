@@ -7,6 +7,13 @@ import {
   Save,
   ArrowLeft,
   X,
+  MapPin,
+  Phone,
+  Globe,
+  DollarSign,
+  Star,
+  Info,
+  Clock,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { use } from "react";
@@ -236,20 +243,12 @@ export default function PlaceFormPage({ params }) {
     router.push('/admin/places');
   };
 
-  if (isLoading) {
-    return (
-      <div className="p-8 flex justify-center">
-        <div className="animate-pulse text-gray-500">Loading...</div>
-      </div>
-    );
-  }
-
   return (
-    <div className="px-4 py-6 sm:px-6 lg:px-8 dark:bg-gray-900">
-      <div className="flex items-center mb-8">
+    <div className="px-4 py-6 sm:px-6 lg:px-8">
+      <div className="flex items-center mb-6">
         <button 
           onClick={handleCancel}
-          className="mr-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+          className="mr-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
         >
           <ArrowLeft className="h-5 w-5 text-gray-500 dark:text-gray-400" />
         </button>
@@ -257,7 +256,7 @@ export default function PlaceFormPage({ params }) {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             {isEditing ? "Edit Place" : "Add New Place"}
           </h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
             {isEditing 
               ? "Update the information for this place" 
               : "Fill in the details to add a new place to your platform"}
@@ -265,471 +264,539 @@ export default function PlaceFormPage({ params }) {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {isLoading ? (
+        <div className="flex justify-center py-12">
+          <div className="animate-pulse text-gray-500 dark:text-gray-400">Loading...</div>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-8">
           {/* Basic Information */}
-          <div className="space-y-4 md:col-span-2">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
-              Basic Information
-            </h3>
-
-            <div>
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                required
-                value={formData.name}
-                onChange={handleInputChange}
-                className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-800 dark:text-white"
-                placeholder="Place name"
-              />
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+            <div className="px-4 py-5 border-b border-gray-200 dark:border-gray-700 sm:px-6">
+              <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white flex items-center">
+                <Info className="w-5 h-5 mr-2 text-indigo-500 dark:text-indigo-400" />
+                Basic Information
+              </h3>
             </div>
+            <div className="px-4 py-5 sm:p-6 space-y-4">
+              <div>
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  required
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
+                  placeholder="Place name"
+                />
+              </div>
 
-            <div>
-              <label
-                htmlFor="description"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Description
-              </label>
-              <textarea
-                id="description"
-                name="description"
-                rows={3}
-                value={formData.description}
-                onChange={handleInputChange}
-                className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-800 dark:text-white"
-                placeholder="Describe this place"
-              />
+              <div>
+                <label
+                  htmlFor="description"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Description
+                </label>
+                <textarea
+                  id="description"
+                  name="description"
+                  rows={3}
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
+                  placeholder="Describe this place"
+                />
+              </div>
             </div>
           </div>
 
           {/* Contact & Location */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
-              Contact & Location
-            </h3>
-
-            <div>
-              <label
-                htmlFor="address"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Address <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                id="address"
-                name="address"
-                required
-                value={formData.address}
-                onChange={handleInputChange}
-                className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-800 dark:text-white"
-                placeholder="Street address"
-              />
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+            <div className="px-4 py-5 border-b border-gray-200 dark:border-gray-700 sm:px-6">
+              <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white flex items-center">
+                <MapPin className="w-5 h-5 mr-2 text-indigo-500 dark:text-indigo-400" />
+                Contact & Location
+              </h3>
             </div>
+            <div className="px-4 py-5 sm:p-6 space-y-4">
+              <div className="grid grid-cols-1 gap-y-4 gap-x-6 sm:grid-cols-6">
+                <div className="sm:col-span-6">
+                  <label
+                    htmlFor="address"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Address <span className="text-red-500">*</span>
+                  </label>
+                  <div className="mt-1 relative rounded-md shadow-sm">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <MapPin className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="text"
+                      id="address"
+                      name="address"
+                      required
+                      value={formData.address}
+                      onChange={handleInputChange}
+                      className="block w-full pl-10 rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
+                      placeholder="Street address"
+                    />
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label
-                  htmlFor="latitude"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  Latitude
-                </label>
-                <input
-                  type="number"
-                  step="0.000001"
-                  id="latitude"
-                  name="latitude"
-                  value={formData.latitude || ""}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-800 dark:text-white"
-                  placeholder="e.g. 40.7128"
-                />
+                <div className="sm:col-span-3">
+                  <label
+                    htmlFor="latitude"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Latitude
+                  </label>
+                  <input
+                    type="number"
+                    step="0.000001"
+                    id="latitude"
+                    name="latitude"
+                    value={formData.latitude || ""}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
+                    placeholder="e.g. 40.7128"
+                  />
+                </div>
+
+                <div className="sm:col-span-3">
+                  <label
+                    htmlFor="longitude"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Longitude
+                  </label>
+                  <input
+                    type="number"
+                    step="0.000001"
+                    id="longitude"
+                    name="longitude"
+                    value={formData.longitude || ""}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
+                    placeholder="e.g. -74.0060"
+                  />
+                </div>
+
+                <div className="sm:col-span-3">
+                  <label
+                    htmlFor="phone"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Phone Number
+                  </label>
+                  <div className="mt-1 relative rounded-md shadow-sm">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Phone className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      value={formData.phone || ""}
+                      onChange={handleInputChange}
+                      className="block w-full pl-10 rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
+                      placeholder="e.g. +1 (555) 123-4567"
+                    />
+                  </div>
+                </div>
+
+                <div className="sm:col-span-3">
+                  <label
+                    htmlFor="website"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Website
+                  </label>
+                  <div className="mt-1 relative rounded-md shadow-sm">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Globe className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="url"
+                      id="website"
+                      name="website"
+                      value={formData.website || ""}
+                      onChange={handleInputChange}
+                      className="block w-full pl-10 rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
+                      placeholder="e.g. https://example.com"
+                    />
+                  </div>
+                </div>
               </div>
-              <div>
-                <label
-                  htmlFor="longitude"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  Longitude
-                </label>
-                <input
-                  type="number"
-                  step="0.000001"
-                  id="longitude"
-                  name="longitude"
-                  value={formData.longitude || ""}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-800 dark:text-white"
-                  placeholder="e.g. -74.0060"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label
-                htmlFor="phone"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Phone Number
-              </label>
-              <input
-                type="tel"
-                id="phone"
-                name="phone"
-                value={formData.phone || ""}
-                onChange={handleInputChange}
-                className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-800 dark:text-white"
-                placeholder="e.g. +1 (555) 123-4567"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="website"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Website
-              </label>
-              <input
-                type="url"
-                id="website"
-                name="website"
-                value={formData.website || ""}
-                onChange={handleInputChange}
-                className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-800 dark:text-white"
-                placeholder="e.g. https://example.com"
-              />
             </div>
           </div>
 
           {/* Additional Details */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
-              Additional Details
-            </h3>
-
-            <div>
-              <label
-                htmlFor="cuisine"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Cuisine Type
-              </label>
-              <input
-                type="text"
-                id="cuisine"
-                name="cuisine"
-                value={formData.cuisine || ""}
-                onChange={handleInputChange}
-                className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-800 dark:text-white"
-                placeholder="e.g. Italian, Japanese, etc."
-              />
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+            <div className="px-4 py-5 border-b border-gray-200 dark:border-gray-700 sm:px-6">
+              <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white flex items-center">
+                <DollarSign className="w-5 h-5 mr-2 text-indigo-500 dark:text-indigo-400" />
+                Additional Details
+              </h3>
             </div>
+            <div className="px-4 py-5 sm:p-6 space-y-4">
+              <div className="grid grid-cols-1 gap-y-4 gap-x-6 sm:grid-cols-6">
+                <div className="sm:col-span-2">
+                  <label
+                    htmlFor="cuisine"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Cuisine Type
+                  </label>
+                  <input
+                    type="text"
+                    id="cuisine"
+                    name="cuisine"
+                    value={formData.cuisine || ""}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
+                    placeholder="e.g. Italian, Japanese, etc."
+                  />
+                </div>
 
-            <div>
-              <label
-                htmlFor="priceLevel"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Price Level
-              </label>
-              <select
-                id="priceLevel"
-                name="priceLevel"
-                value={formData.priceLevel || ""}
-                onChange={handleInputChange}
-                className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-800 dark:text-white"
-              >
-                <option value="">Select price level</option>
-                <option value="\$">\$ (Budget)</option>
-                <option value="\$\$">\$\$ (Moderate)</option>
-                <option value="\$\$\$">\$\$\$ (Expensive)</option>
-                <option value="\$\$\$\$">\$\$\$\$ (Very Expensive)</option>
-              </select>
-            </div>
+                <div className="sm:col-span-2">
+                  <label
+                    htmlFor="priceLevel"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Price Level
+                  </label>
+                  <div className="mt-1 relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <DollarSign className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <select
+                      id="priceLevel"
+                      name="priceLevel"
+                      value={formData.priceLevel || ""}
+                      onChange={handleInputChange}
+                      className="block w-full pl-10 rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white appearance-none"
+                    >
+                      <option value="">Select price level</option>
+                      <option value="$">$ (Budget)</option>
+                      <option value="$$">$$ (Moderate)</option>
+                      <option value="$$$">$$$ (Expensive)</option>
+                      <option value="$$$$">$$$$ (Very Expensive)</option>
+                    </select>
+                  </div>
+                </div>
 
-            <div>
-              <label
-                htmlFor="rating"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Initial Rating (0-5)
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                min="0"
-                max="5"
-                id="rating"
-                name="rating"
-                value={formData.rating || ""}
-                onChange={handleInputChange}
-                className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-800 dark:text-white"
-                placeholder="e.g. 4.5"
-              />
-            </div>
+                <div className="sm:col-span-2">
+                  <label
+                    htmlFor="rating"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Initial Rating (0-5)
+                  </label>
+                  <div className="mt-1 relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Star className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="5"
+                      id="rating"
+                      name="rating"
+                      value={formData.rating || ""}
+                      onChange={handleInputChange}
+                      className="block w-full pl-10 rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
+                      placeholder="e.g. 4.5"
+                    />
+                  </div>
+                </div>
 
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="isOpenNow"
-                name="isOpenNow"
-                checked={formData.isOpenNow || false}
-                onChange={handleInputChange}
-                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-              />
-              <label
-                htmlFor="isOpenNow"
-                className="ml-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Currently Open?
-              </label>
+                <div className="sm:col-span-6">
+                  <div className="flex items-center mt-2">
+                    <input
+                      type="checkbox"
+                      id="isOpenNow"
+                      name="isOpenNow"
+                      checked={formData.isOpenNow || false}
+                      onChange={handleInputChange}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                    />
+                    <label
+                      htmlFor="isOpenNow"
+                      className="ml-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Currently Open?
+                    </label>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Categories & Features */}
-          <div className="space-y-4 md:col-span-2">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
-              Categories & Features
-            </h3>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Categories
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                {categories.map((category) => (
-                  <div key={category.id} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id={`category-${category.id}`}
-                      checked={formData.categoryIds.includes(category.id)}
-                      onChange={() =>
-                        handleMultiSelectChange("categoryIds", category.id)
-                      }
-                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                    />
-                    <label
-                      htmlFor={`category-${category.id}`}
-                      className="ml-2 text-sm text-gray-700 dark:text-gray-300"
-                    >
-                      {category.icon} {category.name}
-                    </label>
-                  </div>
-                ))}
-              </div>
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+            <div className="px-4 py-5 border-b border-gray-200 dark:border-gray-700 sm:px-6">
+              <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">
+                Categories & Features
+              </h3>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Subcategories
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                {subcategories
-                  .filter((sub) =>
-                    formData.categoryIds.includes(sub.categoryId)
-                  )
-                  .map((subcategory) => (
-                    <div
-                      key={subcategory.id}
-                      className="flex items-center"
+            <div className="px-4 py-5 sm:p-6 space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Categories
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {categories.map((category) => (
+                    <div 
+                      key={category.id}
+                      onClick={() => handleMultiSelectChange("categoryIds", category.id)}
+                      className={`cursor-pointer flex items-center p-3 rounded-md border ${
+                        formData.categoryIds.includes(category.id) 
+                          ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 dark:border-indigo-600' 
+                          : 'border-gray-200 dark:border-gray-700'
+                      }`}
                     >
                       <input
                         type="checkbox"
-                        id={`subcategory-${subcategory.id}`}
-                        checked={formData.subcategoryIds.includes(
-                          subcategory.id
-                        )}
-                        onChange={() =>
-                          handleMultiSelectChange(
-                            "subcategoryIds",
-                            subcategory.id
-                          )
-                        }
+                        id={`category-${category.id}`}
+                        checked={formData.categoryIds.includes(category.id)}
+                        onChange={() => {}}
                         className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                       />
                       <label
-                        htmlFor={`subcategory-${subcategory.id}`}
-                        className="ml-2 text-sm text-gray-700 dark:text-gray-300"
+                        htmlFor={`category-${category.id}`}
+                        className="ml-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
                       >
-                        {subcategory.name}
+                        <span className="mr-1">{category.icon}</span> {category.name}
                       </label>
                     </div>
                   ))}
+                </div>
               </div>
-              {formData.categoryIds.length === 0 && (
-                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                  Select categories to see available subcategories
-                </p>
-              )}
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Features & Amenities
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                {features.map((feature) => (
-                  <div key={feature.id} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id={`feature-${feature.id}`}
-                      checked={formData.featureIds.includes(feature.id)}
-                      onChange={() =>
-                        handleMultiSelectChange("featureIds", feature.id)
-                      }
-                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                    />
-                    <label
-                      htmlFor={`feature-${feature.id}`}
-                      className="ml-2 text-sm text-gray-700 dark:text-gray-300"
-                    >
-                      {feature.name}
-                    </label>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Subcategories
+                </label>
+                {formData.categoryIds.length === 0 ? (
+                  <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/30 rounded-md p-3">
+                    <p className="text-sm text-amber-800 dark:text-amber-200">
+                      Select categories to see available subcategories
+                    </p>
                   </div>
-                ))}
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {subcategories
+                      .filter((sub) => formData.categoryIds.includes(sub.categoryId))
+                      .map((subcategory) => (
+                        <div
+                          key={subcategory.id}
+                          onClick={() => handleMultiSelectChange("subcategoryIds", subcategory.id)}
+                          className={`cursor-pointer flex items-center p-3 rounded-md border ${
+                            formData.subcategoryIds.includes(subcategory.id) 
+                              ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 dark:border-indigo-600' 
+                              : 'border-gray-200 dark:border-gray-700'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            id={`subcategory-${subcategory.id}`}
+                            checked={formData.subcategoryIds.includes(subcategory.id)}
+                            onChange={() => {}}
+                            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                          />
+                          <label
+                            htmlFor={`subcategory-${subcategory.id}`}
+                            className="ml-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
+                          >
+                            {subcategory.name}
+                          </label>
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Features & Amenities
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {features.map((feature) => (
+                    <div
+                      key={feature.id}
+                      onClick={() => handleMultiSelectChange("featureIds", feature.id)}
+                      className={`cursor-pointer flex items-center p-3 rounded-md border ${
+                        formData.featureIds.includes(feature.id) 
+                          ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 dark:border-indigo-600' 
+                          : 'border-gray-200 dark:border-gray-700'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        id={`feature-${feature.id}`}
+                        checked={formData.featureIds.includes(feature.id)}
+                        onChange={() => {}}
+                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                      />
+                      <label
+                        htmlFor={`feature-${feature.id}`}
+                        className="ml-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
+                      >
+                        {feature.name}
+                      </label>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
 
           {/* Operating Hours */}
-          <div className="space-y-4 md:col-span-2">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
-              Operating Hours
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {formData.operatingHours.map((hours, index) => (
-                <div
-                  key={hours.day}
-                  className="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
-                >
-                  <h4 className="font-medium text-gray-800 dark:text-gray-200 mb-2">
-                    {hours.day}
-                  </h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-xs text-gray-500 dark:text-gray-400">
-                        Opening
-                      </label>
-                      <input
-                        type="time"
-                        value={hours.openingTime}
-                        onChange={(e) =>
-                          handleOperatingHoursChange(
-                            index,
-                            "openingTime",
-                            e.target.value
-                          )
-                        }
-                        className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 py-1.5 px-2 text-sm shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-800 dark:text-white"
-                      />
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+            <div className="px-4 py-5 border-b border-gray-200 dark:border-gray-700 sm:px-6">
+              <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white flex items-center">
+                <Clock className="w-5 h-5 mr-2 text-indigo-500 dark:text-indigo-400" />
+                Operating Hours
+              </h3>
+            </div>
+            <div className="px-4 py-5 sm:p-6">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                Set the opening and closing times for each day of the week
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {formData.operatingHours.map((hours, index) => (
+                  <div key={hours.day} className="border border-gray-200 dark:border-gray-700 rounded-md overflow-hidden">
+                    <div className="bg-gray-50 dark:bg-gray-700/50 px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                      <h4 className="font-medium text-gray-900 dark:text-white text-sm">
+                        {hours.day}
+                      </h4>
                     </div>
-                    <div>
-                      <label className="block text-xs text-gray-500 dark:text-gray-400">
-                        Closing
-                      </label>
-                      <input
-                        type="time"
-                        value={hours.closingTime}
-                        onChange={(e) =>
-                          handleOperatingHoursChange(
-                            index,
-                            "closingTime",
-                            e.target.value
-                          )
-                        }
-                        className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 py-1.5 px-2 text-sm shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-800 dark:text-white"
-                      />
+                    <div className="p-4 space-y-3">
+                      <div>
+                        <label className="block text-xs text-gray-500 dark:text-gray-400">
+                          Opening Time
+                        </label>
+                        <input
+                          type="time"
+                          value={hours.openingTime}
+                          onChange={(e) => handleOperatingHoursChange(index, "openingTime", e.target.value)}
+                          className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 dark:text-gray-400">
+                          Closing Time
+                        </label>
+                        <input
+                          type="time"
+                          value={hours.closingTime}
+                          onChange={(e) => handleOperatingHoursChange(index, "closingTime", e.target.value)}
+                          className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Images */}
-          <div className="space-y-4 md:col-span-2">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
-              Images
-            </h3>
-
-            <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
-              <input
-                id="image-upload"
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-              />
-              <label
-                htmlFor="image-upload"
-                className="cursor-pointer flex flex-col items-center justify-center"
-              >
-                <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
-                <span className="mt-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Click to upload images
-                </span>
-                <span className="mt-1 block text-xs text-gray-500 dark:text-gray-400">
-                  PNG, JPG, GIF up to 10MB
-                </span>
-              </label>
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+            <div className="px-4 py-5 border-b border-gray-200 dark:border-gray-700 sm:px-6">
+              <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white flex items-center">
+                <ImageIcon className="w-5 h-5 mr-2 text-indigo-500 dark:text-indigo-400" />
+                Images
+              </h3>
             </div>
-
-            {formData.images.length > 0 && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4">
-                {formData.images.map((image) => (
-                  <div key={image.id} className="relative group">
-                    <img
-                      src={image.url}
-                      alt={image.altText || "Place image"}
-                      className="h-24 w-full object-cover rounded-md"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveImage(image.id)}
-                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                ))}
+            <div className="px-4 py-5 sm:p-6 space-y-4">
+              <div>
+                <input
+                  id="image-upload"
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+                <label
+                  htmlFor="image-upload"
+                  className="cursor-pointer border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg flex flex-col items-center justify-center h-32"
+                >
+                  <ImageIcon className="h-8 w-8 text-gray-400 mb-2" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Click to upload images
+                  </span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    PNG, JPG, GIF up to 10MB
+                  </span>
+                </label>
               </div>
-            )}
-          </div>
-        </div>
 
-        <div className="border-t border-gray-200 dark:border-gray-700 pt-6 flex justify-end gap-3">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            type="button"
-            onClick={handleCancel}
-            className="px-5 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-medium"
-          >
-            Cancel
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            type="submit"
-            className="px-5 py-2.5 bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 font-medium"
-          >
-            <Save size={18} className="inline-block mr-2" />
-            {isEditing ? "Update Place" : "Save Place"}
-          </motion.button>
-        </div>
-      </form>
+              {formData.images.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                    Uploaded Images ({formData.images.length})
+                  </h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    {formData.images.map((image) => (
+                      <div 
+                        key={image.id} 
+                        className="relative group"
+                      >
+                        <div className="aspect-square rounded-md overflow-hidden shadow-sm border border-gray-200 dark:border-gray-700">
+                          <img
+                            src={image.url}
+                            alt={image.altText || "Place image"}
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(image.id)}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Form Actions */}
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-6 flex justify-between items-center">
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-medium"
+            >
+              Cancel
+            </button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="submit"
+              className="px-5 py-2 bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white rounded-lg shadow-sm font-medium flex items-center"
+            >
+              <Save size={18} className="mr-2" />
+              {isEditing ? "Update Place" : "Save Place"}
+            </motion.button>
+          </div>
+        </form>
+      )}
     </div>
   );
 }
