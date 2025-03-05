@@ -64,13 +64,13 @@ export default function PlacesManagement() {
     featureIds: [],
     images: [],
     operatingHours: [
-      { day: "Monday", openingTime: "09:00", closingTime: "17:00" },
-      { day: "Tuesday", openingTime: "09:00", closingTime: "17:00" },
-      { day: "Wednesday", openingTime: "09:00", closingTime: "17:00" },
-      { day: "Thursday", openingTime: "09:00", closingTime: "17:00" },
-      { day: "Friday", openingTime: "09:00", closingTime: "17:00" },
-      { day: "Saturday", openingTime: "10:00", closingTime: "15:00" },
-      { day: "Sunday", openingTime: "10:00", closingTime: "15:00" },
+      { day: "Lunes", openingTime: "09:00", closingTime: "17:00" },
+      { day: "Martes", openingTime: "09:00", closingTime: "17:00" },
+      { day: "Miércoles", openingTime: "09:00", closingTime: "17:00" },
+      { day: "Jueves", openingTime: "09:00", closingTime: "17:00" },
+      { day: "Viernes", openingTime: "09:00", closingTime: "17:00" },
+      { day: "Sábado", openingTime: "10:00", closingTime: "15:00" },
+      { day: "Domingo", openingTime: "10:00", closingTime: "15:00" },
     ],
   });
 
@@ -91,7 +91,7 @@ export default function PlacesManagement() {
         setSubcategories(subcategoriesData);
         setFeatures(featuresData);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error al obtener datos:", error);
       } finally {
         setIsLoading(false);
       }
@@ -106,47 +106,47 @@ export default function PlacesManagement() {
       {
         id: 1,
         name: "Café Deluxe",
-        description: "A cozy café with amazing pastries",
+        description: "Un acogedor café con increíbles pasteles",
         rating: 4.5,
         priceLevel: "$",
-        address: "123 Main St",
-        categories: [{ id: 2, name: "Cafes" }],
+        address: "Calle Principal 123",
+        categories: [{ id: 2, name: "Cafeterías" }],
         images: [{ id: 1, url: "/images/cafe.avif" }],
       },
       {
         id: 2,
-        name: "Seaside Restaurant",
-        description: "Fresh seafood with ocean views",
+        name: "Restaurante Costero",
+        description: "Mariscos frescos con vista al mar",
         rating: 4.8,
         priceLevel: "$$$",
-        address: "456 Beach Blvd",
-        categories: [{ id: 1, name: "Restaurants" }],
+        address: "Bulevar de la Playa 456",
+        categories: [{ id: 1, name: "Restaurantes" }],
         images: [{ id: 2, url: "/images/restaurante.avif" }],
       },
     ]);
 
   const fetchCategories = () =>
     Promise.resolve([
-      { id: 1, name: "Restaurants", icon: "🍽️" },
-      { id: 2, name: "Cafes", icon: "☕" },
-      { id: 3, name: "Bars", icon: "🍸" },
+      { id: 1, name: "Restaurantes", icon: "🍽️" },
+      { id: 2, name: "Cafeterías", icon: "☕" },
+      { id: 3, name: "Bares", icon: "🍸" },
     ]);
 
   const fetchSubcategories = () =>
     Promise.resolve([
-      { id: 1, name: "Italian", categoryId: 1 },
-      { id: 2, name: "Japanese", categoryId: 1 },
-      { id: 3, name: "Coffee Shop", categoryId: 2 },
-      { id: 4, name: "Bakery", categoryId: 2 },
-      { id: 5, name: "Cocktail Bar", categoryId: 3 },
+      { id: 1, name: "Italiano", categoryId: 1 },
+      { id: 2, name: "Japonés", categoryId: 1 },
+      { id: 3, name: "Cafetería", categoryId: 2 },
+      { id: 4, name: "Panadería", categoryId: 2 },
+      { id: 5, name: "Bar de Cócteles", categoryId: 3 },
     ]);
 
   const fetchFeatures = () =>
     Promise.resolve([
       { id: 1, name: "Wi-Fi" },
-      { id: 2, name: "Outdoor Seating" },
-      { id: 3, name: "Parking" },
-      { id: 4, name: "Pet-Friendly" },
+      { id: 2, name: "Asientos al Aire Libre" },
+      { id: 3, name: "Estacionamiento" },
+      { id: 4, name: "Admite Mascotas" },
     ]);
 
   const handleAddPlace = () => {
@@ -198,7 +198,7 @@ export default function PlacesManagement() {
 
       // Show success message
     } catch (error) {
-      console.error("Error deleting place:", error);
+      console.error("Error al eliminar lugar:", error);
       // Show error message
     }
   };
@@ -265,12 +265,12 @@ export default function PlacesManagement() {
         // API call to create place
         // const newPlace = await createPlace(formData);
         // setPlaces([...places, newPlace]);
-        console.log("Creating place with data:", formData);
+        console.log("Creando lugar con datos:", formData);
       } else {
         // API call to update place
         // const updatedPlace = await updatePlace(selectedPlaceId, formData);
         // setPlaces(places.map(place => place.id === selectedPlaceId ? updatedPlace : place));
-        console.log("Updating place with data:", formData);
+        console.log("Actualizando lugar con datos:", formData);
       }
 
       // Close modal and reset
@@ -280,7 +280,7 @@ export default function PlacesManagement() {
 
       // Show success message
     } catch (error) {
-      console.error("Error saving place:", error);
+      console.error("Error al guardar lugar:", error);
       // Show error message
     }
   };
@@ -325,10 +325,10 @@ export default function PlacesManagement() {
       <div className="sm:flex sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Places Management
+            Gestión de Lugares
           </h1>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Add, edit, and manage all places in your platform
+            Agregar, editar y gestionar todos los lugares en tu plataforma
           </p>
         </div>
         <div className="mt-4 sm:mt-0">
@@ -339,7 +339,7 @@ export default function PlacesManagement() {
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-white bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             <PlusCircle className="mr-2 h-5 w-5" />
-            Add New Place
+            Agregar Nuevo Lugar
           </motion.button>
         </div>
       </div>
@@ -350,7 +350,7 @@ export default function PlacesManagement() {
           <Search className="absolute left-3 top-1/2 -mt-2.5 h-5 w-5 text-gray-400" />
           <input
             type="text"
-            placeholder="Search places..."
+            placeholder="Buscar lugares..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10 pr-4 py-2 w-full rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
@@ -363,11 +363,11 @@ export default function PlacesManagement() {
             onChange={(e) => setSelectedPriceLevel(e.target.value)}
             className="pl-4 pr-10 py-2 w-full rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white appearance-none"
           >
-            <option value="">Price Level (All)</option>
-            <option value="$">$ (Budget)</option>
-            <option value="$$">$$ (Moderate)</option>
-            <option value="$$$">$$$ (Expensive)</option>
-            <option value="$$$$">$$$$ (Very Expensive)</option>
+            <option value="">Nivel de Precio (Todos)</option>
+            <option value="$">$ (Económico)</option>
+            <option value="$$">$$ (Moderado)</option>
+            <option value="$$$">$$$ (Costoso)</option>
+            <option value="$$$$">$$$$ (Muy Costoso)</option>
           </select>
           <ChevronDown className="absolute right-3 top-1/2 -mt-2 h-4 w-4 text-gray-400" />
         </div>
@@ -378,9 +378,9 @@ export default function PlacesManagement() {
             onChange={(e) => setSortBy(e.target.value)}
             className="pl-4 pr-10 py-2 w-full rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white appearance-none"
           >
-            <option value="name">Sort by Name</option>
-            <option value="rating">Sort by Rating</option>
-            <option value="createdAt">Sort by Date Added</option>
+            <option value="name">Ordenar por Nombre</option>
+            <option value="rating">Ordenar por Calificación</option>
+            <option value="createdAt">Ordenar por Fecha de Agregado</option>
           </select>
           <ChevronDown className="absolute right-3 top-1/2 -mt-2 h-4 w-4 text-gray-400" />
         </div>
@@ -398,7 +398,7 @@ export default function PlacesManagement() {
           <button className="flex items-center justify-center px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700">
             <Filter className="h-5 w-5 mr-2 text-gray-500 dark:text-gray-400" />
             <span className="text-sm text-gray-700 dark:text-gray-300">
-              Filters
+              Filtros
             </span>
           </button>
         </div>
@@ -439,37 +439,37 @@ export default function PlacesManagement() {
                     scope="col"
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                   >
-                    Place
+                    Lugar
                   </th>
                   <th
                     scope="col"
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                   >
-                    Categories
+                    Categorías
                   </th>
                   <th
                     scope="col"
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                   >
-                    Rating
+                    Calificación
                   </th>
                   <th
                     scope="col"
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                   >
-                    Price
+                    Precio
                   </th>
                   <th
                     scope="col"
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                   >
-                    Address
+                    Dirección
                   </th>
                   <th
                     scope="col"
                     className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                   >
-                    Actions
+                    Acciones
                   </th>
                 </tr>
               </thead>
@@ -480,7 +480,7 @@ export default function PlacesManagement() {
                       colSpan="6"
                       className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400"
                     >
-                      Loading places...
+                      Cargando lugares...
                     </td>
                   </tr>
                 ) : filteredPlaces.length === 0 ? (
@@ -489,7 +489,7 @@ export default function PlacesManagement() {
                       colSpan="6"
                       className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400"
                     >
-                      No places found. Try adjusting your search or filters.
+                      No se encontraron lugares. Intenta ajustar tu búsqueda o filtros.
                     </td>
                   </tr>
                 ) : (
@@ -518,7 +518,7 @@ export default function PlacesManagement() {
                               {place.name}
                             </div>
                             <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
-                              {place.description || "No description available"}
+                              {place.description || "Sin descripción disponible"}
                             </div>
                           </div>
                         </div>
@@ -615,13 +615,13 @@ export default function PlacesManagement() {
               </div>
               <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
                 <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">
-                  Delete Place
+                  Eliminar Lugar
                 </h3>
                 <div className="mt-2">
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Are you sure you want to delete this place? This action
-                    cannot be undone and all associated data will be permanently
-                    removed.
+                    ¿Estás seguro de que quieres eliminar este lugar? Esta acción
+                    no se puede deshacer y todos los datos asociados se eliminarán
+                    permanentemente.
                   </p>
                 </div>
               </div>
@@ -635,7 +635,7 @@ export default function PlacesManagement() {
                 onClick={handleDeletePlace}
                 className="inline-flex w-full justify-center rounded-lg border border-transparent px-4 py-2 text-base font-medium text-white shadow-sm bg-gradient-to-b from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 sm:ml-3 sm:w-auto"
               >
-                Delete
+                Eliminar
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.02 }}
@@ -644,7 +644,7 @@ export default function PlacesManagement() {
                 onClick={() => setIsConfirmingDelete(false)}
                 className="mt-3 inline-flex w-full justify-center rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-base font-medium text-gray-700 dark:text-gray-200 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 sm:mt-0 sm:w-auto"
               >
-                Cancel
+                Cancelar
               </motion.button>
             </div>
           </motion.div>
@@ -654,16 +654,16 @@ export default function PlacesManagement() {
       {/* Pagination */}
       <div className="mt-6 flex items-center justify-between">
         <div className="text-sm text-gray-700 dark:text-gray-300">
-          Showing <span className="font-medium">1</span> to{" "}
-          <span className="font-medium">{filteredPlaces.length}</span> of{" "}
-          <span className="font-medium">{places.length}</span> places
+          Mostrando <span className="font-medium">1</span> a{" "}
+          <span className="font-medium">{filteredPlaces.length}</span> de{" "}
+          <span className="font-medium">{places.length}</span> lugares
         </div>
         <div className="flex space-x-2">
           <button
             disabled
             className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 opacity-50 cursor-not-allowed"
           >
-            Previous
+            Anterior
           </button>
           <button className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
             1
@@ -672,7 +672,7 @@ export default function PlacesManagement() {
             disabled
             className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 opacity-50 cursor-not-allowed"
           >
-            Next
+            Siguiente
           </button>
         </div>
       </div>
