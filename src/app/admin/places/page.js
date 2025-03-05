@@ -364,10 +364,10 @@ export default function PlacesManagement() {
             className="pl-4 pr-10 py-2 w-full rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white appearance-none"
           >
             <option value="">Price Level (All)</option>
-            <option value="\$">\$ (Budget)</option>
-            <option value="\$\$">\$\$ (Moderate)</option>
-            <option value="\$\$\$">\$\$\$ (Expensive)</option>
-            <option value="\$\$\$\$">\$\$\$\$ (Very Expensive)</option>
+            <option value="$">$ (Budget)</option>
+            <option value="$$">$$ (Moderate)</option>
+            <option value="$$$">$$$ (Expensive)</option>
+            <option value="$$$$">$$$$ (Very Expensive)</option>
           </select>
           <ChevronDown className="absolute right-3 top-1/2 -mt-2 h-4 w-4 text-gray-400" />
         </div>
