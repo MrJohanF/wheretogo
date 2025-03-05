@@ -19,6 +19,22 @@ import {
 import { motion } from "framer-motion";
 import { use } from "react";
 
+// Animation variants
+const fadeIn = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.3 } }
+};
+
+const slideIn = {
+  hidden: { x: -20, opacity: 0 },
+  visible: { x: 0, opacity: 1, transition: { duration: 0.4 } }
+};
+
+const itemFadeIn = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0 }
+};
+
 export default function PlaceFormPage({ params }) {
   const router = useRouter();
   const resolvedParams = use(params);
@@ -245,14 +261,21 @@ export default function PlaceFormPage({ params }) {
   };
 
   return (
-    <div className="px-4 py-6 sm:px-6 lg:px-8">
+    <motion.div 
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+      className="px-4 py-6 sm:px-6 lg:px-8"
+    >
       <div className="flex items-center mb-6">
-        <button 
+        <motion.button 
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           onClick={handleCancel}
           className="mr-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
         >
           <ArrowLeft className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-        </button>
+        </motion.button>
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             {isEditing ? "Editar Lugar" : "Agregar Nuevo Lugar"}
@@ -266,13 +289,33 @@ export default function PlaceFormPage({ params }) {
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center py-12">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex justify-center py-12"
+        >
           <div className="animate-pulse text-gray-500 dark:text-gray-400">Cargando...</div>
-        </div>
+        </motion.div>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <motion.form 
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: {},
+            visible: {
+              transition: {
+                staggerChildren: 0.1
+              }
+            }
+          }}
+          onSubmit={handleSubmit} 
+          className="space-y-8"
+        >
           {/* Información Básica */}
-          <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+          <motion.div 
+            variants={slideIn}
+            className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden"
+          >
             <div className="px-4 py-5 border-b border-gray-200 dark:border-gray-700 sm:px-6">
               <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white flex items-center">
                 <Info className="w-5 h-5 mr-2 text-indigo-500 dark:text-indigo-400" />
@@ -280,7 +323,7 @@ export default function PlaceFormPage({ params }) {
               </h3>
             </div>
             <div className="px-4 py-5 sm:p-6 space-y-4">
-              <div>
+              <motion.div variants={itemFadeIn}>
                 <label
                   htmlFor="name"
                   className="block text-sm font-medium text-gray-700 dark:text-gray-300"
@@ -297,9 +340,9 @@ export default function PlaceFormPage({ params }) {
                   className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
                   placeholder="Nombre del lugar"
                 />
-              </div>
+              </motion.div>
 
-              <div>
+              <motion.div variants={itemFadeIn}>
                 <label
                   htmlFor="description"
                   className="block text-sm font-medium text-gray-700 dark:text-gray-300"
@@ -315,12 +358,15 @@ export default function PlaceFormPage({ params }) {
                   className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
                   placeholder="Describe este lugar"
                 />
-              </div>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Contacto y Ubicación */}
-          <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+          <motion.div 
+            variants={slideIn}
+            className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden"
+          >
             <div className="px-4 py-5 border-b border-gray-200 dark:border-gray-700 sm:px-6">
               <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white flex items-center">
                 <MapPin className="w-5 h-5 mr-2 text-indigo-500 dark:text-indigo-400" />
@@ -329,7 +375,7 @@ export default function PlaceFormPage({ params }) {
             </div>
             <div className="px-4 py-5 sm:p-6 space-y-4">
               <div className="grid grid-cols-1 gap-y-4 gap-x-6 sm:grid-cols-6">
-                <div className="sm:col-span-6">
+                <motion.div variants={itemFadeIn} className="sm:col-span-6">
                   <label
                     htmlFor="address"
                     className="block text-sm font-medium text-gray-700 dark:text-gray-300"
@@ -351,9 +397,9 @@ export default function PlaceFormPage({ params }) {
                       placeholder="Dirección del lugar"
                     />
                   </div>
-                </div>
+                </motion.div>
 
-                <div className="sm:col-span-3">
+                <motion.div variants={itemFadeIn} className="sm:col-span-3">
                   <label
                     htmlFor="latitude"
                     className="block text-sm font-medium text-gray-700 dark:text-gray-300"
@@ -370,9 +416,9 @@ export default function PlaceFormPage({ params }) {
                     className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
                     placeholder="ej. 40.7128"
                   />
-                </div>
+                </motion.div>
 
-                <div className="sm:col-span-3">
+                <motion.div variants={itemFadeIn} className="sm:col-span-3">
                   <label
                     htmlFor="longitude"
                     className="block text-sm font-medium text-gray-700 dark:text-gray-300"
@@ -389,9 +435,9 @@ export default function PlaceFormPage({ params }) {
                     className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
                     placeholder="ej. -74.0060"
                   />
-                </div>
+                </motion.div>
 
-                <div className="sm:col-span-3">
+                <motion.div variants={itemFadeIn} className="sm:col-span-3">
                   <label
                     htmlFor="phone"
                     className="block text-sm font-medium text-gray-700 dark:text-gray-300"
@@ -412,9 +458,9 @@ export default function PlaceFormPage({ params }) {
                       placeholder="ej. +1 (555) 123-4567"
                     />
                   </div>
-                </div>
+                </motion.div>
 
-                <div className="sm:col-span-3">
+                <motion.div variants={itemFadeIn} className="sm:col-span-3">
                   <label
                     htmlFor="website"
                     className="block text-sm font-medium text-gray-700 dark:text-gray-300"
@@ -435,13 +481,16 @@ export default function PlaceFormPage({ params }) {
                       placeholder="ej. https://ejemplo.com"
                     />
                   </div>
-                </div>
+                </motion.div>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Detalles Adicionales */}
-          <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+          <motion.div 
+            variants={slideIn}
+            className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden"
+          >
             <div className="px-4 py-5 border-b border-gray-200 dark:border-gray-700 sm:px-6">
               <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white flex items-center">
                 <DollarSign className="w-5 h-5 mr-2 text-indigo-500 dark:text-indigo-400" />
@@ -450,7 +499,7 @@ export default function PlaceFormPage({ params }) {
             </div>
             <div className="px-4 py-5 sm:p-6 space-y-4">
               <div className="grid grid-cols-1 gap-y-4 gap-x-6 sm:grid-cols-6">
-                <div className="sm:col-span-2">
+                <motion.div variants={itemFadeIn} className="sm:col-span-2">
                   <label
                     htmlFor="cuisine"
                     className="block text-sm font-medium text-gray-700 dark:text-gray-300"
@@ -466,9 +515,9 @@ export default function PlaceFormPage({ params }) {
                     className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
                     placeholder="ej. Italiana, Japonesa, etc."
                   />
-                </div>
+                </motion.div>
 
-                <div className="sm:col-span-2">
+                <motion.div variants={itemFadeIn} className="sm:col-span-2">
                   <label
                     htmlFor="priceLevel"
                     className="block text-sm font-medium text-gray-700 dark:text-gray-300"
@@ -493,9 +542,9 @@ export default function PlaceFormPage({ params }) {
                       <option value="$$$$">$$$$ (Muy Costoso)</option>
                     </select>
                   </div>
-                </div>
+                </motion.div>
 
-                <div className="sm:col-span-2">
+                <motion.div variants={itemFadeIn} className="sm:col-span-2">
                   <label
                     htmlFor="rating"
                     className="block text-sm font-medium text-gray-700 dark:text-gray-300"
@@ -519,9 +568,9 @@ export default function PlaceFormPage({ params }) {
                       placeholder="ej. 4.5"
                     />
                   </div>
-                </div>
+                </motion.div>
 
-                <div className="sm:col-span-6">
+                <motion.div variants={itemFadeIn} className="sm:col-span-6">
                   <div className="flex items-center mt-2">
                     <input
                       type="checkbox"
@@ -538,28 +587,36 @@ export default function PlaceFormPage({ params }) {
                       ¿Actualmente Abierto?
                     </label>
                   </div>
-                </div>
+                </motion.div>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Categorías y Características */}
-          <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+          <motion.div 
+            variants={slideIn}
+            className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden"
+          >
             <div className="px-4 py-5 border-b border-gray-200 dark:border-gray-700 sm:px-6">
-            <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white flex items-center">
-              <LayoutList className="w-5 h-5 mr-2 text-indigo-500 dark:text-indigo-400" />
+              <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white flex items-center">
+                <LayoutList className="w-5 h-5 mr-2 text-indigo-500 dark:text-indigo-400" />
                 Categorías y Características
               </h3>
             </div>
             <div className="px-4 py-5 sm:p-6 space-y-6">
-              <div>
+              <motion.div variants={itemFadeIn}>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Categorías
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {categories.map((category) => (
-                    <div 
+                  {categories.map((category, index) => (
+                    <motion.div 
                       key={category.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                       onClick={() => handleMultiSelectChange("categoryIds", category.id)}
                       className={`cursor-pointer flex items-center p-3 rounded-md border ${
                         formData.categoryIds.includes(category.id) 
@@ -580,12 +637,12 @@ export default function PlaceFormPage({ params }) {
                       >
                         <span className="mr-1">{category.icon}</span> {category.name}
                       </label>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
-              </div>
+              </motion.div>
 
-              <div>
+              <motion.div variants={itemFadeIn}>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Subcategorías
                 </label>
@@ -599,9 +656,14 @@ export default function PlaceFormPage({ params }) {
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                     {subcategories
                       .filter((sub) => formData.categoryIds.includes(sub.categoryId))
-                      .map((subcategory) => (
-                        <div
+                      .map((subcategory, index) => (
+                        <motion.div
                           key={subcategory.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
                           onClick={() => handleMultiSelectChange("subcategoryIds", subcategory.id)}
                           className={`cursor-pointer flex items-center p-3 rounded-md border ${
                             formData.subcategoryIds.includes(subcategory.id) 
@@ -622,20 +684,25 @@ export default function PlaceFormPage({ params }) {
                           >
                             {subcategory.name}
                           </label>
-                        </div>
+                        </motion.div>
                       ))}
                   </div>
                 )}
-              </div>
+              </motion.div>
 
-              <div>
+              <motion.div variants={itemFadeIn}>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Características y Comodidades
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {features.map((feature) => (
-                    <div
+                  {features.map((feature, index) => (
+                    <motion.div
                       key={feature.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                       onClick={() => handleMultiSelectChange("featureIds", feature.id)}
                       className={`cursor-pointer flex items-center p-3 rounded-md border ${
                         formData.featureIds.includes(feature.id) 
@@ -656,15 +723,18 @@ export default function PlaceFormPage({ params }) {
                       >
                         {feature.name}
                       </label>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
-              </div>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Operating Hours */}
-          <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+          <motion.div 
+            variants={slideIn}
+            className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden"
+          >
             <div className="px-4 py-5 border-b border-gray-200 dark:border-gray-700 sm:px-6">
               <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white flex items-center">
                 <Clock className="w-5 h-5 mr-2 text-indigo-500 dark:text-indigo-400" />
@@ -672,12 +742,21 @@ export default function PlaceFormPage({ params }) {
               </h3>
             </div>
             <div className="px-4 py-5 sm:p-6">
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              <motion.p 
+                variants={itemFadeIn}
+                className="text-sm text-gray-500 dark:text-gray-400 mb-4"
+              >
                 Establece los horarios de apertura y cierre para cada día de la semana
-              </p>
+              </motion.p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {formData.operatingHours.map((hours, index) => (
-                  <div key={hours.day} className="border border-gray-200 dark:border-gray-700 rounded-md overflow-hidden">
+                  <motion.div 
+                    key={hours.day}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 + (index * 0.1) }}
+                    className="border border-gray-200 dark:border-gray-700 rounded-md overflow-hidden"
+                  >
                     <div className="bg-gray-50 dark:bg-gray-700/50 px-4 py-2 border-b border-gray-200 dark:border-gray-700">
                       <h4 className="font-medium text-gray-900 dark:text-white text-sm">
                         {hours.day}
@@ -707,14 +786,17 @@ export default function PlaceFormPage({ params }) {
                         />
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Images */}
-          <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+          <motion.div 
+            variants={slideIn}
+            className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden"
+          >
             <div className="px-4 py-5 border-b border-gray-200 dark:border-gray-700 sm:px-6">
               <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white flex items-center">
                 <ImageIcon className="w-5 h-5 mr-2 text-indigo-500 dark:text-indigo-400" />
@@ -722,7 +804,10 @@ export default function PlaceFormPage({ params }) {
               </h3>
             </div>
             <div className="px-4 py-5 sm:p-6 space-y-4">
-              <div>
+              <motion.div 
+                variants={itemFadeIn}
+                whileHover={{ scale: 1.02 }}
+              >
                 <input
                   id="image-upload"
                   type="file"
@@ -743,17 +828,20 @@ export default function PlaceFormPage({ params }) {
                     PNG, JPG, GIF hasta 10MB
                   </span>
                 </label>
-              </div>
+              </motion.div>
 
               {formData.images.length > 0 && (
-                <div>
+                <motion.div variants={itemFadeIn}>
                   <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                     Imágenes Subidas ({formData.images.length})
                   </h4>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    {formData.images.map((image) => (
-                      <div 
-                        key={image.id} 
+                    {formData.images.map((image, index) => (
+                      <motion.div 
+                        key={image.id}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: index * 0.05 }}
                         className="relative group"
                       >
                         <div className="aspect-square rounded-md overflow-hidden shadow-sm border border-gray-200 dark:border-gray-700">
@@ -763,30 +851,37 @@ export default function PlaceFormPage({ params }) {
                             className="h-full w-full object-cover"
                           />
                         </div>
-                        <button
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
                           type="button"
                           onClick={() => handleRemoveImage(image.id)}
                           className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <X size={14} />
-                        </button>
-                      </div>
+                        </motion.button>
+                      </motion.div>
                     ))}
                   </div>
-                </div>
+                </motion.div>
               )}
             </div>
-          </div>
+          </motion.div>
 
           {/* Form Actions */}
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-6 flex justify-between items-center">
-            <button
+          <motion.div 
+            variants={slideIn}
+            className="border-t border-gray-200 dark:border-gray-700 pt-6 flex justify-between items-center"
+          >
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               type="button"
               onClick={handleCancel}
               className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-medium"
             >
               Cancelar
-            </button>
+            </motion.button>
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -796,9 +891,9 @@ export default function PlaceFormPage({ params }) {
               <Save size={18} className="mr-2" />
               {isEditing ? "Actualizar Lugar" : "Guardar Lugar"}
             </motion.button>
-          </div>
-        </form>
+          </motion.div>
+        </motion.form>
       )}
-    </div>
+    </motion.div>
   );
 }
