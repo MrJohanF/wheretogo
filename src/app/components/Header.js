@@ -10,14 +10,17 @@ export default function Header() {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef(null);
+  const searchContainerRef = useRef(null);
   const router = useRouter();
 
   // Handle click outside to collapse search on desktop
   useEffect(() => {
     function handleClickOutside(event) {
-      if (searchInputRef.current && 
-          !searchInputRef.current.contains(event.target) && 
-          isSearchExpanded) {
+      if (
+        searchContainerRef.current && 
+        !searchContainerRef.current.contains(event.target) && 
+        isSearchExpanded
+      ) {
         setIsSearchExpanded(false);
       }
     }
@@ -132,6 +135,7 @@ export default function Header() {
         {/* Search and user section with advanced animation */}
         <div className="hidden md:flex items-center gap-4">
           <motion.div
+            ref={searchContainerRef}
             layout
             className="relative h-10"
             animate={{
@@ -140,7 +144,6 @@ export default function Header() {
             transition={springTransition}
           >
             <form 
-              ref={searchInputRef}
               onSubmit={handleSearchSubmit}
               className="w-full h-full"
             >
@@ -159,6 +162,7 @@ export default function Header() {
                 
                 {/* Input field with custom focus styles */}
                 <input 
+                  ref={searchInputRef}
                   type="text" 
                   placeholder={isSearchExpanded ? "Buscar lugares, categorías..." : "Buscar lugares..."}
                   value={searchQuery}
