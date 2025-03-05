@@ -15,7 +15,7 @@ const categories = [
     description: "Descubre los mejores restaurantes de la ciudad",
     features: ["Reservas", "Menús", "Reseñas", "Fotos"],
     color: "from-orange-500 to-red-500",
-    image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    image: "/images/restaurante.avif",
     trending: true,
     subcategories: ["Italiano", "Mediterráneo", "Japonés", "Mexicano", "Vegetariano"]
   },
@@ -27,7 +27,7 @@ const categories = [
     description: "Encuentra tu café favorito",
     features: ["Especialidad", "Ambiente", "WiFi", "Para llevar"],
     color: "from-amber-500 to-yellow-500",
-    image: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    image: "/images/cafe.avif",
     trending: true,
     subcategories: ["Café de especialidad", "Pastelería", "Co-working", "Desayunos"]
   },
@@ -38,7 +38,7 @@ const categories = [
     count: 64, 
     description: "Los mejores lugares para tomar algo",
     color: "from-purple-500 to-indigo-500",
-    image: "https://images.unsplash.com/photo-1470337458703-46ad1756a187?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    image: "/images/bar.avif",
     subcategories: ["Cócteles", "Cervecerías", "Wine Bar", "Terrazas"]
   },
   { 
@@ -48,7 +48,7 @@ const categories = [
     count: 42, 
     description: "Explora el arte y la cultura",
     color: "from-blue-500 to-cyan-500",
-    image: "https://images.unsplash.com/photo-1578301978018-3005759f48f7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    image: "/images/museo.avif",
     subcategories: ["Arte", "Historia", "Ciencia", "Contemporáneo"]
   },
   { 
@@ -58,7 +58,7 @@ const categories = [
     count: 37, 
     description: "Relájate al aire libre",
     color: "from-green-500 to-emerald-500",
-    image: "https://images.unsplash.com/photo-1585938389612-a552a28d6914?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    image: "/images/parque.avif",
     subcategories: ["Jardines", "Parques urbanos", "Áreas recreativas", "Miradores"]
   },
   { 
@@ -68,7 +68,7 @@ const categories = [
     count: 23,
     description: "Disfruta de los últimos estrenos",
     color: "from-red-500 to-pink-500",
-    image: "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    image: "/images/cine.avif",
     subcategories: ["Multicines", "Cine independiente", "3D/IMAX", "Al aire libre"]
   },
   { 
@@ -78,7 +78,7 @@ const categories = [
     count: 18,
     description: "Vive la magia de las artes escénicas",
     color: "from-violet-500 to-purple-500",
-    image: "https://images.unsplash.com/photo-1503095396549-807759245b35?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    image: "/images/teatro.avif",
     subcategories: ["Teatro clásico", "Musical", "Comedia", "Alternativo"]
   },
   { 
@@ -88,7 +88,7 @@ const categories = [
     count: 56,
     description: "Actividades y recintos deportivos",
     color: "from-blue-500 to-indigo-500",
-    image: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    image: "/images/deportes.avif",
     subcategories: ["Fútbol", "Tenis", "Gimnasios", "Deportes acuáticos"]
   },
   // Remaining categories with similar enhancements...
@@ -99,7 +99,7 @@ const categories = [
     count: 94,
     description: "Las mejores tiendas y centros comerciales",
     color: "from-pink-500 to-rose-500",
-    image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    image: "/images/compras.avif",
   },
   { 
     id: 10, 
@@ -108,7 +108,7 @@ const categories = [
     count: 73,
     description: "No te pierdas lo que está pasando",
     color: "from-yellow-500 to-amber-500",
-    image: "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    image: "/images/eventos.avif",
     trending: true,
   },
   { 
@@ -118,7 +118,7 @@ const categories = [
     count: 45,
     description: "Alojamientos para todos los gustos",
     color: "from-sky-500 to-blue-500",
-    image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    image: "/images/hoteles.avif",
   },
   { 
     id: 12, 
@@ -127,7 +127,7 @@ const categories = [
     count: 31,
     description: "Disfruta del sol y el mar",
     color: "from-cyan-500 to-teal-500",
-    image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    image: "/images/playas.avif",
   },
 ];
 
