@@ -1,5 +1,3 @@
-// src\app\admin\places\page.js
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -16,7 +14,7 @@ import {
   Edit,
   Trash2,
   X,
-  Image as ImageIcon,
+  ImageIcon,
   Save,
   Link,
   Phone,
@@ -27,6 +25,17 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ViewPlaceModal from "@/app/components/ViewPlaceModal";
+
+// Animation variants
+const fadeIn = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.3 } }
+};
+
+const slideIn = {
+  hidden: { x: -20, opacity: 0 },
+  visible: { x: 0, opacity: 1, transition: { duration: 0.4 } }
+};
 
 export default function PlacesManagement() {
   const [places, setPlaces] = useState([]);
@@ -321,7 +330,12 @@ export default function PlacesManagement() {
     });
 
   return (
-    <div className="px-4 py-6 sm:px-6 lg:px-8">
+    <motion.div 
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+      className="px-4 py-6 sm:px-6 lg:px-8"
+    >
       <div className="sm:flex sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -345,7 +359,10 @@ export default function PlacesManagement() {
       </div>
 
       {/* Filters and Search */}
-      <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <motion.div 
+        variants={slideIn}
+        className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+      >
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -mt-2.5 h-5 w-5 text-gray-400" />
           <input
@@ -386,29 +403,43 @@ export default function PlacesManagement() {
         </div>
 
         <div className="flex gap-2">
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() =>
               setSortDirection(sortDirection === "asc" ? "desc" : "asc")
             }
             className="flex items-center justify-center p-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
           >
             <ArrowUpDown className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-          </button>
+          </motion.button>
 
-          <button className="flex items-center justify-center px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700">
+          <motion.button 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="flex items-center justify-center px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+          >
             <Filter className="h-5 w-5 mr-2 text-gray-500 dark:text-gray-400" />
             <span className="text-sm text-gray-700 dark:text-gray-300">
               Filtros
             </span>
-          </button>
+          </motion.button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Category filter chips */}
-      <div className="mt-4 flex flex-wrap gap-2">
-        {categories.map((category) => (
-          <button
+      <motion.div 
+        variants={slideIn}
+        className="mt-4 flex flex-wrap gap-2"
+      >
+        {categories.map((category, index) => (
+          <motion.button
             key={category.id}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: index * 0.05 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => {
               setSelectedCategories((prev) =>
                 prev.includes(category.id)
@@ -424,12 +455,15 @@ export default function PlacesManagement() {
           >
             <span className="mr-1.5">{category.icon}</span>
             {category.name}
-          </button>
+          </motion.button>
         ))}
-      </div>
+      </motion.div>
 
       {/* Places Table */}
-      <div className="mt-6 overflow-x-auto">
+      <motion.div 
+        variants={slideIn}
+        className="mt-6 overflow-x-auto"
+      >
         <div className="inline-block min-w-full align-middle">
           <div className="overflow-hidden border border-gray-200 dark:border-gray-700 rounded-lg">
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -493,9 +527,12 @@ export default function PlacesManagement() {
                     </td>
                   </tr>
                 ) : (
-                  filteredPlaces.map((place) => (
-                    <tr
+                  filteredPlaces.map((place, index) => (
+                    <motion.tr
                       key={place.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
                       className="hover:bg-gray-50 dark:hover:bg-gray-800"
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -558,34 +595,40 @@ export default function PlacesManagement() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end gap-2">
-                          <button
+                          <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
                             onClick={() => handleViewPlace(place)}
                             className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
                           >
                             <Eye size={18} />
-                          </button>
-                          <button
+                          </motion.button>
+                          <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
                             onClick={() => handleEditPlace(place)}
                             className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-200"
                           >
                             <Edit size={18} />
-                          </button>
-                          <button
+                          </motion.button>
+                          <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
                             onClick={() => handleDeletePrompt(place.id)}
                             className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-200"
                           >
                             <Trash2 size={18} />
-                          </button>
+                          </motion.button>
                         </div>
                       </td>
-                    </tr>
+                    </motion.tr>
                   ))
                 )}
               </tbody>
             </table>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* View Place Modal */}
       <ViewPlaceModal
@@ -652,30 +695,41 @@ export default function PlacesManagement() {
       )}
 
       {/* Pagination */}
-      <div className="mt-6 flex items-center justify-between">
+      <motion.div 
+        variants={slideIn}
+        className="mt-6 flex items-center justify-between"
+      >
         <div className="text-sm text-gray-700 dark:text-gray-300">
           Mostrando <span className="font-medium">1</span> a{" "}
           <span className="font-medium">{filteredPlaces.length}</span> de{" "}
           <span className="font-medium">{places.length}</span> lugares
         </div>
         <div className="flex space-x-2">
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             disabled
             className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 opacity-50 cursor-not-allowed"
           >
             Anterior
-          </button>
-          <button className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
+          >
             1
-          </button>
-          <button
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             disabled
             className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 opacity-50 cursor-not-allowed"
           >
             Siguiente
-          </button>
+          </motion.button>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
