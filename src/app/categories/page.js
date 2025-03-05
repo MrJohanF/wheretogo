@@ -208,6 +208,7 @@ export default function CategoriesPage() {
         isFeatured ? 'col-span-1 md:col-span-2 lg:col-span-2' : ''
       }`}
     >
+      
       <div className={`relative ${isFeatured ? 'h-48' : 'h-32'} overflow-hidden`}>
         {category.image && (
           <Image
@@ -293,9 +294,21 @@ export default function CategoriesPage() {
   );
 
   return (
+    
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 pb-12">
       {/* Header with Background */}
       <div className="relative bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+
+  {/* Home Button in Header */}
+  <button 
+    onClick={goToHomePage}
+    className="absolute top-4 left-4 md:top-6 md:left-6 bg-white/20 hover:bg-white/30 backdrop-blur-sm p-2.5 rounded-full transition-all duration-300"
+    aria-label="Go to home page"
+  >
+    <Home className="w-5 h-5 text-white" />
+  </button>
+
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
