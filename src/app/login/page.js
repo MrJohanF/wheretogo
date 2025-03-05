@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
-import { Eye, EyeOff, Mail, Lock, ArrowRight, User, UserPlus } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, ArrowRight, User, UserPlus, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -47,16 +48,23 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 p-4">
-      <div className="absolute top-6 left-6">
-        <div className="flex items-center">
-          <a href="/" className="flex items-center hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold">A</span>
-            </div>
-            <span className="ml-2 font-semibold text-gray-800">AppName</span>
-          </a>
-        </div>
-      </div>
+      {/* Back to Home Button */}
+      <motion.div 
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.2 }}
+        className="absolute top-6 left-6"
+      >
+        <Link 
+          href="/" 
+          className="group flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-200 hover:bg-white"
+        >
+          <ArrowLeft className="h-4 w-4 text-gray-600 group-hover:text-indigo-600 transition-colors" />
+          <span className="text-sm font-medium text-gray-700 group-hover:text-indigo-600 transition-colors">
+            Volver al inicio
+          </span>
+        </Link>
+      </motion.div>
       
       <div className="w-full max-w-md">
         <LayoutGroup>
