@@ -298,16 +298,21 @@ export default function AdminSettings() {
                 <div className="px-4 py-5 sm:p-6 space-y-6">
                   {/* Sección de carga de avatar */}
                   <motion.div 
-                    whileHover={{ scale: 1.02 }}
                     className="flex items-center"
                   >
                     <div className="mr-4 relative">
                       <div className="h-24 w-24 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700">
-                        <img 
-                          src={profileForm.avatar || "https://via.placeholder.com/200"} 
-                          alt="Foto de perfil" 
-                          className="h-full w-full object-cover"
-                        />
+                        {profileForm.avatar === "" ? (
+                          <img 
+                            src={profileForm.avatar}
+                            alt="Foto de perfil"
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="h-full w-full flex items-center justify-center">
+                            <User className="h-12 w-12 text-gray-400" />
+                          </div>
+                        )}
                       </div>
                       <label 
                         htmlFor="avatar-upload" 
