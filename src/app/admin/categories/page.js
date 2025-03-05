@@ -936,10 +936,10 @@ export default function CategoriesManagement() {
           isOpen={showDeleteConfirm}
           onClose={() => setShowDeleteConfirm(false)}
           onConfirm={handleConfirmDelete}
-          title="Delete Category"
-          message={`Are you sure you want to delete the category "${categoryToDelete?.name}"? This will also delete all related subcategories. This action cannot be undone.`}
-          confirmText="Delete"
-          cancelText="Cancel"
+          title="Eliminar Categoría"
+          message={`¿Estás seguro que deseas eliminar la categoría "${categoryToDelete?.name}"? Esto también eliminará todas las subcategorías relacionadas. Esta acción no se puede deshacer.`}
+          confirmText="Eliminar"
+          cancelText="Cancelar"
           type="delete"
         />
 
@@ -1016,10 +1016,10 @@ export default function CategoriesManagement() {
           isOpen={showDeleteSubcategoryConfirm}
           onClose={() => setShowDeleteSubcategoryConfirm(false)}
           onConfirm={handleConfirmDeleteSubcategory}
-          title="Delete Subcategory"
-          message={`Are you sure you want to delete the subcategory "${subcategoryToDelete?.name}"? This action cannot be undone.`}
-          confirmText="Delete"
-          cancelText="Cancel"
+          title="Eliminar Subcategoría"
+          message={`¿Estás seguro que deseas eliminar la subcategoría "${subcategoryToDelete?.name}"? Esta acción no se puede deshacer.`}
+          confirmText="Eliminar"
+          cancelText="Cancelar"
           type="delete"
         />
         
