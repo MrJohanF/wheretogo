@@ -21,7 +21,7 @@ export default function HowItWorks() {
     },
     {
       icon: <ThumbsUp className="h-8 w-8" />,
-      title: "Obtén Sugerencias Personalizadas",
+      title: "Sugerencias Únicas",
       description: "Cuéntanos lo que te gusta y te sugeriremos lugares que coincidan con tus preferencias e intereses."
     },
     {
