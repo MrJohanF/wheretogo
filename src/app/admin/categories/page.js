@@ -102,38 +102,38 @@ export default function CategoriesManagement() {
       const mockCategories = [
         {
           id: 1,
-          name: "Restaurants",
+          name: "Restaurantes",
           icon: "Utensils",
-          description: "Places to eat and dine",
+          description: "Lugares para comer y cenar",
           color: "#EF4444",
           count: 128,
           isTrending: true,
           image: "/images/restaurante.avif",
           subcategories: [
-            { id: 1, name: "Italian" },
-            { id: 2, name: "Mexican" },
-            { id: 3, name: "Japanese" },
+            { id: 1, name: "Italiano" },
+            { id: 2, name: "Mexicano" },
+            { id: 3, name: "Japonés" },
           ],
         },
         {
           id: 2,
-          name: "Cafes",
+          name: "Cafeterías",
           icon: "Coffee",
-          description: "Get your caffeine fix",
+          description: "Obtén tu dosis de cafeína",
           color: "#F59E0B",
           count: 85,
           isTrending: false,
           image: "/images/cafe.avif",
           subcategories: [
-            { id: 4, name: "Coffee Shops" },
-            { id: 5, name: "Tea Houses" },
+            { id: 4, name: "Cafeterías" },
+            { id: 5, name: "Casas de Té" },
           ],
         },
         {
           id: 3,
-          name: "Bars",
+          name: "Bares",
           icon: "Beer",
-          description: "Drinks and nightlife",
+          description: "Bebidas y vida nocturna",
           color: "#8B5CF6",
           count: 97,
           isTrending: true,
@@ -146,30 +146,30 @@ export default function CategoriesManagement() {
         },
         {
           id: 4,
-          name: "Museums",
+          name: "Museos",
           icon: "Building",
-          description: "Cultural exhibits and historical artifacts",
+          description: "Exhibiciones culturales y artefactos históricos",
           color: "#10B981",
           count: 42,
           isTrending: false,
           image: "/images/museo.avif",
           subcategories: [
-            { id: 9, name: "Art Museums" },
-            { id: 10, name: "History Museums" },
+            { id: 9, name: "Museos de Arte" },
+            { id: 10, name: "Museos de Historia" },
           ],
         },
         {
           id: 5,
-          name: "Parks",
+          name: "Parques",
           icon: "TreeDeciduous",
-          description: "Outdoor spaces and recreation",
+          description: "Espacios al aire libre y recreación",
           color: "#3B82F6",
           count: 36,
           isTrending: false,
           image: "/images/parque.avif",
           subcategories: [
-            { id: 11, name: "Urban Parks" },
-            { id: 12, name: "National Parks" },
+            { id: 11, name: "Parques Urbanos" },
+            { id: 12, name: "Parques Nacionales" },
           ],
         },
       ];
@@ -458,11 +458,11 @@ export default function CategoriesManagement() {
                 <ArrowLeft size={20} />
               </button>
               <h1 className="text-2xl font-bold">
-                Subcategories for {selectedCategory?.name}
+                Subcategorías de {selectedCategory?.name}
               </h1>
             </div>
           ) : (
-            <h1 className="text-2xl font-bold">Categories Management</h1>
+            <h1 className="text-2xl font-bold">Gestión de Categorías</h1>
           )}
 
           {!viewingSubcategories && (
@@ -470,7 +470,7 @@ export default function CategoriesManagement() {
               onClick={handleAddCategory}
               className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-4 py-2 rounded-lg flex items-center"
             >
-              <Plus size={18} className="mr-2" /> Add Category
+              <Plus size={18} className="mr-2" /> Añadir Categoría
             </button>
           )}
 
@@ -479,7 +479,7 @@ export default function CategoriesManagement() {
               onClick={handleAddSubcategory}
               className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-4 py-2 rounded-lg flex items-center"
             >
-              <Plus size={18} className="mr-2" /> Add Subcategory
+              <Plus size={18} className="mr-2" /> Añadir Subcategoría
             </button>
           )}
         </div>
@@ -490,7 +490,7 @@ export default function CategoriesManagement() {
             <Search size={18} className="text-gray-400 mr-2" />
             <input
               type="text"
-              placeholder="Search categories..."
+              placeholder="Buscar categorías..."
               className="flex-1 outline-none border-0"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -530,37 +530,37 @@ export default function CategoriesManagement() {
                         scope="col"
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
-                        Category
+                        Categoría
                       </th>
                       <th
                         scope="col"
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
-                        Description
+                        Descripción
                       </th>
                       <th
                         scope="col"
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
-                        Count
+                        Cantidad
                       </th>
                       <th
                         scope="col"
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
-                        Trending
+                        Tendencia
                       </th>
                       <th
                         scope="col"
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
-                        Subcategories
+                        Subcategorías
                       </th>
                       <th
                         scope="col"
                         className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
-                        Actions
+                        Acciones
                       </th>
                     </tr>
                   </thead>
@@ -571,8 +571,8 @@ export default function CategoriesManagement() {
                           colSpan="6"
                           className="px-6 py-10 text-center text-gray-500"
                         >
-                          No categories found.{" "}
-                          {searchTerm && "Try a different search term."}
+                          No se encontraron categorías.{" "}
+                          {searchTerm && "Intenta con otro término de búsqueda."}
                         </td>
                       </tr>
                     ) : (
@@ -672,17 +672,17 @@ export default function CategoriesManagement() {
                   <Building size={48} className="mx-auto" />
                 </div>
                 <h3 className="text-lg font-medium text-gray-900">
-                  No subcategories yet
+                  Aún no hay subcategorías
                 </h3>
                 <p className="mt-1 text-sm text-gray-500">
-                  Get started by adding a new subcategory to{" "}
+                  Comienza añadiendo una nueva subcategoría a{" "}
                   {selectedCategory.name}.
                 </p>
                 <button
                   className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
                   onClick={handleAddSubcategory}
                 >
-                  <Plus size={16} className="mr-2" /> Add Subcategory
+                  <Plus size={16} className="mr-2" /> Añadir Subcategoría
                 </button>
               </div>
             ) : (
@@ -725,7 +725,7 @@ export default function CategoriesManagement() {
           >
             <div className="mb-6 flex justify-between items-center">
               <h2 className="text-xl font-semibold">
-                {isAddingCategory ? "Add New Category" : "Edit Category"}
+                {isAddingCategory ? "Añadir Nueva Categoría" : "Editar Categoría"}
               </h2>
               <button
                 onClick={() => {
@@ -747,7 +747,7 @@ export default function CategoriesManagement() {
                     htmlFor="name"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Category Name *
+                    Nombre de Categoría *
                   </label>
                   <input
                     type="text"
@@ -757,7 +757,7 @@ export default function CategoriesManagement() {
                     value={formData.name}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="e.g. Restaurants"
+                    placeholder="ej. Restaurantes"
                   />
                 </div>
 
@@ -767,7 +767,7 @@ export default function CategoriesManagement() {
                     htmlFor="description"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Description
+                    Descripción
                   </label>
                   <textarea
                     id="description"
@@ -776,7 +776,7 @@ export default function CategoriesManagement() {
                     onChange={handleInputChange}
                     rows={3}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="Brief description of the category"
+                    placeholder="Breve descripción de la categoría"
                   ></textarea>
                 </div>
 
@@ -786,7 +786,7 @@ export default function CategoriesManagement() {
                     htmlFor="color"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Category Color
+                    Color de Categoría
                   </label>
                   <div className="flex items-center space-x-3">
                     <input
@@ -825,7 +825,7 @@ export default function CategoriesManagement() {
                     htmlFor="isTrending"
                     className="ml-2 block text-sm text-gray-700"
                   >
-                    Mark as trending category
+                    Marcar como categoría en tendencia
                   </label>
                 </div>
               </div>
@@ -835,7 +835,7 @@ export default function CategoriesManagement() {
                 {/* Icon Selection */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Category Icon
+                    Icono de Categoría
                   </label>
                   <div className="grid grid-cols-6 gap-3">
                     {iconOptions.map((option) => (
@@ -858,14 +858,14 @@ export default function CategoriesManagement() {
                 {/* Image Upload */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Category Image
+                    Imagen de Categoría
                   </label>
                   <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
                     {formData.image ? (
                       <div className="relative w-full h-36">
                         <img
                           src={formData.image}
-                          alt="Category preview"
+                          alt="Vista previa de categoría"
                           className="h-full w-full object-cover rounded-md"
                         />
                         <button
@@ -885,7 +885,7 @@ export default function CategoriesManagement() {
                             htmlFor="file-upload"
                             className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500"
                           >
-                            <span>Upload a file</span>
+                            <span>Subir un archivo</span>
                             <input
                               id="file-upload"
                               name="file-upload"
@@ -895,10 +895,10 @@ export default function CategoriesManagement() {
                               onChange={handleImageSelect}
                             />
                           </label>
-                          <p className="pl-1">or drag and drop</p>
+                          <p className="pl-1">o arrastrar y soltar</p>
                         </div>
                         <p className="text-xs text-gray-500">
-                          PNG, JPG, GIF up to 10MB
+                          PNG, JPG, GIF hasta 10MB
                         </p>
                       </div>
                     )}
@@ -917,7 +917,7 @@ export default function CategoriesManagement() {
                 }}
                 className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 mr-3"
               >
-                Cancel
+                Cancelar
               </button>
               <button
                 type="button"
@@ -925,7 +925,7 @@ export default function CategoriesManagement() {
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
               >
                 <Save size={18} className="mr-2" />
-                Save Category
+                Guardar Categoría
               </button>
             </div>
           </motion.div>
@@ -959,8 +959,8 @@ export default function CategoriesManagement() {
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                   {isAddingSubcategory
-                    ? "Add New Subcategory"
-                    : "Edit Subcategory"}
+                    ? "Agregar Nueva Subcategoría"
+                    : "Editar Subcategoría"}
                 </h2>
                 <motion.button
                   whileHover={{ scale: 1.1 }}
@@ -981,7 +981,7 @@ export default function CategoriesManagement() {
                     htmlFor="subcategory-name"
                     className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                   >
-                    Subcategory Name <span className="text-red-500">*</span>
+                    Nombre de Subcategoría <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -994,7 +994,7 @@ export default function CategoriesManagement() {
               focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500
               bg-white dark:bg-gray-700 text-gray-900 dark:text-white
               placeholder:text-gray-400 dark:placeholder:text-gray-500"
-                    placeholder="e.g. Italian Cuisine"
+                    placeholder="ej. Cocina Italiana"
                   />
                 </div>
 
@@ -1010,7 +1010,7 @@ export default function CategoriesManagement() {
               focus:outline-none focus:ring-3 focus:ring-indigo-500/40"
                   >
                     <Save size={18} className="mr-2" />
-                    Save Subcategory
+                    Guardar Subcategoría
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.02 }}
@@ -1026,7 +1026,7 @@ export default function CategoriesManagement() {
               bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 
               focus:outline-none focus:ring-2 focus:ring-gray-400"
                   >
-                    Cancel
+                    Cancelar
                   </motion.button>
                 </div>
               </div>
