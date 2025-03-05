@@ -26,7 +26,7 @@ import {
   Eye,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import ViewPlaceModal from "./components/ViewPlaceModal";
+import ViewPlaceModal from "@/app/components/ViewPlaceModal";
 
 export default function PlacesManagement() {
   const [places, setPlaces] = useState([]);
