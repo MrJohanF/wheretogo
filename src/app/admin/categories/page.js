@@ -1,24 +1,45 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { 
-  Plus, Edit, Trash2, Search, ArrowLeft, ChevronRight, 
-  ChevronDown, AlertCircle, X, Save, Upload, Star, 
-  Coffee, Utensils, Beer, Building, TreeDeciduous, Film, 
-  Music, Volleyball, ShoppingBag, Calendar, Hotel, Waves,
-  Check, Image
-} from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Search,
+  ArrowLeft,
+  ChevronRight,
+  ChevronDown,
+  AlertCircle,
+  X,
+  Save,
+  Upload,
+  Star,
+  Coffee,
+  Utensils,
+  Beer,
+  Building,
+  TreeDeciduous,
+  Film,
+  Music,
+  Volleyball,
+  ShoppingBag,
+  Calendar,
+  Hotel,
+  Waves,
+  Check,
+  Image,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const fadeIn = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.3 } }
+  visible: { opacity: 1, transition: { duration: 0.3 } },
 };
 
 const slideUp = {
   hidden: { y: 20, opacity: 0 },
-  visible: { y: 0, opacity: 1, transition: { duration: 0.4 } }
+  visible: { y: 0, opacity: 1, transition: { duration: 0.4 } },
 };
 
 export default function CategoriesManagement() {
@@ -26,7 +47,7 @@ export default function CategoriesManagement() {
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
   const [filteredCategories, setFilteredCategories] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [isEditingCategory, setIsEditingCategory] = useState(false);
   const [currentCategory, setCurrentCategory] = useState(null);
@@ -34,254 +55,392 @@ export default function CategoriesManagement() {
   const [categoryToDelete, setCategoryToDelete] = useState(null);
   const [viewingSubcategories, setViewingSubcategories] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  
+  const [isAddingSubcategory, setIsAddingSubcategory] = useState(false);
+  const [isEditingSubcategory, setIsEditingSubcategory] = useState(false);
+  const [currentSubcategory, setCurrentSubcategory] = useState(null);
+  const [subcategoryFormData, setSubcategoryFormData] = useState({
+    name: "",
+    categoryId: null,
+  });
+  const [showDeleteSubcategoryConfirm, setShowDeleteSubcategoryConfirm] =
+    useState(false);
+  const [subcategoryToDelete, setSubcategoryToDelete] = useState(null);
+
   // Form state
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    icon: '',
-    color: '#6366F1', // Default indigo color
+    name: "",
+    description: "",
+    icon: "",
+    color: "#6366F1", // Default indigo color
     isTrending: false,
-    image: null
+    image: null,
   });
-  
+
   // Mock icons for selection
   const iconOptions = [
-    { name: 'Coffee', icon: <Coffee size={20} /> },
-    { name: 'Utensils', icon: <Utensils size={20} /> },
-    { name: 'Beer', icon: <Beer size={20} /> },
-    { name: 'Building', icon: <Building size={20} /> },
-    { name: 'TreeDeciduous', icon: <TreeDeciduous size={20} /> },
-    { name: 'Film', icon: <Film size={20} /> },
-    { name: 'Music', icon: <Music size={20} /> },
-    { name: 'Football', icon: <Volleyball size={20} /> },
-    { name: 'ShoppingBag', icon: <ShoppingBag size={20} /> },
-    { name: 'Calendar', icon: <Calendar size={20} /> },
-    { name: 'Hotel', icon: <Hotel size={20} /> },
-    { name: 'Waves', icon: <Waves size={20} /> },
+    { name: "Coffee", icon: <Coffee size={20} /> },
+    { name: "Utensils", icon: <Utensils size={20} /> },
+    { name: "Beer", icon: <Beer size={20} /> },
+    { name: "Building", icon: <Building size={20} /> },
+    { name: "TreeDeciduous", icon: <TreeDeciduous size={20} /> },
+    { name: "Film", icon: <Film size={20} /> },
+    { name: "Music", icon: <Music size={20} /> },
+    { name: "Football", icon: <Volleyball size={20} /> },
+    { name: "ShoppingBag", icon: <ShoppingBag size={20} /> },
+    { name: "Calendar", icon: <Calendar size={20} /> },
+    { name: "Hotel", icon: <Hotel size={20} /> },
+    { name: "Waves", icon: <Waves size={20} /> },
   ];
-  
+
   // Mock data for categories - in a real application, you would fetch from your API
   useEffect(() => {
     // Simulate loading data
     setLoading(true);
-    
+
     setTimeout(() => {
       const mockCategories = [
-        { 
-          id: 1, 
-          name: 'Restaurants', 
-          icon: 'Utensils', 
-          description: 'Places to eat and dine', 
-          color: '#EF4444', 
-          count: 128, 
+        {
+          id: 1,
+          name: "Restaurants",
+          icon: "Utensils",
+          description: "Places to eat and dine",
+          color: "#EF4444",
+          count: 128,
           isTrending: true,
-          image: '/images/restaurante.avif',
+          image: "/images/restaurante.avif",
           subcategories: [
-            { id: 1, name: 'Italian' },
-            { id: 2, name: 'Mexican' },
-            { id: 3, name: 'Japanese' }
-          ]
+            { id: 1, name: "Italian" },
+            { id: 2, name: "Mexican" },
+            { id: 3, name: "Japanese" },
+          ],
         },
-        { 
-          id: 2, 
-          name: 'Cafes', 
-          icon: 'Coffee', 
-          description: 'Get your caffeine fix', 
-          color: '#F59E0B', 
-          count: 85, 
+        {
+          id: 2,
+          name: "Cafes",
+          icon: "Coffee",
+          description: "Get your caffeine fix",
+          color: "#F59E0B",
+          count: 85,
           isTrending: false,
-          image: '/images/cafe.avif',
+          image: "/images/cafe.avif",
           subcategories: [
-            { id: 4, name: 'Coffee Shops' },
-            { id: 5, name: 'Tea Houses' }
-          ]
+            { id: 4, name: "Coffee Shops" },
+            { id: 5, name: "Tea Houses" },
+          ],
         },
-        { 
-          id: 3, 
-          name: 'Bars', 
-          icon: 'Beer', 
-          description: 'Drinks and nightlife', 
-          color: '#8B5CF6', 
-          count: 97, 
+        {
+          id: 3,
+          name: "Bars",
+          icon: "Beer",
+          description: "Drinks and nightlife",
+          color: "#8B5CF6",
+          count: 97,
           isTrending: true,
-          image: '/images/bar.avif',
+          image: "/images/bar.avif",
           subcategories: [
-            { id: 6, name: 'Pubs' },
-            { id: 7, name: 'Lounges' },
-            { id: 8, name: 'Clubs' }
-          ]
+            { id: 6, name: "Pubs" },
+            { id: 7, name: "Lounges" },
+            { id: 8, name: "Clubs" },
+          ],
         },
-        { 
-          id: 4, 
-          name: 'Museums', 
-          icon: 'Building', 
-          description: 'Cultural exhibits and historical artifacts', 
-          color: '#10B981', 
-          count: 42, 
+        {
+          id: 4,
+          name: "Museums",
+          icon: "Building",
+          description: "Cultural exhibits and historical artifacts",
+          color: "#10B981",
+          count: 42,
           isTrending: false,
-          image: '/images/museo.avif',
+          image: "/images/museo.avif",
           subcategories: [
-            { id: 9, name: 'Art Museums' },
-            { id: 10, name: 'History Museums' }
-          ]
+            { id: 9, name: "Art Museums" },
+            { id: 10, name: "History Museums" },
+          ],
         },
-        { 
-          id: 5, 
-          name: 'Parks', 
-          icon: 'TreeDeciduous', 
-          description: 'Outdoor spaces and recreation', 
-          color: '#3B82F6', 
-          count: 36, 
+        {
+          id: 5,
+          name: "Parks",
+          icon: "TreeDeciduous",
+          description: "Outdoor spaces and recreation",
+          color: "#3B82F6",
+          count: 36,
           isTrending: false,
-          image: '/images/parque.avif',
+          image: "/images/parque.avif",
           subcategories: [
-            { id: 11, name: 'Urban Parks' },
-            { id: 12, name: 'National Parks' }
-          ]
+            { id: 11, name: "Urban Parks" },
+            { id: 12, name: "National Parks" },
+          ],
         },
       ];
-      
+
       setCategories(mockCategories);
       setFilteredCategories(mockCategories);
       setLoading(false);
     }, 700); // Mock loading delay
   }, []);
-  
+
   // Search filter
   useEffect(() => {
-    const filtered = categories.filter(cat => 
-      cat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (cat.description && cat.description.toLowerCase().includes(searchTerm.toLowerCase()))
+    const filtered = categories.filter(
+      (cat) =>
+        cat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (cat.description &&
+          cat.description.toLowerCase().includes(searchTerm.toLowerCase()))
     );
     setFilteredCategories(filtered);
   }, [searchTerm, categories]);
-  
+
   // Form input handler
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     });
   };
-  
+
   // Image selection handler
   const handleImageSelect = (e) => {
     if (e.target.files && e.target.files[0]) {
       setFormData({
         ...formData,
-        image: URL.createObjectURL(e.target.files[0]) // For preview
+        image: URL.createObjectURL(e.target.files[0]), // For preview
         // In real app, you would handle the actual file upload
       });
     }
   };
-  
+
   // Icon selection handler
   const handleIconSelect = (iconName) => {
     setFormData({
       ...formData,
-      icon: iconName
+      icon: iconName,
     });
   };
-  
+
   // Add new category
   const handleAddCategory = () => {
     setIsAddingCategory(true);
     setFormData({
-      name: '',
-      description: '',
-      icon: '',
-      color: '#6366F1',
+      name: "",
+      description: "",
+      icon: "",
+      color: "#6366F1",
       isTrending: false,
-      image: null
+      image: null,
     });
   };
-  
+
   // Edit existing category
   const handleEditCategory = (category) => {
     setIsEditingCategory(true);
     setCurrentCategory(category);
     setFormData({
       name: category.name,
-      description: category.description || '',
+      description: category.description || "",
       icon: category.icon,
-      color: category.color || '#6366F1',
+      color: category.color || "#6366F1",
       isTrending: category.isTrending,
-      image: category.image
+      image: category.image,
     });
   };
-  
+
   // Delete category confirmation
   const handleDeleteInit = (category) => {
     setCategoryToDelete(category);
     setShowDeleteConfirm(true);
   };
-  
+
   // Confirm delete category
   const handleConfirmDelete = () => {
     // In a real app, you would make an API call here
-    const updatedCategories = categories.filter(cat => cat.id !== categoryToDelete.id);
+    const updatedCategories = categories.filter(
+      (cat) => cat.id !== categoryToDelete.id
+    );
     setCategories(updatedCategories);
     setShowDeleteConfirm(false);
     setCategoryToDelete(null);
-    
+
     // Show success notification
     // ...
   };
-  
+
   // Save category (add or edit)
   const handleSaveCategory = () => {
     if (isAddingCategory) {
       // Add new category - in a real app, you would make an API call
       const newCategory = {
-        id: Math.max(...categories.map(c => c.id)) + 1,
+        id: Math.max(...categories.map((c) => c.id)) + 1,
         ...formData,
         count: 0,
-        subcategories: []
+        subcategories: [],
       };
-      
+
       setCategories([...categories, newCategory]);
       setIsAddingCategory(false);
     } else if (isEditingCategory) {
       // Update category - in a real app, you would make an API call
-      const updatedCategories = categories.map(cat => 
+      const updatedCategories = categories.map((cat) =>
         cat.id === currentCategory.id ? { ...cat, ...formData } : cat
       );
-      
+
       setCategories(updatedCategories);
       setIsEditingCategory(false);
       setCurrentCategory(null);
     }
-    
+
     // Reset form
     setFormData({
-      name: '',
-      description: '',
-      icon: '',
-      color: '#6366F1',
+      name: "",
+      description: "",
+      icon: "",
+      color: "#6366F1",
       isTrending: false,
-      image: null
+      image: null,
     });
   };
-  
+
   // Toggle trending status
   const handleToggleTrending = (category) => {
-    const updatedCategories = categories.map(cat => 
+    const updatedCategories = categories.map((cat) =>
       cat.id === category.id ? { ...cat, isTrending: !cat.isTrending } : cat
     );
     setCategories(updatedCategories);
   };
-  
+
   // View subcategories
   const handleViewSubcategories = (category) => {
     setSelectedCategory(category);
     setViewingSubcategories(true);
   };
 
+  // ** Subcategory Handling **
+
+  // Add New Subcategory
+  const handleAddSubcategory = () => {
+    setIsAddingSubcategory(true);
+    setSubcategoryFormData({
+      name: "",
+      categoryId: selectedCategory?.id,
+    });
+  };
+
+  // Edit Existing Subcategory
+  const handleEditSubcategory = (subcategory) => {
+    setIsEditingSubcategory(true);
+    setCurrentSubcategory(subcategory);
+    setSubcategoryFormData({
+      name: subcategory.name,
+      categoryId: selectedCategory?.id,
+    });
+  };
+
+  // Delete Subcategory Init
+  const handleDeleteSubcategoryInit = (subcategory) => {
+    setSubcategoryToDelete(subcategory);
+    setShowDeleteSubcategoryConfirm(true);
+  };
+
+  // Confirm Delete Subcategory
+  const handleConfirmDeleteSubcategory = () => {
+    // In a real app, you would make an API call here
+    const updatedCategories = categories.map((cat) => {
+      if (cat.id === selectedCategory?.id) {
+        return {
+          ...cat,
+          subcategories: cat.subcategories.filter(
+            (sub) => sub.id !== subcategoryToDelete.id
+          ),
+        };
+      }
+      return cat;
+    });
+
+    setCategories(updatedCategories);
+    setSelectedCategory(
+      updatedCategories.find((cat) => cat.id === selectedCategory?.id)
+    );
+    setShowDeleteSubcategoryConfirm(false);
+    setSubcategoryToDelete(null);
+  };
+
+  // Save Subcategory (Add or Edit)
+  const handleSaveSubcategory = () => {
+    if (!subcategoryFormData.name.trim()) {
+      // Show validation error
+      return;
+    }
+
+    if (isAddingSubcategory) {
+      // Add new subcategory
+      const newSubcategory = {
+        id:
+          Math.max(
+            0,
+            ...(selectedCategory?.subcategories.map((s) => s.id) || [])
+          ) + 1,
+        name: subcategoryFormData.name,
+        categoryId: selectedCategory?.id,
+      };
+
+      const updatedCategories = categories.map((cat) => {
+        if (cat.id === selectedCategory?.id) {
+          return {
+            ...cat,
+            subcategories: [...cat.subcategories, newSubcategory],
+          };
+        }
+        return cat;
+      });
+
+      setCategories(updatedCategories);
+      setSelectedCategory(
+        updatedCategories.find((cat) => cat.id === selectedCategory?.id)
+      );
+    } else if (isEditingSubcategory) {
+      // Update subcategory
+      const updatedCategories = categories.map((cat) => {
+        if (cat.id === selectedCategory?.id) {
+          return {
+            ...cat,
+            subcategories: cat.subcategories.map((sub) =>
+              sub.id === currentSubcategory.id
+                ? { ...sub, name: subcategoryFormData.name }
+                : sub
+            ),
+          };
+        }
+        return cat;
+      });
+
+      setCategories(updatedCategories);
+      setSelectedCategory(
+        updatedCategories.find((cat) => cat.id === selectedCategory?.id)
+      );
+    }
+
+    // Reset form
+    setIsAddingSubcategory(false);
+    setIsEditingSubcategory(false);
+    setCurrentSubcategory(null);
+    setSubcategoryFormData({
+      name: "",
+      categoryId: null,
+    });
+  };
+
+  // Handle Input Change for Subcategory Form
+  const handleSubcategoryInputChange = (e) => {
+    const { name, value } = e.target;
+    setSubcategoryFormData({
+      ...subcategoryFormData,
+      [name]: value,
+    });
+  };
+
   return (
     <div className="h-full bg-gray-50 text-gray-800">
-      <motion.div 
+      <motion.div
         initial="hidden"
         animate="visible"
         variants={fadeIn}
@@ -291,7 +450,7 @@ export default function CategoriesManagement() {
         <div className="flex items-center justify-between mb-8">
           {viewingSubcategories ? (
             <div className="flex items-center">
-              <button 
+              <button
                 onClick={() => setViewingSubcategories(false)}
                 className="mr-2 p-2 rounded-full hover:bg-gray-200"
               >
@@ -304,26 +463,26 @@ export default function CategoriesManagement() {
           ) : (
             <h1 className="text-2xl font-bold">Categories Management</h1>
           )}
-          
+
           {!viewingSubcategories && (
-            <button 
+            <button
               onClick={handleAddCategory}
               className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-4 py-2 rounded-lg flex items-center"
             >
               <Plus size={18} className="mr-2" /> Add Category
             </button>
           )}
-          
+
           {viewingSubcategories && (
-            <button 
-              onClick={() => {/* Handle add subcategory */}}
+            <button
+              onClick={handleAddSubcategory}
               className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-4 py-2 rounded-lg flex items-center"
             >
               <Plus size={18} className="mr-2" /> Add Subcategory
             </button>
           )}
         </div>
-        
+
         {/* Search Bar */}
         {!viewingSubcategories && !isAddingCategory && !isEditingCategory && (
           <div className="mb-6 flex items-center bg-white rounded-lg shadow-sm px-4 py-2 max-w-md">
@@ -336,127 +495,173 @@ export default function CategoriesManagement() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             {searchTerm && (
-              <button onClick={() => setSearchTerm('')} className="text-gray-400 hover:text-gray-600">
+              <button
+                onClick={() => setSearchTerm("")}
+                className="text-gray-400 hover:text-gray-600"
+              >
                 <X size={16} />
               </button>
             )}
           </div>
         )}
-        
+
         {/* Loading State */}
         {loading && (
           <div className="flex justify-center items-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
           </div>
         )}
-        
+
         {/* Category List */}
-        {!loading && !isAddingCategory && !isEditingCategory && !viewingSubcategories && (
-          <motion.div 
-            variants={slideUp}
-            className="bg-white rounded-xl shadow-sm"
-          >
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Category
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Description
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Count
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Trending
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Subcategories
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredCategories.length === 0 ? (
+        {!loading &&
+          !isAddingCategory &&
+          !isEditingCategory &&
+          !viewingSubcategories && (
+            <motion.div
+              variants={slideUp}
+              className="bg-white rounded-xl shadow-sm"
+            >
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
                     <tr>
-                      <td colSpan="6" className="px-6 py-10 text-center text-gray-500">
-                        No categories found. {searchTerm && 'Try a different search term.'}
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredCategories.map((category, index) => (
-                      <motion.tr 
-                        key={category.id}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: index * 0.05 }}
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div 
-                              className="w-10 h-10 rounded-full mr-3 flex items-center justify-center" 
-                              style={{ backgroundColor: category.color + '20', color: category.color }}
-                            >
-                              {iconOptions.find(i => i.name === category.icon)?.icon}
+                        Category
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Description
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Count
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Trending
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Subcategories
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredCategories.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan="6"
+                          className="px-6 py-10 text-center text-gray-500"
+                        >
+                          No categories found.{" "}
+                          {searchTerm && "Try a different search term."}
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredCategories.map((category, index) => (
+                        <motion.tr
+                          key={category.id}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: index * 0.05 }}
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div
+                                className="w-10 h-10 rounded-full mr-3 flex items-center justify-center"
+                                style={{
+                                  backgroundColor: category.color + "20",
+                                  color: category.color,
+                                }}
+                              >
+                                {
+                                  iconOptions.find(
+                                    (i) => i.name === category.icon
+                                  )?.icon
+                                }
+                              </div>
+                              <span className="font-medium">
+                                {category.name}
+                              </span>
                             </div>
-                            <span className="font-medium">{category.name}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap max-w-xs truncate">
-                          {category.description || '-'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                            {category.count}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <button 
-                            onClick={() => handleToggleTrending(category)}
-                            className={`p-1 rounded-md ${category.isTrending ? 'bg-yellow-100 text-yellow-600' : 'bg-gray-100 text-gray-400'}`}
-                          >
-                            <Star size={18} fill={category.isTrending ? 'currentColor' : 'none'} />
-                          </button>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <button 
-                            onClick={() => handleViewSubcategories(category)}
-                            className="flex items-center text-indigo-600 hover:text-indigo-900"
-                          >
-                            <span>{category.subcategories?.length || 0}</span>
-                            <ChevronRight size={16} className="ml-1" />
-                          </button>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right">
-                          <button 
-                            onClick={() => handleEditCategory(category)}
-                            className="text-blue-600 hover:text-blue-900 mr-3"
-                          >
-                            <Edit size={18} />
-                          </button>
-                          <button 
-                            onClick={() => handleDeleteInit(category)}
-                            className="text-red-600 hover:text-red-900"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </td>
-                      </motion.tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </motion.div>
-        )}
-        
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap max-w-xs truncate">
+                            {category.description || "-"}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                              {category.count}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <button
+                              onClick={() => handleToggleTrending(category)}
+                              className={`p-1 rounded-md ${
+                                category.isTrending
+                                  ? "bg-yellow-100 text-yellow-600"
+                                  : "bg-gray-100 text-gray-400"
+                              }`}
+                            >
+                              <Star
+                                size={18}
+                                fill={
+                                  category.isTrending ? "currentColor" : "none"
+                                }
+                              />
+                            </button>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <button
+                              onClick={() => handleViewSubcategories(category)}
+                              className="flex items-center text-indigo-600 hover:text-indigo-900"
+                            >
+                              <span>{category.subcategories?.length || 0}</span>
+                              <ChevronRight size={16} className="ml-1" />
+                            </button>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right">
+                            <button
+                              onClick={() => handleEditCategory(category)}
+                              className="text-blue-600 hover:text-blue-900 mr-3"
+                            >
+                              <Edit size={18} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteInit(category)}
+                              className="text-red-600 hover:text-red-900"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </td>
+                        </motion.tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </motion.div>
+          )}
+
         {/* Subcategories View */}
         {!loading && viewingSubcategories && (
-          <motion.div 
+          <motion.div
             variants={slideUp}
             className="bg-white rounded-xl shadow-sm p-6"
           >
@@ -465,13 +670,16 @@ export default function CategoriesManagement() {
                 <div className="mb-4 text-gray-400">
                   <Building size={48} className="mx-auto" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900">No subcategories yet</h3>
+                <h3 className="text-lg font-medium text-gray-900">
+                  No subcategories yet
+                </h3>
                 <p className="mt-1 text-sm text-gray-500">
-                  Get started by adding a new subcategory to {selectedCategory.name}.
+                  Get started by adding a new subcategory to{" "}
+                  {selectedCategory.name}.
                 </p>
-                <button 
+                <button
                   className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-                  onClick={() => {/* Handle add subcategory */}}
+                  onClick={handleAddSubcategory}
                 >
                   <Plus size={16} className="mr-2" /> Add Subcategory
                 </button>
@@ -479,7 +687,7 @@ export default function CategoriesManagement() {
             ) : (
               <div className="space-y-4">
                 {selectedCategory?.subcategories?.map((subcategory) => (
-                  <motion.div 
+                  <motion.div
                     key={subcategory.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -487,10 +695,16 @@ export default function CategoriesManagement() {
                   >
                     <span className="font-medium">{subcategory.name}</span>
                     <div>
-                      <button className="text-blue-600 hover:text-blue-900 mr-3">
+                      <button
+                        onClick={() => handleEditSubcategory(subcategory)}
+                        className="text-blue-600 hover:text-blue-900 mr-3"
+                      >
                         <Edit size={18} />
                       </button>
-                      <button className="text-red-600 hover:text-red-900">
+                      <button
+                        onClick={() => handleDeleteSubcategoryInit(subcategory)}
+                        className="text-red-600 hover:text-red-900"
+                      >
                         <Trash2 size={18} />
                       </button>
                     </div>
@@ -500,19 +714,19 @@ export default function CategoriesManagement() {
             )}
           </motion.div>
         )}
-        
+
         {/* Add/Edit Category Form */}
         {(isAddingCategory || isEditingCategory) && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="bg-white rounded-xl shadow-sm p-6"
           >
             <div className="mb-6 flex justify-between items-center">
               <h2 className="text-xl font-semibold">
-                {isAddingCategory ? 'Add New Category' : 'Edit Category'}
+                {isAddingCategory ? "Add New Category" : "Edit Category"}
               </h2>
-              <button 
+              <button
                 onClick={() => {
                   setIsAddingCategory(false);
                   setIsEditingCategory(false);
@@ -522,13 +736,16 @@ export default function CategoriesManagement() {
                 <X size={20} />
               </button>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Left Column */}
               <div className="space-y-6">
                 {/* Name */}
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Category Name *
                   </label>
                   <input
@@ -542,10 +759,13 @@ export default function CategoriesManagement() {
                     placeholder="e.g. Restaurants"
                   />
                 </div>
-                
+
                 {/* Description */}
                 <div>
-                  <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="description"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Description
                   </label>
                   <textarea
@@ -558,10 +778,13 @@ export default function CategoriesManagement() {
                     placeholder="Brief description of the category"
                   ></textarea>
                 </div>
-                
+
                 {/* Color Picker */}
                 <div>
-                  <label htmlFor="color" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="color"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Category Color
                   </label>
                   <div className="flex items-center space-x-3">
@@ -580,13 +803,13 @@ export default function CategoriesManagement() {
                       name="color"
                       className="w-28 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     />
-                    <div 
-                      className="w-10 h-10 rounded-md" 
+                    <div
+                      className="w-10 h-10 rounded-md"
                       style={{ backgroundColor: formData.color }}
                     ></div>
                   </div>
                 </div>
-                
+
                 {/* Trending Toggle */}
                 <div className="flex items-center">
                   <input
@@ -597,12 +820,15 @@ export default function CategoriesManagement() {
                     onChange={handleInputChange}
                     className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                   />
-                  <label htmlFor="isTrending" className="ml-2 block text-sm text-gray-700">
+                  <label
+                    htmlFor="isTrending"
+                    className="ml-2 block text-sm text-gray-700"
+                  >
                     Mark as trending category
                   </label>
                 </div>
               </div>
-              
+
               {/* Right Column */}
               <div className="space-y-6">
                 {/* Icon Selection */}
@@ -617,8 +843,8 @@ export default function CategoriesManagement() {
                         type="button"
                         onClick={() => handleIconSelect(option.name)}
                         className={`w-12 h-12 rounded-md flex items-center justify-center ${
-                          formData.icon === option.name 
-                            ? `bg-indigo-100 text-indigo-600 ring-2 ring-indigo-500` 
+                          formData.icon === option.name
+                            ? `bg-indigo-100 text-indigo-600 ring-2 ring-indigo-500`
                             : `bg-gray-100 text-gray-600 hover:bg-gray-200`
                         }`}
                       >
@@ -627,7 +853,7 @@ export default function CategoriesManagement() {
                     ))}
                   </div>
                 </div>
-                
+
                 {/* Image Upload */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -636,13 +862,15 @@ export default function CategoriesManagement() {
                   <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
                     {formData.image ? (
                       <div className="relative w-full h-36">
-                        <img 
-                          src={formData.image} 
-                          alt="Category preview" 
+                        <img
+                          src={formData.image}
+                          alt="Category preview"
                           className="h-full w-full object-cover rounded-md"
                         />
-                        <button 
-                          onClick={() => setFormData({...formData, image: null})}
+                        <button
+                          onClick={() =>
+                            setFormData({ ...formData, image: null })
+                          }
                           className="absolute top-2 right-2 rounded-full bg-white p-1 shadow-md"
                         >
                           <X size={16} />
@@ -652,12 +880,15 @@ export default function CategoriesManagement() {
                       <div className="space-y-1 text-center">
                         <Image size={36} className="mx-auto text-gray-400" />
                         <div className="flex text-sm text-gray-600">
-                          <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500">
+                          <label
+                            htmlFor="file-upload"
+                            className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500"
+                          >
                             <span>Upload a file</span>
-                            <input 
-                              id="file-upload" 
-                              name="file-upload" 
-                              type="file" 
+                            <input
+                              id="file-upload"
+                              name="file-upload"
+                              type="file"
                               accept="image/*"
                               className="sr-only"
                               onChange={handleImageSelect}
@@ -674,7 +905,7 @@ export default function CategoriesManagement() {
                 </div>
               </div>
             </div>
-            
+
             {/* Form Actions */}
             <div className="mt-8 flex justify-end">
               <button
@@ -698,11 +929,11 @@ export default function CategoriesManagement() {
             </div>
           </motion.div>
         )}
-        
+
         {/* Delete Confirmation Modal */}
         {showDeleteConfirm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl"
@@ -712,22 +943,25 @@ export default function CategoriesManagement() {
                   <AlertCircle size={24} />
                 </div>
                 <div className="ml-4 flex-1">
-                  <h3 className="text-lg font-medium text-gray-900">Delete Category</h3>
+                  <h3 className="text-lg font-medium text-gray-900">
+                    Delete Category
+                  </h3>
                   <p className="mt-1 text-sm text-gray-500">
-                    Are you sure you want to delete the category "{categoryToDelete?.name}"? 
-                    This will also delete all related subcategories. This action cannot be undone.
+                    Are you sure you want to delete the category "
+                    {categoryToDelete?.name}"? This will also delete all related
+                    subcategories. This action cannot be undone.
                   </p>
                 </div>
               </div>
-              
+
               <div className="flex justify-end space-x-3">
-                <button 
+                <button
                   onClick={() => setShowDeleteConfirm(false)}
                   className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={handleConfirmDelete}
                   className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
                 >
@@ -737,6 +971,116 @@ export default function CategoriesManagement() {
             </motion.div>
           </div>
         )}
+
+        {/* Subcategory Form Modal */}
+        {(isAddingSubcategory || isEditingSubcategory) && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold">
+                  {isAddingSubcategory
+                    ? "Add New Subcategory"
+                    : "Edit Subcategory"}
+                </h2>
+                <button
+                  onClick={() => {
+                    setIsAddingSubcategory(false);
+                    setIsEditingSubcategory(false);
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="subcategory-name"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Subcategory Name *
+                </label>
+                <input
+                  type="text"
+                  id="subcategory-name"
+                  name="name"
+                  required
+                  value={subcategoryFormData.name}
+                  onChange={handleSubcategoryInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="e.g. Italian Cuisine"
+                />
+              </div>
+
+              <div className="mt-8 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsAddingSubcategory(false);
+                    setIsEditingSubcategory(false);
+                  }}
+                  className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 mr-3"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveSubcategory}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+                >
+                  <Save size={18} className="mr-2" />
+                  Save Subcategory
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Delete Subcategory Confirmation Modal */}
+        {showDeleteSubcategoryConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl"
+            >
+              <div className="flex items-start mb-4">
+                <div className="bg-red-100 rounded-full p-2 text-red-600">
+                  <AlertCircle size={24} />
+                </div>
+                <div className="ml-4 flex-1">
+                  <h3 className="text-lg font-medium text-gray-900">
+                    Delete Subcategory
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Are you sure you want to delete the subcategory "
+                    {subcategoryToDelete?.name}"? This action cannot be undone.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowDeleteSubcategoryConfirm(false)}
+                  className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmDeleteSubcategory}
+                  className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
+                >
+                  Delete
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+        
       </motion.div>
     </div>
   );
