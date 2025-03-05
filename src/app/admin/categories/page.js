@@ -945,67 +945,90 @@ export default function CategoriesManagement() {
 
         {/* Subcategory Form Modal */}
         {(isAddingSubcategory || isEditingSubcategory) && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 backdrop-blur-sm bg-gray-900/50 dark:bg-black/60 flex items-center justify-center z-50 p-4">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl"
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 30,
+              }}
+              className="bg-white dark:bg-gray-800 rounded-xl p-6 sm:p-8 max-w-md w-full shadow-xl ring-1 ring-gray-200 dark:ring-gray-700"
             >
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                   {isAddingSubcategory
                     ? "Add New Subcategory"
                     : "Edit Subcategory"}
                 </h2>
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.94 }}
                   onClick={() => {
                     setIsAddingSubcategory(false);
                     setIsEditingSubcategory(false);
                   }}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full p-2 transition-colors"
                 >
-                  <X size={20} />
-                </button>
+                  <X size={18} />
+                </motion.button>
               </div>
 
-              <div>
-                <label
-                  htmlFor="subcategory-name"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Subcategory Name *
-                </label>
-                <input
-                  type="text"
-                  id="subcategory-name"
-                  name="name"
-                  required
-                  value={subcategoryFormData.name}
-                  onChange={handleSubcategoryInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="e.g. Italian Cuisine"
-                />
-              </div>
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <label
+                    htmlFor="subcategory-name"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Subcategory Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="subcategory-name"
+                    name="name"
+                    required
+                    value={subcategoryFormData.name}
+                    onChange={handleSubcategoryInputChange}
+                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm 
+              focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500
+              bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+              placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                    placeholder="e.g. Italian Cuisine"
+                  />
+                </div>
 
-              <div className="mt-8 flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsAddingSubcategory(false);
-                    setIsEditingSubcategory(false);
-                  }}
-                  className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 mr-3"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSaveSubcategory}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
-                >
-                  <Save size={18} className="mr-2" />
-                  Save Subcategory
-                </button>
+                <div className="pt-3 mt-6 flex flex-col sm:flex-row-reverse gap-3">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    type="button"
+                    onClick={handleSaveSubcategory}
+                    className="inline-flex items-center justify-center px-5 py-2.5 border border-transparent 
+              text-base font-medium rounded-lg shadow-sm text-white 
+              bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700
+              focus:outline-none focus:ring-3 focus:ring-indigo-500/40"
+                  >
+                    <Save size={18} className="mr-2" />
+                    Save Subcategory
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    type="button"
+                    onClick={() => {
+                      setIsAddingSubcategory(false);
+                      setIsEditingSubcategory(false);
+                    }}
+                    className="inline-flex items-center justify-center px-5 py-2.5 
+              border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm 
+              text-base font-medium text-gray-700 dark:text-gray-200 
+              bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 
+              focus:outline-none focus:ring-2 focus:ring-gray-400"
+                  >
+                    Cancel
+                  </motion.button>
+                </div>
               </div>
             </motion.div>
           </div>
@@ -1022,7 +1045,6 @@ export default function CategoriesManagement() {
           cancelText="Cancelar"
           type="delete"
         />
-        
       </motion.div>
     </div>
   );
