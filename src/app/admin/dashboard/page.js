@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
@@ -6,7 +6,7 @@ import {
   Home, MapPin, Users, BarChart2, Settings, Menu, Search,
   Bell, User, LogOut, Coffee, Utensils, Beer, Building,
   TreeDeciduous, Film, Music, Volleyball, ShoppingBag, Calendar,
-  Hotel, Waves, Plus, ChevronDown, X, Star
+  Hotel, Waves, Plus, ChevronDown, X, Star, TrendingUp
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -28,10 +28,10 @@ export default function Dashboard() {
 
   // Mock data for dashboard statistics
   const stats = [
-    { name: 'Total Lugares', value: '1,256', change: '+8%' },
-    { name: 'Usuarios Activos', value: '34.5k', change: '+12%' },
-    { name: 'Nuevas Reseñas', value: '843', change: '+5%' },
-    { name: 'Categorías', value: '12', change: '0%' }
+    { title: 'Usuarios Totales', value: '12,345', icon: <Users size={24} />, change: '+12%' },
+    { title: 'Lugares Activos', value: '2,345', icon: <MapPin size={24} />, change: '+8%' },
+    { title: 'Valoración Media', value: '4.8', icon: <Star size={24} />, change: '+0.2' },
+    { title: 'Crecimiento', value: '23%', icon: <TrendingUp size={24} />, change: '+5%' }
   ];
 
   // Categories with their icons and counts
@@ -61,115 +61,10 @@ export default function Dashboard() {
 
   return (
     <div className="flex h-screen bg-gray-50 text-gray-800">
-      {/* Sidebar */}
-      <motion.div 
-        className={`bg-white shadow-lg ${sidebarOpen ? 'w-64' : 'w-20'} transition-all duration-300 overflow-hidden`}
-        animate={{ width: sidebarOpen ? 256 : 80 }}
-      >
-        <div className="p-6 flex items-center justify-between">
-          {sidebarOpen && (
-            <motion.h1 
-              initial="hidden"
-              animate="visible"
-              variants={fadeIn}
-              className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent"
-            >
-              WhereToGo
-            </motion.h1>
-          )}
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 rounded-lg hover:bg-gray-100">
-            <Menu size={20} />
-          </button>
-        </div>
-
-        <nav className="mt-6 px-4">
-          <div className="space-y-2">
-            {[
-              { name: 'Vista General', icon: <Home size={20} />, id: 'overview' },
-              { name: 'Lugares', icon: <MapPin size={20} />, id: 'places' },
-              { name: 'Usuarios', icon: <Users size={20} />, id: 'users' },
-              { name: 'Análisis', icon: <BarChart2 size={20} />, id: 'analytics' },
-              { name: 'Ajustes', icon: <Settings size={20} />, id: 'settings' }
-            ].map((item) => (
-              <button
-                key={item.id}
-                className={`flex items-center w-full p-3 space-x-3 rounded-lg transition-all ${
-                  activeSection === item.id 
-                    ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white' 
-                    : 'hover:bg-gray-100'
-                }`}
-                onClick={() => setActiveSection(item.id)}
-              >
-                {item.icon}
-                {sidebarOpen && (
-                  <motion.span 
-                    initial="hidden"
-                    animate="visible"
-                    variants={fadeIn}
-                    className={`${sidebarOpen ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}
-                  >
-                    {item.name}
-                  </motion.span>
-                )}
-              </button>
-            ))}
-          </div>
-        </nav>
-      </motion.div>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Header */}
-        <header className="bg-white shadow-sm z-10">
-          <div className="flex items-center justify-between p-4">
-            <div className="flex items-center bg-gray-100 rounded-lg px-3 py-2 w-64">
-              <Search size={18} className="text-gray-500" />
-              <input 
-                type="text" 
-                placeholder="Buscar..." 
-                className="bg-transparent border-0 outline-none ml-2 w-full"
-              />
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <button className="p-2 rounded-full hover:bg-gray-100 relative">
-                <Bell size={20} />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
-              <div className="relative">
-                <button 
-                  onClick={() => setProfileOpen(!profileOpen)}
-                  className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100"
-                >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 flex items-center justify-center text-white">
-                    <User size={16} />
-                  </div>
-                  <span>Admin</span>
-                  <ChevronDown size={16} />
-                </button>
-                
-                {profileOpen && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-20"
-                  >
-                    <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center">
-                      <User size={16} className="mr-2" /> Perfil
-                    </button>
-                    <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center">
-                      <Settings size={16} className="mr-2" /> Ajustes
-                    </button>
-                    <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center text-red-500">
-                      <LogOut size={16} className="mr-2" /> Cerrar Sesión
-                    </button>
-                  </motion.div>
-                )}
-              </div>
-            </div>
-          </div>
-        </header>
-        
+
         {/* Main Dashboard Content */}
         <main className="flex-1 overflow-y-auto p-6 bg-gray-50">
           <motion.div 
@@ -191,22 +86,20 @@ export default function Dashboard() {
             >
               {stats.map((stat, index) => (
                 <motion.div
-                  key={index}
+                  key={stat.title}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                   className="bg-white rounded-xl shadow-sm p-6"
                 >
-                  <p className="text-sm text-gray-500">{stat.name}</p>
-                  <div className="flex items-end justify-between mt-2">
-                    <h3 className="text-2xl font-bold">{stat.value}</h3>
-                    <span className={`text-sm ${
-                      stat.change.startsWith('+') ? 'text-green-500' : 
-                      stat.change.startsWith('-') ? 'text-red-500' : 'text-gray-500'
-                    }`}>
-                      {stat.change}
-                    </span>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
+                      {stat.icon}
+                    </div>
+                    <span className="text-sm font-medium text-green-600">{stat.change}</span>
                   </div>
+                  <h3 className="text-sm text-gray-500 mb-1">{stat.title}</h3>
+                  <p className="text-2xl font-bold text-gray-800">{stat.value}</p>
                 </motion.div>
               ))}
             </motion.div>
@@ -248,11 +141,11 @@ export default function Dashboard() {
                 className="bg-white rounded-xl shadow-sm p-6"
               >
                 <h2 className="text-lg font-semibold mb-6">Actividad Reciente</h2>
-                <div className="space-y-5">
+                <div className="space-y-4">
                   {recentActivity.map((activity, index) => (
                     <motion.div
                       key={index}
-                      initial={{ opacity: 0, x: 20 }}
+                      initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.1 }}
                       className="flex items-start"
