@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { 
   Menu, X, Home, MapPin, Users, BarChart2, Settings, 
   Search, Bell, User, ChevronDown, LogOut, Compass,
-  Coffee, Utensils, Map
+  Coffee, Utensils, Map, Activity
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -64,7 +64,8 @@ export default function AdminLayout({ children }) {
     { name: 'Lugares', icon: <MapPin size={20} />, id: 'places', href: '/admin/places' },
     { name: 'Categorías', icon: <BarChart2 size={20} />, id: 'categories', href: '/admin/categories' },
     { name: 'Usuarios', icon: <Users size={20} />, id: 'users', href: '/admin/users' },
-    { name: 'Ajustes', icon: <Settings size={20} />, id: 'settings', href: '/admin/settings' }
+    { name: 'Ajustes', icon: <Settings size={20} />, id: 'settings', href: '/admin/settings' },
+    { name: 'Actividad', icon: <Activity size={20} />, id: 'activity', href: '/admin/activity' }
   ];
 
   return (
