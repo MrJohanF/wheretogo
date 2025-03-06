@@ -62,7 +62,19 @@ export default function UserActivityDashboard() {
   
   const fetchActiveUsers = async () => {
     try {
-      const response = await fetch(`https://api.mywheretogo.com/api/admin/active-users?timeRange=${timeRange}`);
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/active-users?timeRange=${timeRange}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        }
+      );
+
+    
       
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
