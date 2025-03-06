@@ -5,7 +5,7 @@ import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, ArrowRight, User, UserPlus, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/app/context/AuthContext';
 import { toast } from 'react-hot-toast'; 
 
 export default function AuthPage() {
