@@ -451,7 +451,7 @@ export default function AuthPage() {
         </LayoutGroup>
         
         <p className="text-center mt-6 text-sm text-gray-500">
-          © 2023 AppName. Todos los derechos reservados.
+          © 2023 WhereToGo. Todos los derechos reservados.
         </p>
       </div>
     </div>
