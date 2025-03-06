@@ -113,7 +113,7 @@ export default function Header() {
         {/* Logo with increased margin */}
         <Link href="/" className="flex items-center gap-2 mr-8">
           <MapPin className="h-6 w-6 text-indigo-600" />
-          <span className="font-bold text-xl text-gray-800">Localist</span>
+          <span className="font-bold text-xl text-gray-800">Where To Go</span>
         </Link>
         
         {/* Desktop Navigation with fixed positioning - removed x animation */}
