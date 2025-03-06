@@ -56,7 +56,7 @@ export default function HowItWorks() {
         >
           <h2 className="text-3xl font-bold text-gray-900">Cómo Funciona</h2>
           <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
-            Descubre cómo Localist te ayuda a encontrar lugares increíbles en unos simples pasos
+            Descubre cómo MyWhereToGo te ayuda a encontrar lugares increíbles en unos simples pasos
           </p>
         </motion.div>
         

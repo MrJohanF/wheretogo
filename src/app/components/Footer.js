@@ -20,7 +20,7 @@ export default function Footer() {
           <div className="col-span-2 lg:col-span-2">
             <div className="flex items-center gap-2 mb-4">
               <MapPin className="h-6 w-6 text-indigo-400" />
-              <span className="font-bold text-xl text-white">Localist</span>
+              <span className="font-bold text-xl text-white">MyWhereToGo</span>
             </div>
             <p className="mb-4 text-sm">
               Descubre las mejores experiencias locales con recomendaciones
@@ -121,13 +121,13 @@ export default function Footer() {
 
         <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
           <div className="text-sm mb-4 md:mb-0">
-            &copy; {currentYear} Localist. Todos los derechos reservados.
+            &copy; {currentYear} MyWhereToGo. Todos los derechos reservados.
           </div>
           <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-6 text-sm">
             <div className="flex items-center">
               <Mail className="h-4 w-4 mr-2" />
-              <a href="mailto:hello@localist.com" className="hover:text-white">
-                soporte@localist.com
+              <a href="mailto:support@mywheretogo.com" className="hover:text-white">
+                soporte@mywheretogo.com
               </a>
             </div>
             <div className="flex items-center">

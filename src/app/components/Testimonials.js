@@ -13,7 +13,7 @@ export default function Testimonials() {
       name: "Sarah Johnson",
       location: "Nueva York, NY",
       image: "https://randomuser.me/api/portraits/women/12.jpg",
-      text: "¡Localist cambió completamente la forma en que exploro nuevas ciudades! Descubrí una increíble panadería local en París que no estaba en ninguno de los sitios turísticos habituales.",
+      text: "¡MyWhereToGo cambió completamente la forma en que exploro nuevas ciudades! Descubrí una increíble panadería local en París que no estaba en ninguno de los sitios turísticos habituales.",
       rating: 5
     },
     {
@@ -27,7 +27,7 @@ export default function Testimonials() {
       name: "Emily Rodriguez",
       location: "Chicago, IL", 
       image: "https://randomuser.me/api/portraits/women/22.jpg",
-      text: "Como amante de la comida, aprecio que Localist me ayudara a encontrar restaurantes locales auténticos que no hubiera descubierto de otra manera. ¡Las recomendaciones personalizadas fueron excelentes!",
+      text: "Como amante de la comida, aprecio que MyWhereToGo me ayudara a encontrar restaurantes locales auténticos que no hubiera descubierto de otra manera. ¡Las recomendaciones personalizadas fueron excelentes!",
       rating: 4
     }
   ];
@@ -49,7 +49,7 @@ export default function Testimonials() {
         >
           <h2 className="text-3xl font-bold text-gray-900">Lo Que Dicen Nuestros Usuarios</h2>
           <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
-            Únete a miles de viajeros que han descubierto lugares extraordinarios con Localist
+            Únete a miles de viajeros que han descubierto lugares extraordinarios con MyWhereToGo
           </p>
         </motion.div>
         

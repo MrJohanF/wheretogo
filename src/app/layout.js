@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: 'Localist - Tu Guía de Viaje Personal',
+  title: 'My Where to Go - Tu Guía de Viaje Personal',
   description: 'Descubre los mejores lugares, restaurantes, atracciones y joyas ocultas recomendadas por locales',
 };
 

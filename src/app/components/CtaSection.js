@@ -73,7 +73,7 @@ export default function CtaSection() {
                 className="max-w-full rounded-3xl shadow-2xl"
                 onError={(e) => {
                   // Fallback si la imagen no está disponible
-                  e.target.src = "https://placehold.co/300x600/4f46e5/ffffff?text=Localist+App";
+                  e.target.src = "https://placehold.co/300x600/4f46e5/ffffff?text=MyWhereToGo+App";
                 }}
               />
               <div className="absolute -bottom-6 -right-6 bg-white/20 backdrop-blur-sm p-4 rounded-2xl shadow-lg">
