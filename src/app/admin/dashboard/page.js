@@ -76,7 +76,9 @@ export default function Dashboard() {
           >
             <div className="flex items-center justify-between mb-8">
               <h1 className="text-2xl font-bold">Panel de Control</h1>
-              <button className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-4 py-2 rounded-lg flex items-center">
+              <button 
+                onClick={() => router.push('/admin/places/edit/add')}
+              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-4 py-2 rounded-lg flex items-center">
                 <Plus size={18} className="mr-2" /> Agregar Nuevo Lugar
               </button>
             </div>
