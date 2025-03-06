@@ -71,7 +71,6 @@ export default function AdminLayout({ children }) {
     try {
       await logout();
       toast.success('Sesión cerrada exitosamente');
-      router.push('/login');
     } catch (error) {
       console.error('Error logging out:', error);
       toast.error('Error al cerrar sesión');
