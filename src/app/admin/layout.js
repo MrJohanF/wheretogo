@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import AdminRoute from '@/app/components/AdminRoute';
 
 export default function AdminLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -69,9 +70,10 @@ export default function AdminLayout({ children }) {
   ];
 
   return (
-    <div className="flex h-screen bg-gray-50 text-gray-800">
-      {/* Mobile Overlay */}
-      {sidebarOpen && (
+    <AdminRoute>
+      <div className="flex h-screen bg-gray-50 text-gray-800">
+        {/* Mobile Overlay */}
+        {sidebarOpen && (
         <div
           className="lg:hidden fixed inset-0 bg-black/20 z-20"
           onClick={() => setSidebarOpen(false)}
@@ -269,5 +271,6 @@ export default function AdminLayout({ children }) {
         </main>
       </div>
     </div>
+    </AdminRoute>
   );
 }
