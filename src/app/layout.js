@@ -1,5 +1,6 @@
 import './globals.css';
 import { Inter } from 'next/font/google';
+import { AuthProvider } from '@/app/context/AuthContext';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -21,7 +22,9 @@ export default function RootLayout({ children }) {
         <link rel="preconnect" href="https://randomuser.me" />
       </head>
       <body className="bg-white">
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

@@ -4,8 +4,14 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, ArrowRight, User, UserPlus, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+import { toast } from 'react-hot-toast'; 
 
 export default function AuthPage() {
+  const router = useRouter();
+  const { user, login, register } = useAuth();
+  
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -24,18 +30,83 @@ export default function AuthPage() {
   useEffect(() => {
     // After first render, set isInitialLoad to false
     setIsInitialLoad(false);
-  }, []);
+    
+    // Redirect if user is already authenticated
+    if (user) {
+      router.push('/');
+    }
+  }, [user, router]);
+
+  const validateForm = () => {
+    // Reset error
+    setError('');
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+\$/;
+    if (!emailRegex.test(email)) {
+      setError('Por favor introduce un email válido');
+      return false;
+    }
+
+    // Password validation
+    if (password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres');
+      return false;
+    }
+
+    // Additional registration validations
+    if (!isLogin) {
+      // Name validation
+      if (fullName.trim().length < 3) {
+        setError('Por favor introduce tu nombre completo');
+        return false;
+      }
+      
+      // Password confirmation
+      if (password !== confirmPassword) {
+        setError('Las contraseñas no coinciden');
+        return false;
+      }
+      
+      // Terms acceptance
+      if (!termsAccepted) {
+        setError('Debes aceptar los términos y condiciones');
+        return false;
+      }
+    }
+    
+    return true;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     setLoading(true);
+    setError('');
 
     try {
-      // Add your authentication logic here
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulated API call
+      if (isLogin) {
+        // Handle login
+        await login(email, password);
+        toast.success('¡Inicio de sesión exitoso!');
+        router.push('/');
+      } else {
+        // Handle registration
+        await register(fullName, email, password);
+        toast.success('¡Cuenta creada! Bienvenido/a.');
+        router.push('/');
+      }
     } catch (err) {
-      setError(isLogin ? 'Correo o contraseña inválidos' : 'Error al crear la cuenta');
+      console.error('Auth error:', err);
+      setError(
+        isLogin 
+          ? 'Correo o contraseña inválidos' 
+          : err.message || 'Error al crear la cuenta'
+      );
     } finally {
       setLoading(false);
     }
@@ -422,7 +493,7 @@ export default function AuthPage() {
                           {loading ? (
                             <div className="flex items-center justify-center space-x-2">
                               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                              <span>Iniciando sesión...</span>
+                              <span>Registrando...</span>
                             </div>
                           ) : (
                             <>
