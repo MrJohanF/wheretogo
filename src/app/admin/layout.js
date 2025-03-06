@@ -146,7 +146,7 @@ export default function AdminLayout({ children }) {
               <Link
                 key={item.id}
                 href={item.href}
-                className={`flex items-center w-full p-3 space-x-3 rounded-lg transition-colors duration-100 \${
+                className={`flex items-center w-full p-3 space-x-3 rounded-lg transition-colors duration-100 ${
                   pathname === item.href
                     ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-sm' 
                     : 'hover:bg-gray-100'
