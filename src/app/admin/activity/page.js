@@ -13,7 +13,8 @@ import {
 
 export default function UserActivityDashboard() {
   const [activities, setActivities] = useState([]);
-  const [activeUsers, setActiveUsers] = useState(0);
+  const [activeUsers, setActiveUsers] = useState([]);
+  const [totalActiveUsers, setTotalActiveUsers] = useState(0);
   const [filter, setFilter] = useState('all');
   const [timeRange, setTimeRange] = useState('24h');
   const [isLoading, setIsLoading] = useState(true);
@@ -27,27 +28,51 @@ export default function UserActivityDashboard() {
   useEffect(() => {
     // Initial fetch
     fetchActivities();
+    fetchActiveUsers();
     
     // Set up polling for real-time updates
-    const interval = setInterval(fetchActivities, 10000);
+    const activityInterval = setInterval(fetchActivities, 30000);
+    const usersInterval = setInterval(fetchActiveUsers, 10000);
     
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(activityInterval);
+      clearInterval(usersInterval);
+    };
   }, [filter, timeRange]);
   
   const fetchActivities = async () => {
     setIsLoading(true);
     try {
       // In a real app, you'd make API calls to your backend
-      const response = await fetch(`/api/admin/user-activity?filter=\${filter}&timeRange=\${timeRange}`);
+      const response = await fetch(`/api/admin/user-activity?filter=${filter}&timeRange=${timeRange}`);
       const data = await response.json();
       
-      setActivities(data.activities);
-      setActiveUsers(data.activeUsers);
-      setStats(data.stats);
+      setActivities(data.activities || []);
+      setStats(data.stats || {
+        pageViews: 0,
+        searches: 0,
+        reservations: 0
+      });
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching activity data:", error);
       setIsLoading(false);
+    }
+  };
+  
+  const fetchActiveUsers = async () => {
+    try {
+      const response = await fetch(`https://api.mywheretogo.com/api/admin/active-users?timeRange=${timeRange}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setActiveUsers(data.activeUsers || []);
+      setTotalActiveUsers(data.totalActiveUsers || 0);
+    } catch (error) {
+      console.error("Error fetching active users:", error);
     }
   };
   
@@ -100,7 +125,10 @@ export default function UserActivityDashboard() {
           </div>
           
           <button 
-            onClick={fetchActivities}
+            onClick={() => {
+              fetchActivities();
+              fetchActiveUsers();
+            }}
             className="flex items-center space-x-1 bg-indigo-600 hover:bg-indigo-700 text-white py-1 px-4 rounded-md transition-colors"
           >
             <RefreshCw className="w-4 h-4" />
@@ -123,7 +151,7 @@ export default function UserActivityDashboard() {
               <div className="ml-5">
                 <p className="text-gray-500 text-sm">Active Users</p>
                 <h3 className="font-bold text-2xl text-gray-800">
-                  {isLoading ? '...' : activeUsers}
+                  {isLoading ? '...' : totalActiveUsers}
                 </h3>
               </div>
             </div>
@@ -268,34 +296,41 @@ export default function UserActivityDashboard() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {/* You would map through actual session data here */}
-              {[1, 2, 3, 4].map(i => (
-                <tr key={i} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-8 w-8">
-                        <img className="h-8 w-8 rounded-full" src={`https://i.pravatar.cc/150?img=\${i}`} alt="" />
+              {activeUsers.length > 0 ? (
+                activeUsers.map((user) => (
+                  <tr key={user.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-8 w-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                          <span className="text-indigo-600 font-medium">{user.name.charAt(0)}</span>
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                          <div className="text-sm text-gray-500">{user.email}</div>
+                        </div>
                       </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">User {i}</div>
-                        <div className="text-sm text-gray-500">user{i}@example.com</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {Math.floor(Math.random() * 60)} minutes
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    192.168.{Math.floor(Math.random() * 255)}.{Math.floor(Math.random() * 255)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 truncate max-w-xs">
-                    Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(Date.now() - Math.floor(Math.random() * 3600000)).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {user.activeDuration}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {user.ipAddress}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 truncate max-w-xs">
+                      {user.userAgent}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(user.startTime).toLocaleString()}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" className="px-6 py-4 text-center text-sm text-gray-500">
+                    {isLoading ? "Loading..." : "No active users found"}
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
