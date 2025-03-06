@@ -8,14 +8,20 @@ import {
   Coffee, Utensils, Map, Activity
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import AdminRoute from '@/app/components/AdminRoute';
+import { useAuth } from '@/app/context/AuthContext';
+import { toast } from 'react-hot-toast';
 
 export default function AdminLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  
+  // Get auth context for user info and logout function
+  const { user, logout } = useAuth();
   
   // Close sidebar on small screens by default
   useEffect(() => {
@@ -59,6 +65,18 @@ export default function AdminLayout({ children }) {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success('Sesión cerrada exitosamente');
+      router.push('/login');
+    } catch (error) {
+      console.error('Error logging out:', error);
+      toast.error('Error al cerrar sesión');
+    }
+  };
 
   const navItems = [
     { name: 'Vista General', icon: <Home size={20} />, id: 'overview', href: '/admin/dashboard' },
@@ -129,7 +147,7 @@ export default function AdminLayout({ children }) {
               <Link
                 key={item.id}
                 href={item.href}
-                className={`flex items-center w-full p-3 space-x-3 rounded-lg transition-colors duration-100 ${
+                className={`flex items-center w-full p-3 space-x-3 rounded-lg transition-colors duration-100 \${
                   pathname === item.href
                     ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-sm' 
                     : 'hover:bg-gray-100'
@@ -215,26 +233,47 @@ export default function AdminLayout({ children }) {
                   className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100"
                 >
                   <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 flex items-center justify-center text-white">
-                    <User size={16} />
+                    {user?.avatar ? (
+                      <img 
+                        src={user.avatar} 
+                        alt={user.name} 
+                        className="h-8 w-8 rounded-full object-cover" 
+                      />
+                    ) : (
+                      user?.name?.charAt(0)?.toUpperCase() || <User size={16} />
+                    )}
                   </div>
-                  <span className="hidden sm:inline font-medium">Administrador</span>
+                  <span className="hidden sm:inline font-medium">
+                    {user?.name || 'Administrador'}
+                  </span>
                   <ChevronDown size={16} className="hidden sm:block" />
                 </button>
                 
                 {profileOpen && (
                   <div className="absolute right-0 mt-1 w-64 bg-white rounded-lg shadow-lg py-2 z-20 border border-gray-100">
                     <div className="px-4 py-3 border-b border-gray-100">
-                      <p className="text-sm font-medium">Administrador</p>
-                      <p className="text-xs text-gray-500">admin@wheretogo.com</p>
+                      <p className="text-sm font-medium">{user?.name || 'Administrador'}</p>
+                      <p className="text-xs text-gray-500">{user?.email || 'admin@wheretogo.com'}</p>
                     </div>
-                    <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center transition-colors duration-75">
+                    <Link 
+                      href="/admin/profile" 
+                      className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center transition-colors duration-75"
+                      onClick={() => setProfileOpen(false)}
+                    >
                       <User size={16} className="mr-2 text-gray-500" /> Mi Perfil
-                    </button>
-                    <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center transition-colors duration-75">
+                    </Link>
+                    <Link 
+                      href="/admin/settings" 
+                      className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center transition-colors duration-75"
+                      onClick={() => setProfileOpen(false)}
+                    >
                       <Settings size={16} className="mr-2 text-gray-500" /> Preferencias
-                    </button>
+                    </Link>
                     <div className="border-t border-gray-100 mt-1 pt-1">
-                      <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center text-red-500 transition-colors duration-75">
+                      <button 
+                        onClick={handleLogout}
+                        className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center text-red-500 transition-colors duration-75"
+                      >
                         <LogOut size={16} className="mr-2" /> Cerrar Sesión
                       </button>
                     </div>
