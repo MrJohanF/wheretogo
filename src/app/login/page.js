@@ -33,7 +33,7 @@ export default function AuthPage() {
     
     // Redirect if user is already authenticated
     if (user) {
-      router.push('/');
+      router.push('/admin/dashboard');
     }
   }, [user, router]);
 
