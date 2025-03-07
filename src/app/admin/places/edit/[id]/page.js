@@ -16,7 +16,7 @@ import {
   Clock,
   LayoutList,
 } from "lucide-react";
-import { toast } from 'react-hot-toast';
+import { toast } from "react-hot-toast";
 
 // Import all Lucide icons for dynamic rendering
 import * as LucideIcons from "lucide-react";
@@ -42,6 +42,11 @@ const itemFadeIn = {
 
 export default function PlaceFormPage({ params }) {
   const router = useRouter();
+  const [formStatus, setFormStatus] = useState({
+    isSubmitting: false,
+    error: null,
+    success: false,
+  });
   const resolvedParams = use(params);
   const isEditing = resolvedParams?.id && resolvedParams.id !== "add";
 
@@ -343,17 +348,28 @@ export default function PlaceFormPage({ params }) {
   // Updated handleSubmit function to post new places to the API
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       if (!formData.name || !formData.address) {
-        toast.error("Nombre y dirección son campos obligatorios");
+        setFormStatus({
+          isSubmitting: false,
+          error: "Nombre y dirección son campos obligatorios",
+          success: false,
+        });
         return;
       }
-      
+
+      setFormStatus({
+        isSubmitting: true,
+        error: null,
+        success: false,
+      });
+
       setIsLoading(true);
-      
-      // Format the data according to API expectations
+
+      // Format the data according to your API structure
       const placeData = {
+        // Basic place information
         name: formData.name,
         description: formData.description || "",
         rating: parseFloat(formData.rating) || null,
@@ -365,48 +381,66 @@ export default function PlaceFormPage({ params }) {
         isOpenNow: Boolean(formData.isOpenNow),
         latitude: parseFloat(formData.latitude) || null,
         longitude: parseFloat(formData.longitude) || null,
-        
-        // Include all IDs from categories, subcategories, and features
-        categoryIds: formData.categoryIds || [],
-        subcategoryIds: formData.subcategoryIds || [],
-        featureIds: formData.featureIds || [],
-        
+
+        // Convert our ids arrays to match your backend's expected format
+        categories: formData.categoryIds || [],
+        subcategories: formData.subcategoryIds || [],
+        features: formData.featureIds || [],
+
         // Format images to match the expected structure
-        images: formData.images.map(img => ({
+        images: formData.images.map((img) => ({
           url: img.url,
           altText: img.altText || img.name || "Place image",
-          isFeatured: img.isFeatured || false
+          isFeatured: img.isFeatured || false,
         })),
-        
+
         operatingHours: formData.operatingHours,
-        popularItems: formData.popularItems || []
+        popularItems: formData.popularItems || [],
       };
-      
+
       console.log("Sending data to API:", placeData);
-      
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/places/add`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: "include",
-        body: JSON.stringify(placeData)
-      });
-      
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/places/add`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify(placeData),
+        }
+      );
+
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Error: ${response.status} - ${errorText}`);
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Error: ${response.status}`);
       }
-      
+
       const result = await response.json();
       console.log("Lugar creado exitosamente:", result);
-      
+
+      setFormStatus({
+        isSubmitting: false,
+        error: null,
+        success: true,
+      });
+
+      // Toast notification or alert
       toast.success("El lugar ha sido añadido exitosamente");
-      router.push('/admin/places');
-      
+
+      // Redirect after a short delay to allow user to see success message
+      setTimeout(() => {
+        router.push("/admin/places");
+      }, 1500);
     } catch (error) {
       console.error("Error al guardar lugar:", error);
-      toast.error("Error al guardar lugar");
+
+      setFormStatus({
+        isSubmitting: false,
+        error: error.message,
+        success: false,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -930,10 +964,10 @@ export default function PlaceFormPage({ params }) {
                         handleMultiSelectChange("featureIds", feature.id)
                       }
                       className={`cursor-pointer flex items-center p-3 rounded-md border ${
-          formData.featureIds.includes(feature.id) 
-            ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 dark:border-indigo-600' 
-            : 'border-gray-200 dark:border-gray-700'
-        }`}
+                        formData.featureIds.includes(feature.id)
+                          ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 dark:border-indigo-600"
+                          : "border-gray-200 dark:border-gray-700"
+                      }`}
                     >
                       <input
                         type="checkbox"
@@ -1179,24 +1213,50 @@ export default function PlaceFormPage({ params }) {
             className="border-t border-gray-200 dark:border-gray-700 pt-6 flex justify-between items-center"
           >
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              type="button"
-              onClick={handleCancel}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-medium"
-            >
-              Cancelar
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ scale: formStatus.isSubmitting ? 1.0 : 1.02 }}
+              whileTap={{ scale: formStatus.isSubmitting ? 1.0 : 0.98 }}
               type="submit"
-              className="px-5 py-2 bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white rounded-lg shadow-sm font-medium flex items-center"
+              disabled={formStatus.isSubmitting}
+              className={`px-5 py-2 bg-gradient-to-b ${
+                formStatus.isSubmitting
+                  ? "from-gray-400 to-gray-500 cursor-not-allowed"
+                  : "from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700"
+              } text-white rounded-lg shadow-sm font-medium flex items-center`}
             >
-              <Save size={18} className="mr-2" />
-              {isEditing ? "Actualizar Lugar" : "Guardar Lugar"}
+              {formStatus.isSubmitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+                  Guardando...
+                </>
+              ) : (
+                <>
+                  <Save size={18} className="mr-2" />
+                  {isEditing ? "Actualizar Lugar" : "Guardar Lugar"}
+                </>
+              )}
             </motion.button>
           </motion.div>
+
+          {/* Form Status */}
+          {formStatus.error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 p-4 bg-red-50 border-l-4 border-red-500 text-red-700"
+            >
+              <p>{formStatus.error}</p>
+            </motion.div>
+          )}
+
+          {formStatus.success && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 p-4 bg-green-50 border-l-4 border-green-500 text-green-700"
+            >
+              <p>El lugar ha sido añadido exitosamente. Redirigiendo...</p>
+            </motion.div>
+          )}
         </motion.form>
       )}
     </motion.div>
