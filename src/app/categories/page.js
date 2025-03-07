@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import useCategoryStore from "../store/categoryStore"; // Import the store
 
 // Icon mapping - convert API icon names to emoji or component references
 const iconMap = {
@@ -33,9 +34,6 @@ const iconMap = {
 
 export default function CategoriesPage() {
   const router = useRouter();
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -43,67 +41,14 @@ export default function CategoriesPage() {
   const [filterMode, setFilterMode] = useState("all");
   const [savedCategories, setSavedCategories] = useState(new Set());
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        setLoading(true);
-        const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/categories`;
-        
-        const response = await fetch(apiUrl);
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data.success && data.categories) {
-          // Transform API data to match component expectations
-          const transformedCategories = data.categories.map(category => ({
-            id: category.id,
-            name: category.name,
-            icon: iconMap[category.icon] || "📍", // Fallback icon
-            count: category._count.places,
-            description: category.description || `Explora lugares en ${category.name}`,
-            color: mapColorToGradient(category.color),
-            image: category.image || "/images/placeholder.jpg", 
-            trending: category.isTrending,
-            subcategories: category.subcategories.map(sub => sub.name),
-          }));
-          
-          setCategories(transformedCategories);
-        }
-      } catch (err) {
-        console.error("Failed to fetch categories:", err);
-        setError("No se pudieron cargar las categorías. Por favor, intenta de nuevo más tarde.");
-      } finally {
-        setLoading(false);
-        setIsInitialLoad(false);
-      }
-    };
+  const { categories, isLoading, error, fetchCategories } = useCategoryStore();
 
+
+   // Fetch categories on component mount
+   useEffect(() => {
     fetchCategories();
-  }, []);
-
-  // Map hex color to gradient class
-  const mapColorToGradient = (hexColor) => {
-    // Simple mapping based on hue ranges
-    const colors = {
-      "#ef4444": "from-red-500 to-orange-500",     // red
-      "#a855f7": "from-purple-500 to-violet-500",  // purple
-      "#f43f5e": "from-rose-500 to-pink-500",      // rose
-      "#c2410c": "from-orange-500 to-amber-500",   // orange
-      "#0369a1": "from-blue-500 to-sky-500",       // blue
-      "#d946ef": "from-fuchsia-500 to-pink-500",   // fuchsia
-      "#2dd4bf": "from-teal-500 to-emerald-500",   // teal
-      "#059669": "from-green-500 to-emerald-500",  // green
-      "#ec4899": "from-pink-500 to-rose-500",      // pink
-      "#c026d3": "from-purple-500 to-indigo-500",  // purple
-      "#b45309": "from-amber-500 to-yellow-500",   // amber
-    };
-    
-    return colors[hexColor] || "from-gray-500 to-gray-700"; // default gradient
-  };
+    setIsInitialLoad(false);
+  }, [fetchCategories]);
 
   const handleCategoryClick = (category) => {
     setSelectedCategory(category);
@@ -268,7 +213,7 @@ export default function CategoriesPage() {
   );
 
   // Render loading state
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">

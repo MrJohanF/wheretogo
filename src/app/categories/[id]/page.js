@@ -26,7 +26,7 @@ import {
   AlertCircle,
   Loader
 } from "lucide-react";
-import Image from "next/image";
+import useCategoryStore from "../../store/categoryStore"; // Import the store
 import dynamic from "next/dynamic";
 
 // Dynamically import the map component to avoid SSR issues
@@ -42,88 +42,44 @@ const MapComponent = dynamic(() => import("../../components/MapComponent"), {
   ),
 });
 
-// Default category filters to use when we don't have specific ones
-const defaultFilters = ["Valoración", "Precio", "Distancia"];
-
 export default function CategoryDetail() {
   const router = useRouter();
   const params = useParams();
+  const categoryId = params?.id;
+  
   const [sortBy, setSortBy] = useState("rating");
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState("grid");
   const [favorites, setFavorites] = useState(new Set());
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilters, setActiveFilters] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [places, setPlaces] = useState([]);
+  const [loadingPlaces, setLoadingPlaces] = useState(true);
   const [error, setError] = useState(null);
-  const [category, setCategory] = useState(null);
-  const [loadingCategory, setLoadingCategory] = useState(true);
-
-  const categoryId = params?.id;
-
-  // Fetch category information
+  
+  // Get category and loading state from Zustand store
+  const { categories, getCategoryById, fetchCategories, isLoading: loadingCategories } = useCategoryStore();
+  const category = getCategoryById(categoryId);
+  
+  // If categories are empty, fetch them (might happen on direct page load)
   useEffect(() => {
-    const fetchCategory = async () => {
-      if (!categoryId) return;
-      
-      setLoadingCategory(true);
-      try {
-        // Try to fetch category details
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/categories/${categoryId}`);
-        
-        if (!response.ok) {
-          setCategory({
-            id: categoryId,
-            name: "Categoría",
-            icon: "📍",
-            description: "Lugares destacados",
-            features: [],
-            filters: defaultFilters
-          });
-          return;
-        }
-        
-        const data = await response.json();
-        if (data.success && data.category) {
-          setCategory({
-            id: data.category.id,
-            name: data.category.name,
-            icon: getIconForCategory(data.category.icon || 'default'),
-            description: data.category.description || "Lugares destacados",
-            features: data.category.features || [],
-            filters: data.category.filters || defaultFilters
-          });
-        }
-      } catch (err) {
-        console.error("Error fetching category:", err);
-        // Create fallback category using ID
-        setCategory({
-          id: categoryId,
-          name: `Categoría ${categoryId}`,
-          icon: "📍",
-          description: "Lugares destacados",
-          features: [],
-          filters: defaultFilters
-        });
-      } finally {
-        setLoadingCategory(false);
-      }
-    };
+    if (categories.length === 0) {
+      fetchCategories();
+    }
+  }, [categories.length, fetchCategories]);
 
-    fetchCategory();
-  }, [categoryId]);
-
-  // Fetch places data from API
+  // Fetch places for this category
   useEffect(() => {
     const fetchPlaces = async () => {
       if (!categoryId) return;
       
-      setIsLoading(true);
+      setLoadingPlaces(true);
       setError(null);
       
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/categories/${categoryId}/places`);
+        const response = await fetch(`https://api.mywheretogo.com/api/categories/${categoryId}/places`, {
+          credentials: 'include',
+        });
         
         if (!response.ok) {
           throw new Error(`Error ${response.status}: No se pudieron cargar los lugares`);
@@ -133,19 +89,6 @@ export default function CategoryDetail() {
         
         if (data.success && Array.isArray(data.places)) {
           setPlaces(data.places);
-          
-          // If we don't have category information yet, create it from the first place
-          if (!category && data.places.length > 0) {
-            const firstPlace = data.places[0];
-            setCategory({
-              id: categoryId,
-              name: firstPlace.cuisine || "Lugares",
-              icon: "📍",
-              description: `Descubre lugares destacados`,
-              features: [],
-              filters: defaultFilters
-            });
-          }
         } else {
           throw new Error('Formato de datos inválido recibido del API');
         }
@@ -153,32 +96,12 @@ export default function CategoryDetail() {
         console.error('Error fetching places:', err);
         setError(err.message || 'Ha ocurrido un error al cargar los lugares');
       } finally {
-        setIsLoading(false);
+        setLoadingPlaces(false);
       }
     };
 
     fetchPlaces();
   }, [categoryId]);
-
-  // Helper function to map category icon strings to emoji
-  const getIconForCategory = (iconName) => {
-    const iconMap = {
-      'Restaurant': '🍽️',
-      'Cafe': '☕',
-      'Bar': '🍸',
-      'Museum': '🏛️',
-      'Park': '🌳',
-      'Cinema': '🎬',
-      'Hotel': '🏨',
-      'Stadium': '⚽',
-      'Shopping': '🛍️',
-      'Event': '🎉',
-      'Beach': '🏖️',
-      'default': '📍'
-    };
-    
-    return iconMap[iconName] || iconMap.default;
-  };
 
   const toggleFavorite = (placeId) => {
     setFavorites((prev) => {
@@ -204,7 +127,7 @@ export default function CategoryDetail() {
     );
   };
 
-  // Helper function to get featured image URL or placeholder
+  // Helper function to get featured image URL
   const getFeaturedImageUrl = (place) => {
     if (place.images && place.images.length > 0) {
       const featuredImage = place.images.find(img => img.isFeatured);
@@ -234,8 +157,8 @@ export default function CategoryDetail() {
     return 0;
   });
 
-  // Loading state for the entire page
-  if (loadingCategory || (isLoading && !error)) {
+  // Loading state for the entire page - FIXED THIS LINE
+  if (loadingCategories || (loadingPlaces && !error)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
@@ -701,7 +624,7 @@ export default function CategoryDetail() {
         )}
 
         {/* Empty State */}
-        {!isLoading && sortedPlaces.length === 0 && (
+        {!loadingPlaces && sortedPlaces.length === 0 && (
           <div className="text-center py-12 bg-white rounded-xl shadow-sm">
             <div className="mx-auto h-24 w-24 text-gray-300">
               <Filter size={64} strokeWidth={1} className="mx-auto" />
@@ -727,7 +650,7 @@ export default function CategoryDetail() {
         )}
 
         {/* Results Counter */}
-        {!isLoading && sortedPlaces.length > 0 && (
+        {!loadingPlaces && sortedPlaces.length > 0 && (
           <div className="mt-5 text-center text-gray-500">
             Mostrando {sortedPlaces.length}{" "}
             {sortedPlaces.length === 1 ? "lugar" : "lugares"}
