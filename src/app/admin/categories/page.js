@@ -60,6 +60,7 @@ export default function CategoriesManagement() {
   const [isAddingSubcategory, setIsAddingSubcategory] = useState(false);
   const [isEditingSubcategory, setIsEditingSubcategory] = useState(false);
   const [currentSubcategory, setCurrentSubcategory] = useState(null);
+  const [error, setError] = useState(null);
   const [subcategoryFormData, setSubcategoryFormData] = useState({
     name: "",
     categoryId: null,
@@ -94,91 +95,37 @@ export default function CategoriesManagement() {
     { name: "Waves", icon: <Waves size={20} /> },
   ];
 
-  // Mock data for categories - in a real application, you would fetch from your API
+  // Fetch categories from API
   useEffect(() => {
-    // Simulate loading data
-    setLoading(true);
+    const fetchCategories = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
 
-    setTimeout(() => {
-      const mockCategories = [
-        {
-          id: 1,
-          name: "Restaurantes",
-          icon: "Utensils",
-          description: "Lugares para comer y cenar",
-          color: "#EF4444",
-          count: 128,
-          isTrending: true,
-          image: "/images/restaurante.avif",
-          subcategories: [
-            { id: 1, name: "Italiano" },
-            { id: 2, name: "Mexicano" },
-            { id: 3, name: "Japonés" },
-          ],
-        },
-        {
-          id: 2,
-          name: "Cafeterías",
-          icon: "Coffee",
-          description: "Obtén tu dosis de cafeína",
-          color: "#F59E0B",
-          count: 85,
-          isTrending: false,
-          image: "/images/cafe.avif",
-          subcategories: [
-            { id: 4, name: "Cafeterías" },
-            { id: 5, name: "Casas de Té" },
-          ],
-        },
-        {
-          id: 3,
-          name: "Bares",
-          icon: "Beer",
-          description: "Bebidas y vida nocturna",
-          color: "#8B5CF6",
-          count: 97,
-          isTrending: true,
-          image: "/images/bar.avif",
-          subcategories: [
-            { id: 6, name: "Pubs" },
-            { id: 7, name: "Lounges" },
-            { id: 8, name: "Clubs" },
-          ],
-        },
-        {
-          id: 4,
-          name: "Museos",
-          icon: "Building",
-          description: "Exhibiciones culturales y artefactos históricos",
-          color: "#10B981",
-          count: 42,
-          isTrending: false,
-          image: "/images/museo.avif",
-          subcategories: [
-            { id: 9, name: "Museos de Arte" },
-            { id: 10, name: "Museos de Historia" },
-          ],
-        },
-        {
-          id: 5,
-          name: "Parques",
-          icon: "TreeDeciduous",
-          description: "Espacios al aire libre y recreación",
-          color: "#3B82F6",
-          count: 36,
-          isTrending: false,
-          image: "/images/parque.avif",
-          subcategories: [
-            { id: 11, name: "Parques Urbanos" },
-            { id: 12, name: "Parques Nacionales" },
-          ],
-        },
-      ];
+        if (!response.ok) {
+          throw new Error('Error al cargar las categorías');
+        }
 
-      setCategories(mockCategories);
-      setFilteredCategories(mockCategories);
-      setLoading(false);
-    }, 700); // Mock loading delay
+        const data = await response.json();
+        setCategories(data);
+        setFilteredCategories(data);
+      } catch (err) {
+        setError(err.message);
+        console.error('Error fetching categories:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
   }, []);
 
   // Search filter
@@ -504,6 +451,13 @@ export default function CategoriesManagement() {
                 <X size={16} />
               </button>
             )}
+          </div>
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-600">{error}</p>
           </div>
         )}
 
