@@ -16,6 +16,7 @@ import {
   Clock,
   LayoutList,
 } from "lucide-react";
+import { Toaster } from 'react-hot-toast';
 
 // Import all Lucide icons for dynamic rendering
 import * as LucideIcons from "lucide-react";
@@ -345,7 +346,7 @@ export default function PlaceFormPage({ params }) {
     
     try {
       if (!formData.name || !formData.address) {
-        alert("Nombre y dirección son campos obligatorios");
+        toast.error("Nombre y dirección son campos obligatorios");
         return;
       }
       
@@ -400,12 +401,12 @@ export default function PlaceFormPage({ params }) {
       const result = await response.json();
       console.log("Lugar creado exitosamente:", result);
       
-      alert("El lugar ha sido añadido exitosamente");
+      toast.success("El lugar ha sido añadido exitosamente");
       router.push('/admin/places');
       
     } catch (error) {
       console.error("Error al guardar lugar:", error);
-      alert(`Error al guardar lugar: ${error.message}`);
+      toast.error("Error al guardar lugar");
     } finally {
       setIsLoading(false);
     }
