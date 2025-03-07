@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ConfirmationModal from "@/app/components/ConfirmationModal";
-import CategoryForm from './components/CategoryForm';
+import CategoryForm from "./components/CategoryForm";
 
 const fadeIn = {
   hidden: { opacity: 0 },
@@ -101,30 +101,33 @@ export default function CategoriesManagement() {
       try {
         setLoading(true);
         setError(null);
-        
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories`, {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories`,
+          {
+            method: "GET",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
         if (!response.ok) {
-          throw new Error('Error al cargar las categorías');
+          throw new Error("Error al cargar las categorías");
         }
 
         const data = await response.json();
-        
+
         if (!data.success) {
-          throw new Error(data.message || 'Error al cargar las categorías');
+          throw new Error(data.message || "Error al cargar las categorías");
         }
 
         // Get categories array from the response
         const categoriesArray = data.categories || [];
-        
+
         // Transform the data to match the expected format
-        const transformedCategories = categoriesArray.map(category => ({
+        const transformedCategories = categoriesArray.map((category) => ({
           ...category,
           count: category._count?.places || 0, // Use places count from _count
           icon: category.icon, // Map API icons to our icon set
@@ -134,7 +137,7 @@ export default function CategoriesManagement() {
         setFilteredCategories(transformedCategories);
       } catch (err) {
         setError(err.message);
-        console.error('Error fetching categories:', err);
+        console.error("Error fetching categories:", err);
         setCategories([]);
         setFilteredCategories([]);
       } finally {
@@ -223,22 +226,25 @@ export default function CategoriesManagement() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories/${categoryToDelete.id}`, {
-        method: 'DELETE',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories/${categoryToDelete.id}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
-      });
+      );
 
       if (!response.ok) {
-        throw new Error('Error al eliminar la categoría');
+        throw new Error("Error al eliminar la categoría");
       }
 
       const data = await response.json();
-      
+
       if (!data.success) {
-        throw new Error(data.message || 'Error al eliminar la categoría');
+        throw new Error(data.message || "Error al eliminar la categoría");
       }
 
       // Update local state
@@ -249,10 +255,9 @@ export default function CategoriesManagement() {
       setFilteredCategories(updatedCategories);
       setShowDeleteConfirm(false);
       setCategoryToDelete(null);
-
     } catch (err) {
       setError(err.message);
-      console.error('Error deleting category:', err);
+      console.error("Error deleting category:", err);
     } finally {
       setLoading(false);
     }
@@ -262,26 +267,29 @@ export default function CategoriesManagement() {
   const handleToggleTrending = async (category) => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories/${category.id}`, {
-        method: 'PUT',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...category,
-          isTrending: !category.isTrending
-        })
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories/${category.id}`,
+        {
+          method: "PUT",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...category,
+            isTrending: !category.isTrending,
+          }),
+        }
+      );
 
       if (!response.ok) {
-        throw new Error('Error al actualizar la categoría');
+        throw new Error("Error al actualizar la categoría");
       }
 
       const data = await response.json();
-      
+
       if (!data.success) {
-        throw new Error(data.message || 'Error al actualizar la categoría');
+        throw new Error(data.message || "Error al actualizar la categoría");
       }
 
       // Update local state
@@ -292,76 +300,47 @@ export default function CategoriesManagement() {
       setFilteredCategories(updatedCategories);
     } catch (err) {
       setError(err.message);
-      console.error('Error updating category:', err);
+      console.error("Error updating category:", err);
     } finally {
       setLoading(false);
     }
   };
 
   // Save category (add or edit)
-  const handleSaveCategory = async () => {
+  const handleSaveCategory = async (result) => {
     try {
-      setLoading(true);
-      setError(null);
-
-      if (isEditingCategory) {
-        // Update existing category
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories/${currentCategory.id}`, {
-          method: 'PUT',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            ...currentCategory,
-            ...formData,
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error('Error al actualizar la categoría');
+      // If we have a result from the API
+      if (result && result.success) {
+        // Update the categories state
+        if (isAddingCategory) {
+          // When adding a new category
+          const newCategory = result.category;
+          setCategories((prevCategories) => [...prevCategories, newCategory]);
+          setFilteredCategories((prevFiltered) => [
+            ...prevFiltered,
+            newCategory,
+          ]);
+        } else if (isEditingCategory && currentCategory) {
+          // When editing an existing category
+          const updatedCategory = result.category;
+          const updatedCategories = categories.map((cat) =>
+            cat.id === updatedCategory.id
+              ? {
+                  ...cat, // Keep any properties that might not be in the response
+                  ...updatedCategory, // Update with new values
+                  count: cat.count, // Make sure we preserve the count
+                }
+              : cat
+          );
+          setCategories(updatedCategories);
+          setFilteredCategories(updatedCategories);
         }
-
-        const data = await response.json();
-        
-        if (!data.success) {
-          throw new Error(data.message || 'Error al actualizar la categoría');
-        }
-
-        // Update local state
-        const updatedCategories = categories.map((cat) =>
-          cat.id === currentCategory.id ? { ...cat, ...formData } : cat
-        );
-        setCategories(updatedCategories);
-        setFilteredCategories(updatedCategories);
-        setIsEditingCategory(false);
-        setCurrentCategory(null);
-      } else if (isAddingCategory) {
-        // Add new category - using the existing POST endpoint
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories/add`, {
-          method: 'POST',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData)
-        });
-
-        if (!response.ok) {
-          throw new Error('Error al crear la categoría');
-        }
-
-        const data = await response.json();
-        
-        if (!data.success) {
-          throw new Error(data.message || 'Error al crear la categoría');
-        }
-
-        // Update local state with the new category
-        setCategories([...categories, data.category]);
-        setFilteredCategories([...categories, data.category]);
-        setIsAddingCategory(false);
       }
+
+      // Reset UI state
+      setIsAddingCategory(false);
+      setIsEditingCategory(false);
+      setCurrentCategory(null);
 
       // Reset form
       setFormData({
@@ -373,10 +352,7 @@ export default function CategoriesManagement() {
         image: null,
       });
     } catch (err) {
-      setError(err.message);
-      console.error('Error saving category:', err);
-    } finally {
-      setLoading(false);
+      console.error("Error updating categories state:", err);
     }
   };
 
@@ -650,7 +626,8 @@ export default function CategoriesManagement() {
                           className="px-6 py-10 text-center text-gray-500"
                         >
                           No se encontraron categorías.{" "}
-                          {searchTerm && "Intenta con otro término de búsqueda."}
+                          {searchTerm &&
+                            "Intenta con otro término de búsqueda."}
                         </td>
                       </tr>
                     ) : (
@@ -701,9 +678,7 @@ export default function CategoriesManagement() {
                               <Star
                                 size={18}
                                 fill={
-                                  category.isTrending
-                                    ? "currentColor"
-                                    : "none"
+                                  category.isTrending ? "currentColor" : "none"
                                 }
                               />
                             </button>
@@ -816,8 +791,10 @@ export default function CategoriesManagement() {
             onCancel={() => {
               setIsAddingCategory(false);
               setIsEditingCategory(false);
+              setCurrentCategory(null);
             }}
-            onSave={handleSaveCategory}
+            onSave={handleSaveCategory} // this will receive the API result
+            currentCategory={currentCategory}
           />
         )}
 
@@ -871,7 +848,8 @@ export default function CategoriesManagement() {
                     htmlFor="subcategory-name"
                     className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                   >
-                    Nombre de Subcategoría <span className="text-red-500">*</span>
+                    Nombre de Subcategoría{" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"

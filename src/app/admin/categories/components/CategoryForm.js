@@ -43,7 +43,8 @@ export default function CategoryForm({
   onImageSelect,
   onIconSelect,
   onCancel,
-  onSave 
+  onSave,
+  currentCategory  // Add this prop to know which category we're editing
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -60,26 +61,39 @@ export default function CategoryForm({
         description: formData.description,
         image: formData.image,
         color: formData.color,
-        subcategories: [], // Initialize empty subcategories array
         isTrending: formData.isTrending
       };
 
-      // Make the API call
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories/add`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(categoryData),
-      });
+      let response;
+
+      if (isAdding) {
+        // Create new category
+        response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories/add`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify(categoryData),
+        });
+      } else {
+        // Update existing category
+        response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories/${currentCategory.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify(categoryData),
+        });
+      }
 
       if (!response.ok) {
-        throw new Error('Error al guardar la categoría');
+        throw new Error(isAdding ? 'Error al crear la categoría' : 'Error al actualizar la categoría');
       }
 
       const result = await response.json();
-      onSave(result); // Pass the saved category back to parent
+      onSave(result); // Pass the saved/updated category back to parent
     } catch (err) {
       setError(err.message);
     } finally {
