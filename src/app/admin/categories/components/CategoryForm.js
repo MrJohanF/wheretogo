@@ -16,11 +16,13 @@ import {
   Calendar,
   Hotel,
   Waves,
-  Image,
+  Image as ImageIcon,
 } from "lucide-react";
 import { useState } from "react";
 
-// Mock icons for selection
+/**
+ * Icon options available for categories
+ */
 const iconOptions = [
   { name: "Coffee", icon: <Coffee size={20} /> },
   { name: "Utensils", icon: <Utensils size={20} /> },
@@ -36,6 +38,19 @@ const iconOptions = [
   { name: "Waves", icon: <Waves size={20} /> },
 ];
 
+/**
+ * Category form component for adding and editing categories
+ * 
+ * @param {Object} props Component props
+ * @param {boolean} props.isAdding True if adding a new category, false if editing
+ * @param {Object} props.formData Form data object
+ * @param {Function} props.onInputChange Handler for form input changes
+ * @param {Function} props.onImageSelect Handler for image selection
+ * @param {Function} props.onIconSelect Handler for icon selection
+ * @param {Function} props.onCancel Handler for cancel action
+ * @param {Function} props.onSave Handler for save action
+ * @param {Object|null} props.currentCategory Current category being edited (null if adding)
+ */
 export default function CategoryForm({ 
   isAdding,
   formData,
@@ -44,17 +59,20 @@ export default function CategoryForm({
   onIconSelect,
   onCancel,
   onSave,
-  currentCategory  // Add this prop to know which category we're editing
+  currentCategory 
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  /**
+   * Handle saving the category - performs API call
+   */
   const handleSave = async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      // Prepare the data according to the API structure
+      // Prepare data for API
       const categoryData = {
         name: formData.name,
         icon: formData.icon,
@@ -70,9 +88,7 @@ export default function CategoryForm({
         // Create new category
         response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories/add`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
           body: JSON.stringify(categoryData),
         });
@@ -80,9 +96,7 @@ export default function CategoryForm({
         // Update existing category
         response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories/${currentCategory.id}`, {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
           body: JSON.stringify(categoryData),
         });
@@ -93,9 +107,10 @@ export default function CategoryForm({
       }
 
       const result = await response.json();
-      onSave(result); // Pass the saved/updated category back to parent
+      onSave(result); // Pass the result back to parent
     } catch (err) {
       setError(err.message);
+      console.error('Error saving category:', err);
     } finally {
       setIsLoading(false);
     }
@@ -107,6 +122,7 @@ export default function CategoryForm({
       animate={{ opacity: 1, y: 0 }}
       className="bg-white rounded-xl shadow-sm p-6"
     >
+      {/* Form header */}
       <div className="mb-6 flex justify-between items-center">
         <h2 className="text-xl font-semibold">
           {isAdding ? "Añadir Nueva Categoría" : "Editar Categoría"}
@@ -114,11 +130,13 @@ export default function CategoryForm({
         <button
           onClick={onCancel}
           className="text-gray-500 hover:text-gray-700"
+          aria-label="Cerrar"
         >
           <X size={20} />
         </button>
       </div>
 
+      {/* Error message */}
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
           <p className="text-sm text-red-600">{error}</p>
@@ -128,7 +146,7 @@ export default function CategoryForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Left Column */}
         <div className="space-y-6">
-          {/* Name */}
+          {/* Category name field */}
           <div>
             <label
               htmlFor="name"
@@ -148,7 +166,7 @@ export default function CategoryForm({
             />
           </div>
 
-          {/* Description */}
+          {/* Description field */}
           <div>
             <label
               htmlFor="description"
@@ -167,7 +185,7 @@ export default function CategoryForm({
             ></textarea>
           </div>
 
-          {/* Color Picker */}
+          {/* Color picker */}
           <div>
             <label
               htmlFor="color"
@@ -198,7 +216,7 @@ export default function CategoryForm({
             </div>
           </div>
 
-          {/* Trending Toggle */}
+          {/* Trending toggle */}
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -219,7 +237,7 @@ export default function CategoryForm({
 
         {/* Right Column */}
         <div className="space-y-6">
-          {/* Icon Selection */}
+          {/* Icon selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Icono de Categoría
@@ -242,7 +260,7 @@ export default function CategoryForm({
             </div>
           </div>
 
-          {/* Image Upload */}
+          {/* Image upload */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Imagen de Categoría
@@ -258,13 +276,14 @@ export default function CategoryForm({
                   <button
                     onClick={() => onImageSelect(null)}
                     className="absolute top-2 right-2 rounded-full bg-white p-1 shadow-md"
+                    aria-label="Eliminar imagen"
                   >
                     <X size={16} />
                   </button>
                 </div>
               ) : (
                 <div className="space-y-1 text-center">
-                  <Image size={36} className="mx-auto text-gray-400" />
+                  <ImageIcon size={36} className="mx-auto text-gray-400" />
                   <div className="flex text-sm text-gray-600">
                     <label
                       htmlFor="file-upload"
@@ -292,7 +311,7 @@ export default function CategoryForm({
         </div>
       </div>
 
-      {/* Form Actions */}
+      {/* Form actions */}
       <div className="mt-8 flex justify-end">
         <button
           type="button"
