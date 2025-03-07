@@ -17,6 +17,7 @@ import {
 import * as LucideIcons from 'lucide-react';
 import { useRouter } from "next/navigation";
 import ViewPlaceModal from "@/app/components/ViewPlaceModal";
+import { toast } from 'react-hot-toast';
 
 // Animation variants
 const fadeIn = {
@@ -309,7 +310,8 @@ export default function PlacesManagement() {
       setSelectedPlaceId(null);
       
       // Show success message
-      alert("Lugar eliminado exitosamente");
+      toast.success("Lugar eliminado exitosamente");
+      
       
     } catch (error) {
       console.error("Error al eliminar lugar:", error);
