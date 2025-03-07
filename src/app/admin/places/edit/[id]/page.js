@@ -240,7 +240,32 @@ export default function PlaceFormPage({ params }) {
     }
   };
 
-  const fetchPlace = (id) => Promise.resolve(mockPlaces[id] || null);
+  const fetchPlace = async (id) => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/places/${id}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+  
+      if (!response.ok) {
+        throw new Error(`Error fetching place: ${response.status}`);
+      }
+  
+      const data = await response.json();
+  
+      if (!data.success) {
+        throw new Error("Invalid place response format");
+      }
+  
+      return data.place;
+    } catch (error) {
+      console.error("Failed to fetch place:", error);
+      return null; // Return null as fallback
+    }
+  };
 
   useEffect(() => {
     const loadData = async () => {
