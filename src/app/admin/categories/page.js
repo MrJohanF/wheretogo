@@ -218,17 +218,44 @@ export default function CategoriesManagement() {
   };
 
   // Confirm delete category
-  const handleConfirmDelete = () => {
-    // In a real app, you would make an API call here
-    const updatedCategories = categories.filter(
-      (cat) => cat.id !== categoryToDelete.id
-    );
-    setCategories(updatedCategories);
-    setShowDeleteConfirm(false);
-    setCategoryToDelete(null);
+  const handleConfirmDelete = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-    // Show success notification
-    // ...
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories/${categoryToDelete.id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al eliminar la categoría');
+      }
+
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.message || 'Error al eliminar la categoría');
+      }
+
+      // Update local state
+      const updatedCategories = categories.filter(
+        (cat) => cat.id !== categoryToDelete.id
+      );
+      setCategories(updatedCategories);
+      setFilteredCategories(updatedCategories);
+      setShowDeleteConfirm(false);
+      setCategoryToDelete(null);
+
+    } catch (err) {
+      setError(err.message);
+      console.error('Error deleting category:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Toggle trending status
