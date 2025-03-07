@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ConfirmationModal from "@/app/components/ConfirmationModal";
+import CategoryForm from './components/CategoryForm';
 
 const fadeIn = {
   hidden: { opacity: 0 },
@@ -718,217 +719,27 @@ export default function CategoriesManagement() {
 
         {/* Add/Edit Category Form */}
         {(isAddingCategory || isEditingCategory) && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-xl shadow-sm p-6"
-          >
-            <div className="mb-6 flex justify-between items-center">
-              <h2 className="text-xl font-semibold">
-                {isAddingCategory ? "Añadir Nueva Categoría" : "Editar Categoría"}
-              </h2>
-              <button
-                onClick={() => {
-                  setIsAddingCategory(false);
-                  setIsEditingCategory(false);
-                }}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Left Column */}
-              <div className="space-y-6">
-                {/* Name */}
-                <div>
-                  <label
-                    htmlFor="name"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Nombre de Categoría *
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    required
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="ej. Restaurantes"
-                  />
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label
-                    htmlFor="description"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Descripción
-                  </label>
-                  <textarea
-                    id="description"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="Breve descripción de la categoría"
-                  ></textarea>
-                </div>
-
-                {/* Color Picker */}
-                <div>
-                  <label
-                    htmlFor="color"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Color de Categoría
-                  </label>
-                  <div className="flex items-center space-x-3">
-                    <input
-                      type="color"
-                      id="color"
-                      name="color"
-                      value={formData.color}
-                      onChange={handleInputChange}
-                      className="w-12 h-10 border-0 p-0"
-                    />
-                    <input
-                      type="text"
-                      value={formData.color}
-                      onChange={handleInputChange}
-                      name="color"
-                      className="w-28 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                    <div
-                      className="w-10 h-10 rounded-md"
-                      style={{ backgroundColor: formData.color }}
-                    ></div>
-                  </div>
-                </div>
-
-                {/* Trending Toggle */}
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="isTrending"
-                    name="isTrending"
-                    checked={formData.isTrending}
-                    onChange={handleInputChange}
-                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                  />
-                  <label
-                    htmlFor="isTrending"
-                    className="ml-2 block text-sm text-gray-700"
-                  >
-                    Marcar como categoría en tendencia
-                  </label>
-                </div>
-              </div>
-
-              {/* Right Column */}
-              <div className="space-y-6">
-                {/* Icon Selection */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Icono de Categoría
-                  </label>
-                  <div className="grid grid-cols-6 gap-3">
-                    {iconOptions.map((option) => (
-                      <button
-                        key={option.name}
-                        type="button"
-                        onClick={() => handleIconSelect(option.name)}
-                        className={`w-12 h-12 rounded-md flex items-center justify-center ${
-                          formData.icon === option.name
-                            ? `bg-indigo-100 text-indigo-600 ring-2 ring-indigo-500`
-                            : `bg-gray-100 text-gray-600 hover:bg-gray-200`
-                        }`}
-                      >
-                        {option.icon}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Image Upload */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Imagen de Categoría
-                  </label>
-                  <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                    {formData.image ? (
-                      <div className="relative w-full h-36">
-                        <img
-                          src={formData.image}
-                          alt="Vista previa de categoría"
-                          className="h-full w-full object-cover rounded-md"
-                        />
-                        <button
-                          onClick={() =>
-                            setFormData({ ...formData, image: null })
-                          }
-                          className="absolute top-2 right-2 rounded-full bg-white p-1 shadow-md"
-                        >
-                          <X size={16} />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="space-y-1 text-center">
-                        <Image size={36} className="mx-auto text-gray-400" />
-                        <div className="flex text-sm text-gray-600">
-                          <label
-                            htmlFor="file-upload"
-                            className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500"
-                          >
-                            <span>Subir un archivo</span>
-                            <input
-                              id="file-upload"
-                              name="file-upload"
-                              type="file"
-                              accept="image/*"
-                              className="sr-only"
-                              onChange={handleImageSelect}
-                            />
-                          </label>
-                          <p className="pl-1">o arrastrar y soltar</p>
-                        </div>
-                        <p className="text-xs text-gray-500">
-                          PNG, JPG, GIF hasta 10MB
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Form Actions */}
-            <div className="mt-8 flex justify-end">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsAddingCategory(false);
-                  setIsEditingCategory(false);
-                }}
-                className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 mr-3"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveCategory}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
-              >
-                <Save size={18} className="mr-2" />
-                Guardar Categoría
-              </button>
-            </div>
-          </motion.div>
+          <CategoryForm
+            isAdding={isAddingCategory}
+            formData={formData}
+            onInputChange={handleInputChange}
+            onImageSelect={(e) => {
+              if (e === null) {
+                setFormData({ ...formData, image: null });
+              } else if (e.target.files && e.target.files[0]) {
+                setFormData({
+                  ...formData,
+                  image: URL.createObjectURL(e.target.files[0]),
+                });
+              }
+            }}
+            onIconSelect={handleIconSelect}
+            onCancel={() => {
+              setIsAddingCategory(false);
+              setIsEditingCategory(false);
+            }}
+            onSave={handleSaveCategory}
+          />
         )}
 
         {/* Delete Confirmation Modal */}
