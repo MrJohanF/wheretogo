@@ -6,8 +6,6 @@ import {
   Search,
   ChevronRight,
   TrendingUp,
-  Clock,
-  Star,
   Image as ImageIcon,
   X,
   Filter,
