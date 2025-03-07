@@ -23,6 +23,8 @@ import {
   Bookmark,
   Share2,
   MenuSquare,
+  AlertCircle,
+  Loader
 } from "lucide-react";
 import Image from "next/image";
 import dynamic from "next/dynamic";
@@ -40,85 +42,8 @@ const MapComponent = dynamic(() => import("../../components/MapComponent"), {
   ),
 });
 
-const mockPlaces = {
-  1: [
-    // Restaurants
-    {
-      id: 1,
-      name: "La Terraza Restaurant",
-      rating: 4.5,
-      reviews: 128,
-      image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4",
-      price: "$$",
-      distance: "1.2km",
-      openNow: true,
-      address: "Calle Principal 123",
-      cuisine: "Mediterránea",
-      popular: ["Paella", "Sangría", "Tapas"],
-      latitude: 40.416775,
-      longitude: -3.70379,
-    },
-    {
-      id: 2,
-      name: "El Rincón Español",
-      rating: 4.3,
-      reviews: 95,
-      image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0",
-      price: "$$",
-      distance: "0.8km",
-      openNow: true,
-      address: "Calle Secundaria 45",
-      cuisine: "Española",
-      popular: ["Tortilla", "Jamón", "Vino"],
-      latitude: 40.417875,
-      longitude: -3.70269,
-    },
-  ],
-  2: [
-    // Cafes
-    {
-      id: 3,
-      name: "Café del Arte",
-      rating: 4.8,
-      reviews: 96,
-      image: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb",
-      price: "$",
-      distance: "0.8km",
-      openNow: true,
-      address: "Plaza Mayor 45",
-      specialties: ["Café de especialidad", "Pasteles artesanales"],
-      amenities: ["WiFi gratis", "Enchufes"],
-      latitude: 40.415675,
-      longitude: -3.70489,
-    },
-    {
-      id: 4,
-      name: "La Cafetería",
-      rating: 4.6,
-      reviews: 78,
-      image: "https://images.unsplash.com/photo-1552566626-52f8b828add9",
-      price: "$",
-      distance: "1.5km",
-      openNow: true,
-      address: "Avenida Central 89",
-      specialties: ["Desayunos", "Meriendas"],
-      amenities: ["Terraza", "WiFi"],
-      latitude: 40.418975,
-      longitude: -3.70159,
-    },
-  ],
-};
-
-const categories = {
-  1: {
-    name: "Restaurantes",
-    icon: "🍽️",
-    description: "Descubre los mejores restaurantes de la ciudad",
-    features: ["Reservas", "Menús", "Reseñas", "Fotos"],
-    filters: ["Cocina", "Precio", "Valoración", "Distancia"],
-  },
-  // Add more category details...
-};
+// Default category filters to use when we don't have specific ones
+const defaultFilters = ["Valoración", "Precio", "Distancia"];
 
 export default function CategoryDetail() {
   const router = useRouter();
@@ -130,18 +55,130 @@ export default function CategoryDetail() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilters, setActiveFilters] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [places, setPlaces] = useState([]);
+  const [error, setError] = useState(null);
+  const [category, setCategory] = useState(null);
+  const [loadingCategory, setLoadingCategory] = useState(true);
 
   const categoryId = params?.id;
-  const category = categories[categoryId];
-  const places = mockPlaces[categoryId] || [];
 
+  // Fetch category information
   useEffect(() => {
-    // Simulate loading for demo purposes
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
+    const fetchCategory = async () => {
+      if (!categoryId) return;
+      
+      setLoadingCategory(true);
+      try {
+        // Try to fetch category details
+        const response = await fetch(`https://api.mywheretogo.com/api/categories/${categoryId}`);
+        
+        if (!response.ok) {
+          setCategory({
+            id: categoryId,
+            name: "Categoría",
+            icon: "📍",
+            description: "Lugares destacados",
+            features: [],
+            filters: defaultFilters
+          });
+          return;
+        }
+        
+        const data = await response.json();
+        if (data.success && data.category) {
+          setCategory({
+            id: data.category.id,
+            name: data.category.name,
+            icon: getIconForCategory(data.category.icon || 'default'),
+            description: data.category.description || "Lugares destacados",
+            features: data.category.features || [],
+            filters: data.category.filters || defaultFilters
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching category:", err);
+        // Create fallback category using ID
+        setCategory({
+          id: categoryId,
+          name: `Categoría ${categoryId}`,
+          icon: "📍",
+          description: "Lugares destacados",
+          features: [],
+          filters: defaultFilters
+        });
+      } finally {
+        setLoadingCategory(false);
+      }
+    };
+
+    fetchCategory();
   }, [categoryId]);
+
+  // Fetch places data from API
+  useEffect(() => {
+    const fetchPlaces = async () => {
+      if (!categoryId) return;
+      
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        const response = await fetch(`https://api.mywheretogo.com/api/categories/${categoryId}/places`);
+        
+        if (!response.ok) {
+          throw new Error(`Error ${response.status}: No se pudieron cargar los lugares`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && Array.isArray(data.places)) {
+          setPlaces(data.places);
+          
+          // If we don't have category information yet, create it from the first place
+          if (!category && data.places.length > 0) {
+            const firstPlace = data.places[0];
+            setCategory({
+              id: categoryId,
+              name: firstPlace.cuisine || "Lugares",
+              icon: "📍",
+              description: `Descubre lugares destacados`,
+              features: [],
+              filters: defaultFilters
+            });
+          }
+        } else {
+          throw new Error('Formato de datos inválido recibido del API');
+        }
+      } catch (err) {
+        console.error('Error fetching places:', err);
+        setError(err.message || 'Ha ocurrido un error al cargar los lugares');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPlaces();
+  }, [categoryId]);
+
+  // Helper function to map category icon strings to emoji
+  const getIconForCategory = (iconName) => {
+    const iconMap = {
+      'Restaurant': '🍽️',
+      'Cafe': '☕',
+      'Bar': '🍸',
+      'Museum': '🏛️',
+      'Park': '🌳',
+      'Cinema': '🎬',
+      'Hotel': '🏨',
+      'Stadium': '⚽',
+      'Shopping': '🛍️',
+      'Event': '🎉',
+      'Beach': '🏖️',
+      'default': '📍'
+    };
+    
+    return iconMap[iconName] || iconMap.default;
+  };
 
   const toggleFavorite = (placeId) => {
     setFavorites((prev) => {
@@ -167,22 +204,72 @@ export default function CategoryDetail() {
     );
   };
 
-  if (!category) {
+  // Helper function to get featured image URL or placeholder
+  const getFeaturedImageUrl = (place) => {
+    if (place.images && place.images.length > 0) {
+      const featuredImage = place.images.find(img => img.isFeatured);
+      return featuredImage ? featuredImage.url : place.images[0].url;
+    }
+    return 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4'; // Placeholder image
+  };
+
+  // Filter places based on search query
+  const filteredPlaces = places.filter(place => {
+    if (!searchQuery) return true;
+    
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50">
-        <div className="text-center p-8 bg-white rounded-xl shadow-lg">
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">
-            Categoría no encontrada
-          </h2>
-          <p className="text-gray-600 mb-6">
-            Lo sentimos, la categoría que buscas no existe.
-          </p>
-          <button
-            onClick={() => router.push("/")}
-            className="px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors"
-          >
-            Volver al inicio
-          </button>
+      place.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      place.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      place.cuisine?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      place.address?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  });
+
+  // Sort places based on selected sort option
+  const sortedPlaces = [...filteredPlaces].sort((a, b) => {
+    if (sortBy === "rating") {
+      return (b.rating || 0) - (a.rating || 0);
+    }
+    // Additional sorting options can be implemented here
+    return 0;
+  });
+
+  // Loading state for the entire page
+  if (loadingCategory || (isLoading && !error)) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader className="w-12 h-12 text-indigo-600 mx-auto animate-spin" />
+          <p className="mt-4 text-gray-600 font-medium">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error display component
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl shadow-md p-6 max-w-md w-full">
+          <div className="flex items-center justify-center w-16 h-16 mx-auto rounded-full bg-red-100 mb-4">
+            <AlertCircle className="h-8 w-8 text-red-600" />
+          </div>
+          <h3 className="text-xl font-bold text-center text-gray-900">Error</h3>
+          <p className="mt-2 text-center text-gray-500">{error}</p>
+          <div className="mt-6 flex flex-col sm:flex-row gap-3">
+            <button 
+              onClick={() => router.back()}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex-1"
+            >
+              Volver
+            </button>
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex-1"
+            >
+              Reintentar
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -221,11 +308,11 @@ export default function CategoryDetail() {
               <div className="ml-4">
                 <h1 className="text-2xl font-bold text-gray-900 flex items-center flex-wrap">
                   <span className="mr-2 text-3xl" aria-hidden="true">
-                    {category.icon}
+                    {category?.icon}
                   </span>
-                  {category.name}
+                  {category?.name}
                   <span className="ml-2 text-sm font-medium bg-indigo-100 text-indigo-800 py-1 px-2 rounded-full">
-                    {places.length} lugares
+                    {filteredPlaces.length} lugares
                   </span>
                 </h1>
               </div>
@@ -243,14 +330,14 @@ export default function CategoryDetail() {
               className="max-w-lg"
             >
               <h2 className="text-white text-3xl font-bold mb-3">
-                {category.description}
+                {category?.description}
               </h2>
               <p className="text-indigo-100 text-lg">
-                Explora {places.length} lugares destacados en esta categoría
+                Explora {filteredPlaces.length} lugares destacados en esta categoría
               </p>
 
               <div className="mt-6 flex flex-wrap gap-3">
-                {category.features?.map((feature, idx) => (
+                {category?.features?.map((feature, idx) => (
                   <span
                     key={idx}
                     className="bg-white/20 backdrop-blur-sm text-white text-sm px-3 py-1.5 rounded-full"
@@ -277,7 +364,7 @@ export default function CategoryDetail() {
               />
               <input
                 type="text"
-                placeholder={`Buscar en ${category.name.toLowerCase()}...`}
+                placeholder={`Buscar en ${category?.name.toLowerCase()}...`}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 transition-colors"
@@ -391,7 +478,7 @@ export default function CategoryDetail() {
                   </div>
 
                   <div className="flex flex-wrap gap-2 md:gap-3">
-                    {category.filters.map((filter) => (
+                    {category?.filters?.map((filter) => (
                       <button
                         key={filter}
                         onClick={() => toggleFilter(filter)}
@@ -411,25 +498,8 @@ export default function CategoryDetail() {
           </AnimatePresence>
         </div>
 
-        {/* Loading State */}
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div
-                key={i}
-                className="bg-white rounded-xl shadow-sm overflow-hidden animate-pulse"
-              >
-                <div className="h-48 bg-gray-200" />
-                <div className="p-4">
-                  <div className="h-5 bg-gray-200 rounded w-2/3 mb-3"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/2 mb-3"></div>
-                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-3"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : viewMode === "grid" ? (
+        {/* Places Grid/Map View */}
+        {viewMode === "grid" ? (
           /* Grid View */
           <motion.div
             variants={container}
@@ -437,7 +507,7 @@ export default function CategoryDetail() {
             animate="show"
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
-            {places.map((place) => (
+            {sortedPlaces.map((place) => (
               <motion.div
                 key={place.id}
                 variants={item}
@@ -449,11 +519,17 @@ export default function CategoryDetail() {
                   className="aspect-video relative cursor-pointer"
                   onClick={() => handlePlaceClick(place)}
                 >
-                  <img
-                    src={place.image}
-                    alt={place.name}
-                    className="object-cover w-full h-full transform hover:scale-105 transition-transform duration-700"
-                  />
+                  {place.images && place.images.length > 0 ? (
+                    <img
+                      src={getFeaturedImageUrl(place)}
+                      alt={place.name}
+                      className="object-cover w-full h-full transform hover:scale-105 transition-transform duration-700"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                      <MenuSquare size={40} className="text-gray-400" />
+                    </div>
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80"></div>
 
                   {/* Quick Action Buttons */}
@@ -490,21 +566,17 @@ export default function CategoryDetail() {
 
                   {/* Status Pills */}
                   <div className="absolute bottom-3 left-3 flex flex-wrap gap-2">
-                    {place.openNow && (
+                    {place.isOpenNow && (
                       <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium flex items-center">
                         <Clock3 size={12} className="mr-1" />
                         Abierto
                       </span>
                     )}
-                    {place.price && (
+                    {place.priceLevel && (
                       <span className="bg-gray-100/90 backdrop-blur-sm text-gray-800 text-xs px-2 py-1 rounded-full font-medium">
-                        {place.price}
+                        {place.priceLevel}
                       </span>
                     )}
-                    <span className="bg-gray-100/90 backdrop-blur-sm text-gray-800 text-xs px-2 py-1 rounded-full font-medium flex items-center">
-                      <Navigation size={12} className="mr-1" />
-                      {place.distance}
-                    </span>
                   </div>
                 </div>
 
@@ -518,27 +590,42 @@ export default function CategoryDetail() {
                       {place.name}
                     </h3>
                     <div className="flex items-center mt-1.5">
-                      <div className="flex items-center bg-green-50 text-green-700 px-2 py-0.5 rounded mr-2">
-                        <Star
-                          size={14}
-                          className="text-yellow-500 fill-current"
-                        />
-                        <span className="ml-1 text-sm font-medium">
-                          {place.rating}
-                        </span>
-                      </div>
-                      <span className="text-gray-500 text-sm">
-                        {place.reviews} reseñas
-                      </span>
+                      {place.rating ? (
+                        <div className="flex items-center bg-green-50 text-green-700 px-2 py-0.5 rounded mr-2">
+                          <Star
+                            size={14}
+                            className="text-yellow-500 fill-current"
+                          />
+                          <span className="ml-1 text-sm font-medium">
+                            {place.rating}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center bg-gray-50 text-gray-500 px-2 py-0.5 rounded mr-2">
+                          <Star size={14} />
+                          <span className="ml-1 text-sm font-medium">
+                            N/D
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
+                  {/* Place Description */}
+                  {place.description && (
+                    <p className="text-gray-600 text-sm mt-2 line-clamp-2">
+                      {place.description}
+                    </p>
+                  )}
+
                   {/* Place Details */}
                   <div className="mt-3">
-                    <div className="flex items-center text-gray-600 text-sm mb-2">
-                      <MapPin size={14} className="mr-1.5 flex-shrink-0" />
-                      <span className="truncate">{place.address}</span>
-                    </div>
+                    {place.address && (
+                      <div className="flex items-center text-gray-600 text-sm mb-2">
+                        <MapPin size={14} className="mr-1.5 flex-shrink-0" />
+                        <span className="truncate">{place.address}</span>
+                      </div>
+                    )}
 
                     {place.cuisine && (
                       <div className="flex items-center text-gray-600 text-sm mb-2">
@@ -549,21 +636,39 @@ export default function CategoryDetail() {
                         <span>{place.cuisine}</span>
                       </div>
                     )}
+
+                    {place.phone && (
+                      <div className="flex items-center text-gray-600 text-sm mb-2">
+                        <Phone size={14} className="mr-1.5 flex-shrink-0" />
+                        <span>{place.phone}</span>
+                      </div>
+                    )}
+
+                    {place.website && (
+                      <div className="flex items-center text-gray-600 text-sm mb-2">
+                        <Globe size={14} className="mr-1.5 flex-shrink-0" />
+                        <a href={place.website} target="_blank" rel="noopener noreferrer" 
+                           className="text-indigo-600 hover:underline truncate"
+                           onClick={(e) => e.stopPropagation()}>
+                          {new URL(place.website).hostname}
+                        </a>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Popular Items */}
-                  {place.popular && (
+                  {/* Features */}
+                  {place.features && place.features.length > 0 && (
                     <div className="mt-3">
                       <div className="text-xs text-gray-500 mb-1.5">
-                        Popular:
+                        Características:
                       </div>
                       <div className="flex flex-wrap gap-1.5">
-                        {place.popular.map((item, index) => (
+                        {place.features.map((feature, index) => (
                           <span
                             key={index}
                             className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full"
                           >
-                            {item}
+                            {feature.feature.name}
                           </span>
                         ))}
                       </div>
@@ -587,7 +692,7 @@ export default function CategoryDetail() {
           /* Map View */
           <div className="rounded-xl overflow-hidden shadow-lg h-[calc(100vh-300px)] min-h-[500px]">
             <MapComponent
-              places={places}
+              places={sortedPlaces}
               onPlaceClick={handlePlaceClick}
               favorites={favorites}
               onToggleFavorite={toggleFavorite}
@@ -596,7 +701,7 @@ export default function CategoryDetail() {
         )}
 
         {/* Empty State */}
-        {!isLoading && places.length === 0 && (
+        {!isLoading && sortedPlaces.length === 0 && (
           <div className="text-center py-12 bg-white rounded-xl shadow-sm">
             <div className="mx-auto h-24 w-24 text-gray-300">
               <Filter size={64} strokeWidth={1} className="mx-auto" />
@@ -622,10 +727,10 @@ export default function CategoryDetail() {
         )}
 
         {/* Results Counter */}
-        {!isLoading && places.length > 0 && (
+        {!isLoading && sortedPlaces.length > 0 && (
           <div className="mt-5 text-center text-gray-500">
-            Mostrando {places.length}{" "}
-            {places.length === 1 ? "lugar" : "lugares"}
+            Mostrando {sortedPlaces.length}{" "}
+            {sortedPlaces.length === 1 ? "lugar" : "lugares"}
           </div>
         )}
       </div>
