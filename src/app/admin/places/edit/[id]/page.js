@@ -206,13 +206,33 @@ export default function PlaceFormPage({ params }) {
     }
   };
 
-  const fetchFeatures = () =>
-    Promise.resolve([
-      { id: 1, name: "Wi-Fi" },
-      { id: 2, name: "Asientos al aire libre" },
-      { id: 3, name: "Estacionamiento" },
-      { id: 4, name: "Admite mascotas" },
-    ]);
+  // Fetch features from API
+  const fetchFeatures = async () => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/features`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Error fetching features: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (!data.success || !Array.isArray(data.features)) {
+        throw new Error("Invalid features response format");
+      }
+
+      return data.features;
+    } catch (error) {
+      console.error("Failed to fetch features:", error);
+      return []; // Return empty array as fallback
+    }
+  };
 
   const fetchPlace = (id) => Promise.resolve(mockPlaces[id] || null);
 
@@ -221,12 +241,12 @@ export default function PlaceFormPage({ params }) {
       try {
         setIsLoading(true);
 
-        // Fetch data from APIs in parallel for better performance
+        // Fetch data from all three APIs in parallel for better performance
         const [categoriesData, subcategoriesData, featuresData] =
           await Promise.all([
             fetchCategories(),
             fetchSubcategories(),
-            fetchFeatures(), // This is still your mock function until you have an API for it
+            fetchFeatures(),
           ]);
 
         setCategories(categoriesData);
@@ -322,15 +342,15 @@ export default function PlaceFormPage({ params }) {
   // Updated handleSubmit function to post new places to the API
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    
     try {
       if (!formData.name || !formData.address) {
         alert("Nombre y dirección son campos obligatorios");
         return;
       }
-
+      
       setIsLoading(true);
-
+      
       // Format the data according to API expectations
       const placeData = {
         name: formData.name,
@@ -344,47 +364,45 @@ export default function PlaceFormPage({ params }) {
         isOpenNow: Boolean(formData.isOpenNow),
         latitude: parseFloat(formData.latitude) || null,
         longitude: parseFloat(formData.longitude) || null,
-
-        // Include category and subcategory IDs
+        
+        // Include all IDs from categories, subcategories, and features
         categoryIds: formData.categoryIds || [],
         subcategoryIds: formData.subcategoryIds || [],
         featureIds: formData.featureIds || [],
-
+        
         // Format images to match the expected structure
-        images: formData.images.map((img) => ({
+        images: formData.images.map(img => ({
           url: img.url,
           altText: img.altText || img.name || "Place image",
-          isFeatured: img.isFeatured || false,
+          isFeatured: img.isFeatured || false
         })),
-
+        
         operatingHours: formData.operatingHours,
-        popularItems: formData.popularItems || [],
+        popularItems: formData.popularItems || []
       };
-
+      
       console.log("Sending data to API:", placeData);
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/places/add`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify(placeData),
-        }
-      );
-
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/places/add`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: "include",
+        body: JSON.stringify(placeData)
+      });
+      
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Error: ${response.status} - ${errorText}`);
       }
-
+      
       const result = await response.json();
       console.log("Lugar creado exitosamente:", result);
-
+      
       alert("El lugar ha sido añadido exitosamente");
-      router.push("/admin/places");
+      router.push('/admin/places');
+      
     } catch (error) {
       console.error("Error al guardar lugar:", error);
       alert(`Error al guardar lugar: ${error.message}`);
@@ -893,6 +911,7 @@ export default function PlaceFormPage({ params }) {
                 )}
               </motion.div>
 
+              {/* Características y Comodidades */}
               <motion.div variants={itemFadeIn}>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Características y Comodidades
@@ -910,10 +929,10 @@ export default function PlaceFormPage({ params }) {
                         handleMultiSelectChange("featureIds", feature.id)
                       }
                       className={`cursor-pointer flex items-center p-3 rounded-md border ${
-                        formData.featureIds.includes(feature.id)
-                          ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 dark:border-indigo-600"
-                          : "border-gray-200 dark:border-gray-700"
-                      }`}
+          formData.featureIds.includes(feature.id) 
+            ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 dark:border-indigo-600' 
+            : 'border-gray-200 dark:border-gray-700'
+        }`}
                     >
                       <input
                         type="checkbox"
