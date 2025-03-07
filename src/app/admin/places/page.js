@@ -18,6 +18,7 @@ import * as LucideIcons from 'lucide-react';
 import { useRouter } from "next/navigation";
 import ViewPlaceModal from "@/app/components/ViewPlaceModal";
 import { toast } from 'react-hot-toast';
+import useAdminStore from "@/app/admin/store/adminStore"; // Import the store
 
 // Animation variants
 const fadeIn = {
@@ -37,11 +38,18 @@ const DynamicIcon = ({ name, ...props }) => {
 };
 
 export default function PlacesManagement() {
-  const [places, setPlaces] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [subcategories, setSubcategories] = useState([]);
-  const [features, setFeatures] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // Use the store instead of local state
+  const { 
+    places: { data: places, isLoading, error }, 
+    categories: { data: categories },
+    features: { data: features },
+    fetchPlaces, 
+    fetchCategories, 
+    fetchFeatures,
+    deletePlace,
+    fetchPlaceById
+  } = useAdminStore();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedPriceLevel, setSelectedPriceLevel] = useState("");
@@ -50,8 +58,6 @@ export default function PlacesManagement() {
   const router = useRouter();
 
   // Modal states
-  const [isAddingPlace, setIsAddingPlace] = useState(false);
-  const [isEditingPlace, setIsEditingPlace] = useState(false);
   const [isViewingPlace, setIsViewingPlace] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [selectedPlaceId, setSelectedPlaceId] = useState(null);
@@ -71,152 +77,29 @@ export default function PlacesManagement() {
     subcategoryIds: [],
     featureIds: [],
     images: [],
-    operatingHours: [
-      { day: "Lunes", openingTime: "09:00", closingTime: "17:00" },
-      { day: "Martes", openingTime: "09:00", closingTime: "17:00" },
-      { day: "Miércoles", openingTime: "09:00", closingTime: "17:00" },
-      { day: "Jueves", openingTime: "09:00", closingTime: "17:00" },
-      { day: "Viernes", openingTime: "09:00", closingTime: "17:00" },
-      { day: "Sábado", openingTime: "10:00", closingTime: "15:00" },
-      { day: "Domingo", openingTime: "10:00", closingTime: "15:00" },
-    ],
+    operatingHours: [],
     popularItems: []
   });
   const [apiError, setApiError] = useState(null);
 
   useEffect(() => {
-    // Fetch places, categories, subcategories, and features
-    const fetchData = async () => {
+    // Fetch data using store actions
+    const loadData = async () => {
       try {
-        setIsLoading(true);
         setApiError(null);
-
-        // Fetch data from all APIs in parallel
-        const [placesData, categoriesData, subcategoriesData, featuresData] = await Promise.all([
+        await Promise.all([
           fetchPlaces(),
           fetchCategories(),
-          fetchSubcategories(),
           fetchFeatures()
         ]);
-
-        setPlaces(placesData);
-        setCategories(categoriesData);
-        setSubcategories(subcategoriesData);
-        setFeatures(featuresData);
-      } catch (error) {
-        console.error("Error al obtener datos:", error);
-        setApiError(error.message);
-      } finally {
-        setIsLoading(false);
+      } catch (err) {
+        console.error("Error loading data:", err);
+        setApiError(err.message || "Error fetching data");
       }
     };
 
-    fetchData();
-  }, []);
-
-  // Fetch places from API
-  const fetchPlaces = async () => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/places`,
-        {
-          credentials: "include",
-        }
-      );
-      
-      if (!response.ok) {
-        throw new Error(`Error fetching places: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      if (!data.success) {
-        throw new Error('Invalid places response format');
-      }
-      
-      return data.places || [];
-    } catch (error) {
-      console.error("Failed to fetch places:", error);
-      throw error;
-    }
-  };
-
-  // Fetch categories from API
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories`,
-        {
-          credentials: "include",
-        }
-      );
-      
-      if (!response.ok) {
-        throw new Error(`Error fetching categories: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      if (!data.success || !Array.isArray(data.categories)) {
-        throw new Error('Invalid categories response format');
-      }
-      
-      return data.categories || [];
-    } catch (error) {
-      console.error("Failed to fetch categories:", error);
-      throw error;
-    }
-  };
-
-  // Fetch subcategories from API
-  const fetchSubcategories = async () => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/subcategories`,
-        {
-          credentials: "include",
-        }
-      );
-      
-      if (!response.ok) {
-        throw new Error(`Error fetching subcategories: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      if (!data.success || !Array.isArray(data.subcategories)) {
-        throw new Error('Invalid subcategories response format');
-      }
-      
-      return data.subcategories || [];
-    } catch (error) {
-      console.error("Failed to fetch subcategories:", error);
-      throw error;
-    }
-  };
-
-  // Fetch features from API
-  const fetchFeatures = async () => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/features`,
-        {
-          credentials: "include",
-        }
-      );
-      
-      if (!response.ok) {
-        throw new Error(`Error fetching features: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      if (!data.success || !Array.isArray(data.features)) {
-        throw new Error('Invalid features response format');
-      }
-      
-      return data.features || [];
-    } catch (error) {
-      console.error("Failed to fetch features:", error);
-      throw error;
-    }
-  };
+    loadData();
+  }, [fetchPlaces, fetchCategories, fetchFeatures]);
 
   const handleAddPlace = () => {
     router.push(`/admin/places/edit/add`);
@@ -228,59 +111,42 @@ export default function PlacesManagement() {
 
   const handleViewPlace = async (place) => {
     try {
-      setIsLoading(true);
       setSelectedPlaceId(place.id);
       setApiError(null);
       
-      // Fetch detailed place data
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/places/${place.id}`,
-        {
-          credentials: "include",
-        }
-      );
+      // Get place details from store or fetch them if needed
+      const placeDetail = await fetchPlaceById(place.id);
       
-      if (!response.ok) {
-        throw new Error(`Error fetching place details: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      if (!data.success) {
-        throw new Error('Invalid place detail response');
-      }
-      
-      const placeDetail = data.place;
-      
-      // Transform data for the form structure
-      setFormData({
-        name: placeDetail.name,
-        description: placeDetail.description || "",
-        rating: placeDetail.rating || null,
-        priceLevel: placeDetail.priceLevel || "",
-        address: placeDetail.address || "",
-        phone: placeDetail.phone || "",
-        website: placeDetail.website || "",
-        cuisine: placeDetail.cuisine || "",
-        isOpenNow: placeDetail.isOpenNow || false,
-        latitude: placeDetail.latitude || null,
-        longitude: placeDetail.longitude || null,
+      if (placeDetail) {
+        // Transform data for the form structure
+        setFormData({
+          name: placeDetail.name,
+          description: placeDetail.description || "",
+          rating: placeDetail.rating || null,
+          priceLevel: placeDetail.priceLevel || "",
+          address: placeDetail.address || "",
+          phone: placeDetail.phone || "",
+          website: placeDetail.website || "",
+          cuisine: placeDetail.cuisine || "",
+          isOpenNow: placeDetail.isOpenNow || false,
+          latitude: placeDetail.latitude || null,
+          longitude: placeDetail.longitude || null,
+          
+          // Handle category relationships
+          categoryIds: placeDetail.categories?.map(c => c.categoryId || c.id) || [],
+          subcategoryIds: placeDetail.subcategories?.map(s => s.subcategoryId || s.id) || [],
+          featureIds: placeDetail.features?.map(f => f.featureId || f.id) || [],
+          
+          images: placeDetail.images || [],
+          operatingHours: placeDetail.operatingHours || [],
+          popularItems: placeDetail.popularItems?.map(item => item.name) || []
+        });
         
-        // Handle category relationships
-        categoryIds: placeDetail.categories?.map(c => c.categoryId || c.id) || [],
-        subcategoryIds: placeDetail.subcategories?.map(s => s.subcategoryId || s.id) || [],
-        featureIds: placeDetail.features?.map(f => f.featureId || f.id) || [],
-        
-        images: placeDetail.images || [],
-        operatingHours: placeDetail.operatingHours || [],
-        popularItems: placeDetail.popularItems?.map(item => item.name) || []
-      });
-      
-      setIsViewingPlace(true);
+        setIsViewingPlace(true);
+      }
     } catch (error) {
       console.error("Error al obtener detalles del lugar:", error);
       setApiError(`Error al obtener detalles: ${error.message}`);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -291,59 +157,22 @@ export default function PlacesManagement() {
 
   const handleDeletePlace = async () => {
     try {
-      setIsLoading(true);
       setApiError(null);
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/places/${selectedPlaceId}`, {
-        method: 'DELETE',
-        credentials: "include",
-      });
+      // Use store action to delete
+      const result = await deletePlace(selectedPlaceId);
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Error: ${response.status}`);
+      if (result.success) {
+        setIsConfirmingDelete(false);
+        setSelectedPlaceId(null);
+        toast.success("Lugar eliminado exitosamente");
+      } else {
+        throw new Error(result.error || "Error deleting place");
       }
-      
-      // Update local state
-      setPlaces(places.filter((place) => place.id !== selectedPlaceId));
-      setIsConfirmingDelete(false);
-      setSelectedPlaceId(null);
-      
-      // Show success message
-      toast.success("Lugar eliminado exitosamente");
-      
-      
     } catch (error) {
       console.error("Error al eliminar lugar:", error);
       setApiError(`Error al eliminar lugar: ${error.message}`);
-    } finally {
-      setIsLoading(false);
     }
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    });
-  };
-
-  const handleMultiSelectChange = (fieldName, id) => {
-    setFormData((prevData) => {
-      const currentIds = prevData[fieldName] || [];
-      const newIds = currentIds.includes(id)
-        ? currentIds.filter((existingId) => existingId !== id)
-        : [...currentIds, id];
-
-      return { ...prevData, [fieldName]: newIds };
-    });
-  };
-
-  const handleOperatingHoursChange = (index, field, value) => {
-    const updatedHours = [...formData.operatingHours];
-    updatedHours[index] = { ...updatedHours[index], [field]: value };
-    setFormData({ ...formData, operatingHours: updatedHours });
   };
 
   // Filter and sort places
@@ -388,6 +217,7 @@ export default function PlacesManagement() {
       return sortDirection === "asc" ? comparison : -comparison;
     });
 
+
   return (
     <motion.div 
       initial="hidden"
@@ -418,7 +248,7 @@ export default function PlacesManagement() {
       </div>
 
       {/* Display API errors if any */}
-      {apiError && (
+      {(apiError || error) && (
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -432,15 +262,15 @@ export default function PlacesManagement() {
             </div>
             <div className="ml-3">
               <p className="text-sm text-red-700 dark:text-red-200">
-                {apiError}
+                {apiError || error}
               </p>
             </div>
           </div>
         </motion.div>
       )}
 
-      {/* Filters and Search */}
-      <motion.div 
+  {/* Filters and Search */}
+  <motion.div 
         variants={slideIn}
         className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4"
       >
@@ -853,6 +683,7 @@ export default function PlacesManagement() {
           </motion.button>
         </div>
       </motion.div>
+
     </motion.div>
   );
 }

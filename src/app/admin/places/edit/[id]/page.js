@@ -17,6 +17,7 @@ import {
   LayoutList,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
+import {useAdminStore} from "@/app/admin/store/adminStore";
 
 // Import all Lucide icons for dynamic rendering
 import * as LucideIcons from "lucide-react";
@@ -47,8 +48,23 @@ export default function PlaceFormPage({ params }) {
     error: null,
     success: false,
   });
+  
   const resolvedParams = use(params);
   const isEditing = resolvedParams?.id && resolvedParams.id !== "add";
+
+  // Use the store for data fetching and state management
+  const {
+    categories: { data: categories },
+    subcategories: { data: subcategories },
+    features: { data: features },
+    places: { isLoading: storeLoading, error: storeError },
+    fetchCategories,
+    fetchSubcategories,
+    fetchFeatures,
+    fetchPlaceById,
+    savePlace,
+    clearSelectedPlace
+  } = useAdminStore();
 
   const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState({
@@ -79,76 +95,9 @@ export default function PlaceFormPage({ params }) {
     popularItems: [],
   });
 
-  // Add UI for managing popular items
-  const [newPopularItem, setNewPopularItem] = useState("");
 
-  const [categories, setCategories] = useState([]);
-  const [subcategories, setSubcategories] = useState([]);
-  const [features, setFeatures] = useState([]);
-
-  // Mock data
-  const mockPlaces = {
-    1: {
-      id: 1,
-      name: "Café Deluxe",
-      description: "Un acogedor café con increíbles pasteles",
-      rating: 4.5,
-      priceLevel: "$",
-      address: "123 Main St",
-      phone: "+1 (555) 123-4567",
-      website: "https://example.com",
-      cuisine: "Francesa",
-      isOpenNow: true,
-      latitude: 40.7128,
-      longitude: -74.006,
-      categories: [{ id: 2, name: "Cafeterías" }],
-      subcategories: [{ id: 3, name: "Cafetería" }],
-      features: [
-        { id: 1, name: "Wi-Fi" },
-        { id: 2, name: "Asientos al aire libre" },
-      ],
-      images: [{ id: 1, url: "/images/cafe.avif" }],
-      operatingHours: [
-        { day: "Lunes", openingTime: "09:00", closingTime: "17:00" },
-        { day: "Martes", openingTime: "09:00", closingTime: "17:00" },
-        { day: "Miércoles", openingTime: "09:00", closingTime: "17:00" },
-        { day: "Jueves", openingTime: "09:00", closingTime: "17:00" },
-        { day: "Viernes", openingTime: "09:00", closingTime: "17:00" },
-        { day: "Sábado", openingTime: "10:00", closingTime: "15:00" },
-        { day: "Domingo", openingTime: "10:00", closingTime: "15:00" },
-      ],
-    },
-    2: {
-      id: 2,
-      name: "Restaurante Junto al Mar",
-      description: "Mariscos frescos con vistas al océano",
-      rating: 4.8,
-      priceLevel: "$$$",
-      address: "456 Beach Blvd",
-      phone: "+1 (555) 987-6543",
-      website: "https://seaside.example.com",
-      cuisine: "Mariscos",
-      isOpenNow: true,
-      latitude: 40.758,
-      longitude: -73.9855,
-      categories: [{ id: 1, name: "Restaurantes" }],
-      subcategories: [{ id: 1, name: "Italiano" }],
-      features: [
-        { id: 2, name: "Asientos al aire libre" },
-        { id: 3, name: "Estacionamiento" },
-      ],
-      images: [{ id: 2, url: "/images/restaurante.avif" }],
-      operatingHours: [
-        { day: "Lunes", openingTime: "11:00", closingTime: "22:00" },
-        { day: "Martes", openingTime: "11:00", closingTime: "22:00" },
-        { day: "Miércoles", openingTime: "11:00", closingTime: "22:00" },
-        { day: "Jueves", openingTime: "11:00", closingTime: "22:00" },
-        { day: "Viernes", openingTime: "11:00", closingTime: "23:00" },
-        { day: "Sábado", openingTime: "11:00", closingTime: "23:00" },
-        { day: "Domingo", openingTime: "11:00", closingTime: "22:00" },
-      ],
-    },
-  };
+    // Add UI for managing popular items
+    const [newPopularItem, setNewPopularItem] = useState("");
 
   // Dynamic icon component that renders the correct Lucide icon based on name
   const DynamicIcon = ({ name, ...props }) => {
@@ -156,116 +105,6 @@ export default function PlaceFormPage({ params }) {
     return <IconComponent {...props} />;
   };
 
-  // fetchCategories function with API call
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Error fetching categories: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (!data.success || !Array.isArray(data.categories)) {
-        throw new Error("Invalid categories response format");
-      }
-
-      return data.categories;
-    } catch (error) {
-      console.error("Failed to fetch categories:", error);
-      return []; // Return empty array as fallback
-    }
-  };
-
-  // Fetch all subcategories from API
-  const fetchSubcategories = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/subcategories`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Error fetching subcategories: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (!data.success || !Array.isArray(data.subcategories)) {
-        throw new Error("Invalid subcategories response format");
-      }
-
-      return data.subcategories;
-    } catch (error) {
-      console.error("Failed to fetch subcategories:", error);
-      return []; // Return empty array as fallback
-    }
-  };
-
-  // Fetch features from API
-  const fetchFeatures = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/features`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Error fetching features: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (!data.success || !Array.isArray(data.features)) {
-        throw new Error("Invalid features response format");
-      }
-
-      return data.features;
-    } catch (error) {
-      console.error("Failed to fetch features:", error);
-      return []; // Return empty array as fallback
-    }
-  };
-
-  const fetchPlace = async (id) => {
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/places/${id}`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Error fetching place: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (!data.success) {
-        throw new Error("Invalid place response format");
-      }
-
-      return data.place;
-    } catch (error) {
-      console.error("Failed to fetch place:", error);
-      return null; // Return null as fallback
-    }
-  };
 
   // In your useEffect where you set form data after fetching a place
   useEffect(() => {
@@ -273,19 +112,15 @@ export default function PlaceFormPage({ params }) {
       try {
         setIsLoading(true);
 
-        const [categoriesData, subcategoriesData, featuresData] =
-          await Promise.all([
-            fetchCategories(),
-            fetchSubcategories(),
-            fetchFeatures(),
-          ]);
-
-        setCategories(categoriesData);
-        setSubcategories(subcategoriesData);
-        setFeatures(featuresData);
+        // Use store actions to load data
+        await Promise.all([
+          fetchCategories(),
+          fetchSubcategories(),
+          fetchFeatures(),
+        ]);
 
         if (isEditing) {
-          const placeData = await fetchPlace(resolvedParams.id);
+          const placeData = await fetchPlaceById(resolvedParams.id);
           if (placeData) {
             setFormData({
               ...placeData,
@@ -312,13 +147,22 @@ export default function PlaceFormPage({ params }) {
         }
       } catch (error) {
         console.error("Error al cargar datos:", error);
+        setFormStatus({
+          ...formStatus,
+          error: error.message || "Error loading data"
+        });
       } finally {
         setIsLoading(false);
       }
     };
 
     loadData();
-  }, [isEditing, resolvedParams.id]);
+
+    // Clean up selected place when unmounting
+    return () => {
+      clearSelectedPlace();
+    };
+  }, [isEditing, resolvedParams.id, fetchCategories, fetchSubcategories, fetchFeatures, fetchPlaceById, clearSelectedPlace]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -409,6 +253,7 @@ export default function PlaceFormPage({ params }) {
 
       // Format the data according to your API structure
       const placeData = {
+        id: isEditing ? resolvedParams.id : undefined, // Include ID if editing
         // Basic place information
         name: formData.name,
         description: formData.description || "",
@@ -438,57 +283,30 @@ export default function PlaceFormPage({ params }) {
         popularItems: formData.popularItems || [],
       };
 
-      console.log(
-        isEditing ? "Updating place data:" : "Adding new place:",
-        placeData
-      );
+      // Use store action to save place
+      const result = await savePlace(placeData, isEditing);
 
-      // Different endpoint based on whether we're adding or editing
-      const url = isEditing
-        ? `${process.env.NEXT_PUBLIC_API_URL}/api/admin/places/${resolvedParams.id}`
-        : `${process.env.NEXT_PUBLIC_API_URL}/api/admin/places/add`;
+      if (result.success) {
+        setFormStatus({
+          isSubmitting: false,
+          error: null,
+          success: true,
+        });
 
-      const method = isEditing ? "PUT" : "POST";
+        // Toast notification
+        toast.success(
+          isEditing
+            ? "El lugar ha sido actualizado exitosamente"
+            : "El lugar ha sido añadido exitosamente"
+        );
 
-      const response = await fetch(url, {
-        method: method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify(placeData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Error: ${response.status}`);
+        // Redirect after a short delay
+        setTimeout(() => {
+          router.push("/admin/places");
+        }, 1500);
+      } else {
+        throw new Error(result.error || "Error saving place");
       }
-
-      const result = await response.json();
-      console.log(
-        isEditing
-          ? "Lugar actualizado exitosamente:"
-          : "Lugar creado exitosamente:",
-        result
-      );
-
-      setFormStatus({
-        isSubmitting: false,
-        error: null,
-        success: true,
-      });
-
-      // Toast notification or alert
-      toast.success(
-        isEditing
-          ? "El lugar ha sido actualizado exitosamente"
-          : "El lugar ha sido añadido exitosamente"
-      );
-
-      // Redirect after a short delay to allow user to see success message
-      setTimeout(() => {
-        router.push("/admin/places");
-      }, 1500);
     } catch (error) {
       console.error(
         isEditing ? "Error al actualizar lugar:" : "Error al guardar lugar:",
@@ -568,6 +386,17 @@ export default function PlaceFormPage({ params }) {
           onSubmit={handleSubmit}
           className="space-y-8"
         >
+          {/* Additional error handling for store errors */}
+          {storeError && !formStatus.error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 p-4 bg-red-50 border-l-4 border-red-500 text-red-700"
+            >
+              <p>{storeError}</p>
+            </motion.div>
+          )}
+
           {/* Información Básica */}
           <motion.div
             variants={slideIn}
