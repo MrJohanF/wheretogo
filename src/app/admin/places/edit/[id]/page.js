@@ -22,24 +22,24 @@ import { use } from "react";
 // Animation variants
 const fadeIn = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.3 } }
+  visible: { opacity: 1, transition: { duration: 0.3 } },
 };
 
 const slideIn = {
   hidden: { x: -20, opacity: 0 },
-  visible: { x: 0, opacity: 1, transition: { duration: 0.4 } }
+  visible: { x: 0, opacity: 1, transition: { duration: 0.4 } },
 };
 
 const itemFadeIn = {
   hidden: { opacity: 0, y: 10 },
-  visible: { opacity: 1, y: 0 }
+  visible: { opacity: 1, y: 0 },
 };
 
 export default function PlaceFormPage({ params }) {
   const router = useRouter();
   const resolvedParams = use(params);
-  const isEditing = resolvedParams?.id && resolvedParams.id !== 'add';
-  
+  const isEditing = resolvedParams?.id && resolvedParams.id !== "add";
+
   const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: "",
@@ -66,7 +66,12 @@ export default function PlaceFormPage({ params }) {
       { day: "Sábado", openingTime: "10:00", closingTime: "15:00" },
       { day: "Domingo", openingTime: "10:00", closingTime: "15:00" },
     ],
+    popularItems: [],
   });
+
+  // Add UI for managing popular items
+  const [newPopularItem, setNewPopularItem] = useState("");
+
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
   const [features, setFeatures] = useState([]);
@@ -85,10 +90,13 @@ export default function PlaceFormPage({ params }) {
       cuisine: "Francesa",
       isOpenNow: true,
       latitude: 40.7128,
-      longitude: -74.0060,
+      longitude: -74.006,
       categories: [{ id: 2, name: "Cafeterías" }],
       subcategories: [{ id: 3, name: "Cafetería" }],
-      features: [{ id: 1, name: "Wi-Fi" }, { id: 2, name: "Asientos al aire libre" }],
+      features: [
+        { id: 1, name: "Wi-Fi" },
+        { id: 2, name: "Asientos al aire libre" },
+      ],
       images: [{ id: 1, url: "/images/cafe.avif" }],
       operatingHours: [
         { day: "Lunes", openingTime: "09:00", closingTime: "17:00" },
@@ -111,11 +119,14 @@ export default function PlaceFormPage({ params }) {
       website: "https://seaside.example.com",
       cuisine: "Mariscos",
       isOpenNow: true,
-      latitude: 40.7580,
+      latitude: 40.758,
       longitude: -73.9855,
       categories: [{ id: 1, name: "Restaurantes" }],
       subcategories: [{ id: 1, name: "Italiano" }],
-      features: [{ id: 2, name: "Asientos al aire libre" }, { id: 3, name: "Estacionamiento" }],
+      features: [
+        { id: 2, name: "Asientos al aire libre" },
+        { id: 3, name: "Estacionamiento" },
+      ],
       images: [{ id: 2, url: "/images/restaurante.avif" }],
       operatingHours: [
         { day: "Lunes", openingTime: "11:00", closingTime: "22:00" },
@@ -126,42 +137,61 @@ export default function PlaceFormPage({ params }) {
         { day: "Sábado", openingTime: "11:00", closingTime: "23:00" },
         { day: "Domingo", openingTime: "11:00", closingTime: "22:00" },
       ],
+    },
+  };
+
+  // fetchCategories function with API call
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Error fetching categories: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Failed to fetch categories:", error);
+      return []; // Return empty array as fallback
     }
   };
 
-  // Mock API calls
-  const fetchCategories = () => Promise.resolve([
-    { id: 1, name: "Restaurantes", icon: "🍽️" },
-    { id: 2, name: "Cafeterías", icon: "☕" },
-    { id: 3, name: "Bares", icon: "🍸" },
-  ]);
-  
-  const fetchSubcategories = () => Promise.resolve([
-    { id: 1, name: "Italiano", categoryId: 1 },
-    { id: 2, name: "Japonés", categoryId: 1 },
-    { id: 3, name: "Cafetería", categoryId: 2 },
-    { id: 4, name: "Panadería", categoryId: 2 },
-    { id: 5, name: "Bar de Cócteles", categoryId: 3 },
-  ]);
-  
-  const fetchFeatures = () => Promise.resolve([
-    { id: 1, name: "Wi-Fi" },
-    { id: 2, name: "Asientos al aire libre" },
-    { id: 3, name: "Estacionamiento" },
-    { id: 4, name: "Admite mascotas" },
-  ]);
-  
+  const fetchSubcategories = () =>
+    Promise.resolve([
+      { id: 1, name: "Italiano", categoryId: 1 },
+      { id: 2, name: "Japonés", categoryId: 1 },
+      { id: 3, name: "Cafetería", categoryId: 2 },
+      { id: 4, name: "Panadería", categoryId: 2 },
+      { id: 5, name: "Bar de Cócteles", categoryId: 3 },
+    ]);
+
+  const fetchFeatures = () =>
+    Promise.resolve([
+      { id: 1, name: "Wi-Fi" },
+      { id: 2, name: "Asientos al aire libre" },
+      { id: 3, name: "Estacionamiento" },
+      { id: 4, name: "Admite mascotas" },
+    ]);
+
   const fetchPlace = (id) => Promise.resolve(mockPlaces[id] || null);
 
   useEffect(() => {
     const loadData = async () => {
       try {
         setIsLoading(true);
-        const [categoriesData, subcategoriesData, featuresData] = await Promise.all([
-          fetchCategories(),
-          fetchSubcategories(),
-          fetchFeatures(),
-        ]);
+        
+        // Fetch real categories from API
+        const categoriesData = await fetchCategories();
+        
+        // Still use mock data for these until you have APIs for them
+        const subcategoriesData = await fetchSubcategories();
+        const featuresData = await fetchFeatures();
         
         setCategories(categoriesData);
         setSubcategories(subcategoriesData);
@@ -190,25 +220,25 @@ export default function PlaceFormPage({ params }) {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
   };
 
   const handleMultiSelectChange = (fieldName, id) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [fieldName]: prev[fieldName].includes(id)
-        ? prev[fieldName].filter(existingId => existingId !== id)
+        ? prev[fieldName].filter((existingId) => existingId !== id)
         : [...prev[fieldName], id],
     }));
   };
 
   const handleOperatingHoursChange = (index, field, value) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      operatingHours: prev.operatingHours.map((hour, i) => 
+      operatingHours: prev.operatingHours.map((hour, i) =>
         i === index ? { ...hour, [field]: value } : hour
       ),
     }));
@@ -223,52 +253,121 @@ export default function PlaceFormPage({ params }) {
       altText: file.name,
     }));
 
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       images: [...prev.images, ...newImages],
     }));
   };
 
   const handleRemoveImage = (imageId) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      images: prev.images.filter(img => img.id !== imageId),
+      images: prev.images.filter((img) => img.id !== imageId),
     }));
   };
 
+  const addPopularItem = () => {
+    if (newPopularItem.trim()) {
+      setFormData((prev) => ({
+        ...prev,
+        popularItems: [...prev.popularItems, newPopularItem.trim()],
+      }));
+      setNewPopularItem("");
+    }
+  };
+
+  const removePopularItem = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      popularItems: prev.popularItems.filter((_, i) => i !== index),
+    }));
+  };
+
+  // Updated handleSubmit function to post new places to the API
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       if (!formData.name || !formData.address) {
+        alert("Nombre y dirección son campos obligatorios");
         return;
       }
-      
-      if (isEditing) {
-        console.log("Actualizando lugar:", formData);
-      } else {
-        console.log("Creando nuevo lugar:", formData);
+
+      setIsLoading(true);
+
+      // Format the data according to API expectations
+      const placeData = {
+        name: formData.name,
+        description: formData.description || "",
+        rating: parseFloat(formData.rating) || null,
+        priceLevel: formData.priceLevel || "",
+        address: formData.address,
+        phone: formData.phone || "",
+        website: formData.website || "",
+        cuisine: formData.cuisine || "",
+        isOpenNow: Boolean(formData.isOpenNow),
+        latitude: parseFloat(formData.latitude) || null,
+        longitude: parseFloat(formData.longitude) || null,
+
+        // Format images to match the expected structure
+        images: formData.images.map((img) => ({
+          url: img.url,
+          altText: img.altText || img.name || "Place image",
+          isFeatured: img.isFeatured || false,
+        })),
+
+        // Operating hours are already in the expected format
+        operatingHours: formData.operatingHours,
+
+        // Add a default empty array for popular items if not present
+        popularItems: [],
+      };
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/places/add`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify(placeData),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} - ${await response.text()}`);
       }
-      
-      router.push('/admin/places');
+
+      const result = await response.json();
+      console.log("Lugar creado exitosamente:", result);
+
+      // Show success notification
+      alert("El lugar ha sido añadido exitosamente");
+
+      // Redirect to the places list
+      router.push("/admin/places");
     } catch (error) {
       console.error("Error al guardar lugar:", error);
+      alert(`Error al guardar lugar: ${error.message}`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleCancel = () => {
-    router.push('/admin/places');
+    router.push("/admin/places");
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial="hidden"
       animate="visible"
       variants={fadeIn}
       className="px-4 py-6 sm:px-6 lg:px-8"
     >
       <div className="flex items-center mb-6">
-        <motion.button 
+        <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={handleCancel}
@@ -281,38 +380,40 @@ export default function PlaceFormPage({ params }) {
             {isEditing ? "Editar Lugar" : "Agregar Nuevo Lugar"}
           </h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            {isEditing 
-              ? "Actualiza la información de este lugar" 
+            {isEditing
+              ? "Actualiza la información de este lugar"
               : "Completa los detalles para agregar un nuevo lugar a tu plataforma"}
           </p>
         </div>
       </div>
 
       {isLoading ? (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="flex justify-center py-12"
         >
-          <div className="animate-pulse text-gray-500 dark:text-gray-400">Cargando...</div>
+          <div className="animate-pulse text-gray-500 dark:text-gray-400">
+            Cargando...
+          </div>
         </motion.div>
       ) : (
-        <motion.form 
+        <motion.form
           initial="hidden"
           animate="visible"
           variants={{
             hidden: {},
             visible: {
               transition: {
-                staggerChildren: 0.1
-              }
-            }
+                staggerChildren: 0.1,
+              },
+            },
           }}
-          onSubmit={handleSubmit} 
+          onSubmit={handleSubmit}
           className="space-y-8"
         >
           {/* Información Básica */}
-          <motion.div 
+          <motion.div
             variants={slideIn}
             className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden"
           >
@@ -363,7 +464,7 @@ export default function PlaceFormPage({ params }) {
           </motion.div>
 
           {/* Contacto y Ubicación */}
-          <motion.div 
+          <motion.div
             variants={slideIn}
             className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden"
           >
@@ -487,7 +588,7 @@ export default function PlaceFormPage({ params }) {
           </motion.div>
 
           {/* Detalles Adicionales */}
-          <motion.div 
+          <motion.div
             variants={slideIn}
             className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden"
           >
@@ -593,7 +694,7 @@ export default function PlaceFormPage({ params }) {
           </motion.div>
 
           {/* Categorías y Características */}
-          <motion.div 
+          <motion.div
             variants={slideIn}
             className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden"
           >
@@ -610,18 +711,20 @@ export default function PlaceFormPage({ params }) {
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                   {categories.map((category, index) => (
-                    <motion.div 
+                    <motion.div
                       key={category.id}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      onClick={() => handleMultiSelectChange("categoryIds", category.id)}
+                      onClick={() =>
+                        handleMultiSelectChange("categoryIds", category.id)
+                      }
                       className={`cursor-pointer flex items-center p-3 rounded-md border ${
-                        formData.categoryIds.includes(category.id) 
-                          ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 dark:border-indigo-600' 
-                          : 'border-gray-200 dark:border-gray-700'
+                        formData.categoryIds.includes(category.id)
+                          ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 dark:border-indigo-600"
+                          : "border-gray-200 dark:border-gray-700"
                       }`}
                     >
                       <input
@@ -635,7 +738,8 @@ export default function PlaceFormPage({ params }) {
                         htmlFor={`category-${category.id}`}
                         className="ml-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
                       >
-                        <span className="mr-1">{category.icon}</span> {category.name}
+                        <span className="mr-1">{category.icon}</span>{" "}
+                        {category.name}
                       </label>
                     </motion.div>
                   ))}
@@ -649,13 +753,16 @@ export default function PlaceFormPage({ params }) {
                 {formData.categoryIds.length === 0 ? (
                   <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/30 rounded-md p-3">
                     <p className="text-sm text-amber-800 dark:text-amber-200">
-                      Selecciona categorías para ver las subcategorías disponibles
+                      Selecciona categorías para ver las subcategorías
+                      disponibles
                     </p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                     {subcategories
-                      .filter((sub) => formData.categoryIds.includes(sub.categoryId))
+                      .filter((sub) =>
+                        formData.categoryIds.includes(sub.categoryId)
+                      )
                       .map((subcategory, index) => (
                         <motion.div
                           key={subcategory.id}
@@ -664,17 +771,24 @@ export default function PlaceFormPage({ params }) {
                           transition={{ delay: index * 0.05 }}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          onClick={() => handleMultiSelectChange("subcategoryIds", subcategory.id)}
+                          onClick={() =>
+                            handleMultiSelectChange(
+                              "subcategoryIds",
+                              subcategory.id
+                            )
+                          }
                           className={`cursor-pointer flex items-center p-3 rounded-md border ${
-                            formData.subcategoryIds.includes(subcategory.id) 
-                              ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 dark:border-indigo-600' 
-                              : 'border-gray-200 dark:border-gray-700'
+                            formData.subcategoryIds.includes(subcategory.id)
+                              ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 dark:border-indigo-600"
+                              : "border-gray-200 dark:border-gray-700"
                           }`}
                         >
                           <input
                             type="checkbox"
                             id={`subcategory-${subcategory.id}`}
-                            checked={formData.subcategoryIds.includes(subcategory.id)}
+                            checked={formData.subcategoryIds.includes(
+                              subcategory.id
+                            )}
                             onChange={() => {}}
                             className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                           />
@@ -703,11 +817,13 @@ export default function PlaceFormPage({ params }) {
                       transition={{ delay: index * 0.05 }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      onClick={() => handleMultiSelectChange("featureIds", feature.id)}
+                      onClick={() =>
+                        handleMultiSelectChange("featureIds", feature.id)
+                      }
                       className={`cursor-pointer flex items-center p-3 rounded-md border ${
-                        formData.featureIds.includes(feature.id) 
-                          ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 dark:border-indigo-600' 
-                          : 'border-gray-200 dark:border-gray-700'
+                        formData.featureIds.includes(feature.id)
+                          ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 dark:border-indigo-600"
+                          : "border-gray-200 dark:border-gray-700"
                       }`}
                     >
                       <input
@@ -731,7 +847,7 @@ export default function PlaceFormPage({ params }) {
           </motion.div>
 
           {/* Operating Hours */}
-          <motion.div 
+          <motion.div
             variants={slideIn}
             className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden"
           >
@@ -742,19 +858,20 @@ export default function PlaceFormPage({ params }) {
               </h3>
             </div>
             <div className="px-4 py-5 sm:p-6">
-              <motion.p 
+              <motion.p
                 variants={itemFadeIn}
                 className="text-sm text-gray-500 dark:text-gray-400 mb-4"
               >
-                Establece los horarios de apertura y cierre para cada día de la semana
+                Establece los horarios de apertura y cierre para cada día de la
+                semana
               </motion.p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {formData.operatingHours.map((hours, index) => (
-                  <motion.div 
+                  <motion.div
                     key={hours.day}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 + (index * 0.1) }}
+                    transition={{ delay: 0.1 + index * 0.1 }}
                     className="border border-gray-200 dark:border-gray-700 rounded-md overflow-hidden"
                   >
                     <div className="bg-gray-50 dark:bg-gray-700/50 px-4 py-2 border-b border-gray-200 dark:border-gray-700">
@@ -770,7 +887,13 @@ export default function PlaceFormPage({ params }) {
                         <input
                           type="time"
                           value={hours.openingTime}
-                          onChange={(e) => handleOperatingHoursChange(index, "openingTime", e.target.value)}
+                          onChange={(e) =>
+                            handleOperatingHoursChange(
+                              index,
+                              "openingTime",
+                              e.target.value
+                            )
+                          }
                           className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
                         />
                       </div>
@@ -781,7 +904,13 @@ export default function PlaceFormPage({ params }) {
                         <input
                           type="time"
                           value={hours.closingTime}
-                          onChange={(e) => handleOperatingHoursChange(index, "closingTime", e.target.value)}
+                          onChange={(e) =>
+                            handleOperatingHoursChange(
+                              index,
+                              "closingTime",
+                              e.target.value
+                            )
+                          }
                           className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
                         />
                       </div>
@@ -792,8 +921,78 @@ export default function PlaceFormPage({ params }) {
             </div>
           </motion.div>
 
+          {/* Popular Items */}
+          <motion.div
+            variants={slideIn}
+            className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden"
+          >
+            <div className="px-4 py-5 border-b border-gray-200 dark:border-gray-700 sm:px-6">
+              <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white flex items-center">
+                <LayoutList className="w-5 h-5 mr-2 text-indigo-500 dark:text-indigo-400" />
+                Artículos Populares
+              </h3>
+            </div>
+            <div className="px-4 py-5 sm:p-6 space-y-4">
+              <motion.div variants={itemFadeIn}>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Agregar artículos populares de este lugar
+                </label>
+
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    value={newPopularItem}
+                    onChange={(e) => setNewPopularItem(e.target.value)}
+                    placeholder="Ej: Spaghetti Carbonara"
+                    className="flex-1 rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
+                  />
+                  <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    type="button"
+                    onClick={addPopularItem}
+                    className="px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600"
+                  >
+                    Agregar
+                  </motion.button>
+                </div>
+
+                {formData.popularItems.length > 0 && (
+                  <div className="mt-3">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                      Artículos agregados:
+                    </p>
+                    <div className="space-y-2">
+                      {formData.popularItems.map((item, index) => (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-2 rounded-md"
+                        >
+                          <span className="text-gray-800 dark:text-gray-200">
+                            {item}
+                          </span>
+                          <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            type="button"
+                            onClick={() => removePopularItem(index)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <X size={16} />
+                          </motion.button>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            </div>
+          </motion.div>
+
           {/* Images */}
-          <motion.div 
+          <motion.div
             variants={slideIn}
             className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden"
           >
@@ -804,10 +1003,7 @@ export default function PlaceFormPage({ params }) {
               </h3>
             </div>
             <div className="px-4 py-5 sm:p-6 space-y-4">
-              <motion.div 
-                variants={itemFadeIn}
-                whileHover={{ scale: 1.02 }}
-              >
+              <motion.div variants={itemFadeIn} whileHover={{ scale: 1.02 }}>
                 <input
                   id="image-upload"
                   type="file"
@@ -837,7 +1033,7 @@ export default function PlaceFormPage({ params }) {
                   </h4>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                     {formData.images.map((image, index) => (
-                      <motion.div 
+                      <motion.div
                         key={image.id}
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -869,7 +1065,7 @@ export default function PlaceFormPage({ params }) {
           </motion.div>
 
           {/* Form Actions */}
-          <motion.div 
+          <motion.div
             variants={slideIn}
             className="border-t border-gray-200 dark:border-gray-700 pt-6 flex justify-between items-center"
           >
