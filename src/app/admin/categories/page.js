@@ -971,7 +971,7 @@ export default function CategoriesManagement() {
           onClose={() => setShowDeleteConfirm(false)}
           onConfirm={handleConfirmDelete}
           title="Eliminar Categoría"
-          message={`¿Estás seguro que deseas eliminar la categoría "\${categoryToDelete?.name}"? Esto también eliminará todas las subcategorías relacionadas. Esta acción no se puede deshacer.`}
+          message={`¿Estás seguro que deseas eliminar la categoría "${categoryToDelete?.name}"? Esto también eliminará todas las subcategorías relacionadas. Esta acción no se puede deshacer.`}
           confirmText="Eliminar"
           cancelText="Cancelar"
           type="delete"
