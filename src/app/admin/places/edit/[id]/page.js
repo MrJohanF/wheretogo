@@ -373,7 +373,7 @@ export default function PlaceFormPage({ params }) {
   // Updated handleSubmit function to post new places to the API
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     try {
       if (!formData.name || !formData.address) {
         setFormStatus({
@@ -383,15 +383,15 @@ export default function PlaceFormPage({ params }) {
         });
         return;
       }
-
+  
       setFormStatus({
         isSubmitting: true,
         error: null,
         success: false,
       });
-
+  
       setIsLoading(true);
-
+  
       // Format the data according to your API structure
       const placeData = {
         // Basic place information
@@ -406,61 +406,65 @@ export default function PlaceFormPage({ params }) {
         isOpenNow: Boolean(formData.isOpenNow),
         latitude: parseFloat(formData.latitude) || null,
         longitude: parseFloat(formData.longitude) || null,
-
+  
         // Convert our ids arrays to match your backend's expected format
         categories: formData.categoryIds || [],
         subcategories: formData.subcategoryIds || [],
         features: formData.featureIds || [],
-
+  
         // Format images to match the expected structure
         images: formData.images.map((img) => ({
           url: img.url,
           altText: img.altText || img.name || "Place image",
           isFeatured: img.isFeatured || false,
         })),
-
+  
         operatingHours: formData.operatingHours,
         popularItems: formData.popularItems || [],
       };
-
-      console.log("Sending data to API:", placeData);
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/places/add`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify(placeData),
-        }
-      );
-
+  
+      console.log(isEditing ? "Updating place data:" : "Adding new place:", placeData);
+  
+      // Different endpoint based on whether we're adding or editing
+      const url = isEditing 
+        ? `${process.env.NEXT_PUBLIC_API_URL}/api/admin/places/${resolvedParams.id}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/api/admin/places/add`;
+      
+      const method = isEditing ? "PUT" : "POST";
+  
+      const response = await fetch(url, {
+        method: method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(placeData),
+      });
+  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || `Error: ${response.status}`);
       }
-
+  
       const result = await response.json();
-      console.log("Lugar creado exitosamente:", result);
-
+      console.log(isEditing ? "Lugar actualizado exitosamente:" : "Lugar creado exitosamente:", result);
+  
       setFormStatus({
         isSubmitting: false,
         error: null,
         success: true,
       });
-
+  
       // Toast notification or alert
-      toast.success("El lugar ha sido añadido exitosamente");
-
+      toast.success(isEditing ? "El lugar ha sido actualizado exitosamente" : "El lugar ha sido añadido exitosamente");
+  
       // Redirect after a short delay to allow user to see success message
       setTimeout(() => {
         router.push("/admin/places");
       }, 1500);
     } catch (error) {
-      console.error("Error al guardar lugar:", error);
-
+      console.error(isEditing ? "Error al actualizar lugar:" : "Error al guardar lugar:", error);
+  
       setFormStatus({
         isSubmitting: false,
         error: error.message,
