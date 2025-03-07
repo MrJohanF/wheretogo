@@ -249,17 +249,17 @@ export default function PlaceFormPage({ params }) {
           credentials: "include",
         }
       );
-  
+
       if (!response.ok) {
         throw new Error(`Error fetching place: ${response.status}`);
       }
-  
+
       const data = await response.json();
-  
+
       if (!data.success) {
         throw new Error("Invalid place response format");
       }
-  
+
       return data.place;
     } catch (error) {
       console.error("Failed to fetch place:", error);
@@ -267,12 +267,12 @@ export default function PlaceFormPage({ params }) {
     }
   };
 
+  // In your useEffect where you set form data after fetching a place
   useEffect(() => {
     const loadData = async () => {
       try {
         setIsLoading(true);
 
-        // Fetch data from all three APIs in parallel for better performance
         const [categoriesData, subcategoriesData, featuresData] =
           await Promise.all([
             fetchCategories(),
@@ -289,9 +289,24 @@ export default function PlaceFormPage({ params }) {
           if (placeData) {
             setFormData({
               ...placeData,
-              categoryIds: placeData.categories?.map((c) => c.id) || [],
-              subcategoryIds: placeData.subcategories?.map((s) => s.id) || [],
-              featureIds: placeData.features?.map((f) => f.id) || [],
+              // Transform object relationships to simple IDs
+              categoryIds:
+                placeData.categories?.map((c) =>
+                  typeof c === "object" ? c.categoryId || c.id : c
+                ) || [],
+              subcategoryIds:
+                placeData.subcategories?.map((s) =>
+                  typeof s === "object" ? s.subcategoryId || s.id : s
+                ) || [],
+              featureIds:
+                placeData.features?.map((f) =>
+                  typeof f === "object" ? f.featureId || f.id : f
+                ) || [],
+              // Handle popularItems if they come as objects
+              popularItems:
+                placeData.popularItems?.map((item) =>
+                  typeof item === "object" ? item.name : item
+                ) || [],
             });
           }
         }
@@ -373,7 +388,7 @@ export default function PlaceFormPage({ params }) {
   // Updated handleSubmit function to post new places to the API
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     try {
       if (!formData.name || !formData.address) {
         setFormStatus({
@@ -383,15 +398,15 @@ export default function PlaceFormPage({ params }) {
         });
         return;
       }
-  
+
       setFormStatus({
         isSubmitting: true,
         error: null,
         success: false,
       });
-  
+
       setIsLoading(true);
-  
+
       // Format the data according to your API structure
       const placeData = {
         // Basic place information
@@ -406,32 +421,35 @@ export default function PlaceFormPage({ params }) {
         isOpenNow: Boolean(formData.isOpenNow),
         latitude: parseFloat(formData.latitude) || null,
         longitude: parseFloat(formData.longitude) || null,
-  
+
         // Convert our ids arrays to match your backend's expected format
         categories: formData.categoryIds || [],
         subcategories: formData.subcategoryIds || [],
         features: formData.featureIds || [],
-  
+
         // Format images to match the expected structure
         images: formData.images.map((img) => ({
           url: img.url,
           altText: img.altText || img.name || "Place image",
           isFeatured: img.isFeatured || false,
         })),
-  
+
         operatingHours: formData.operatingHours,
         popularItems: formData.popularItems || [],
       };
-  
-      console.log(isEditing ? "Updating place data:" : "Adding new place:", placeData);
-  
+
+      console.log(
+        isEditing ? "Updating place data:" : "Adding new place:",
+        placeData
+      );
+
       // Different endpoint based on whether we're adding or editing
-      const url = isEditing 
+      const url = isEditing
         ? `${process.env.NEXT_PUBLIC_API_URL}/api/admin/places/${resolvedParams.id}`
         : `${process.env.NEXT_PUBLIC_API_URL}/api/admin/places/add`;
-      
+
       const method = isEditing ? "PUT" : "POST";
-  
+
       const response = await fetch(url, {
         method: method,
         headers: {
@@ -440,31 +458,43 @@ export default function PlaceFormPage({ params }) {
         credentials: "include",
         body: JSON.stringify(placeData),
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || `Error: ${response.status}`);
       }
-  
+
       const result = await response.json();
-      console.log(isEditing ? "Lugar actualizado exitosamente:" : "Lugar creado exitosamente:", result);
-  
+      console.log(
+        isEditing
+          ? "Lugar actualizado exitosamente:"
+          : "Lugar creado exitosamente:",
+        result
+      );
+
       setFormStatus({
         isSubmitting: false,
         error: null,
         success: true,
       });
-  
+
       // Toast notification or alert
-      toast.success(isEditing ? "El lugar ha sido actualizado exitosamente" : "El lugar ha sido añadido exitosamente");
-  
+      toast.success(
+        isEditing
+          ? "El lugar ha sido actualizado exitosamente"
+          : "El lugar ha sido añadido exitosamente"
+      );
+
       // Redirect after a short delay to allow user to see success message
       setTimeout(() => {
         router.push("/admin/places");
       }, 1500);
     } catch (error) {
-      console.error(isEditing ? "Error al actualizar lugar:" : "Error al guardar lugar:", error);
-  
+      console.error(
+        isEditing ? "Error al actualizar lugar:" : "Error al guardar lugar:",
+        error
+      );
+
       setFormStatus({
         isSubmitting: false,
         error: error.message,
@@ -1129,36 +1159,28 @@ export default function PlaceFormPage({ params }) {
                   </motion.button>
                 </div>
 
-                {formData.popularItems.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                      Artículos agregados:
-                    </p>
-                    <div className="space-y-2">
-                      {formData.popularItems.map((item, index) => (
-                        <motion.div
-                          key={index}
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-2 rounded-md"
-                        >
-                          <span className="text-gray-800 dark:text-gray-200">
-                            {item}
-                          </span>
-                          <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            type="button"
-                            onClick={() => removePopularItem(index)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <X size={16} />
-                          </motion.button>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                {formData.popularItems.map((item, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-2 rounded-md"
+                  >
+                    <span className="text-gray-800 dark:text-gray-200">
+                      {/* Access the name property if it's an object */}
+                      {typeof item === "object" ? item.name : item}
+                    </span>
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      type="button"
+                      onClick={() => removePopularItem(index)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <X size={16} />
+                    </motion.button>
+                  </motion.div>
+                ))}
               </motion.div>
             </div>
           </motion.div>
