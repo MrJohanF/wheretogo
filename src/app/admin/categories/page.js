@@ -231,47 +231,126 @@ export default function CategoriesManagement() {
     // ...
   };
 
-  // Save category (add or edit)
-  const handleSaveCategory = () => {
-    if (isAddingCategory) {
-      // Add new category - in a real app, you would make an API call
-      const newCategory = {
-        id: Math.max(...categories.map((c) => c.id)) + 1,
-        ...formData,
-        count: 0,
-        subcategories: [],
-      };
+  // Toggle trending status
+  const handleToggleTrending = async (category) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories/${category.id}`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...category,
+          isTrending: !category.isTrending
+        })
+      });
 
-      setCategories([...categories, newCategory]);
-      setIsAddingCategory(false);
-    } else if (isEditingCategory) {
-      // Update category - in a real app, you would make an API call
+      if (!response.ok) {
+        throw new Error('Error al actualizar la categoría');
+      }
+
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.message || 'Error al actualizar la categoría');
+      }
+
+      // Update local state
       const updatedCategories = categories.map((cat) =>
-        cat.id === currentCategory.id ? { ...cat, ...formData } : cat
+        cat.id === category.id ? { ...cat, isTrending: !cat.isTrending } : cat
       );
-
       setCategories(updatedCategories);
-      setIsEditingCategory(false);
-      setCurrentCategory(null);
+      setFilteredCategories(updatedCategories);
+    } catch (err) {
+      setError(err.message);
+      console.error('Error updating category:', err);
+    } finally {
+      setLoading(false);
     }
-
-    // Reset form
-    setFormData({
-      name: "",
-      description: "",
-      icon: "",
-      color: "#6366F1",
-      isTrending: false,
-      image: null,
-    });
   };
 
-  // Toggle trending status
-  const handleToggleTrending = (category) => {
-    const updatedCategories = categories.map((cat) =>
-      cat.id === category.id ? { ...cat, isTrending: !cat.isTrending } : cat
-    );
-    setCategories(updatedCategories);
+  // Save category (add or edit)
+  const handleSaveCategory = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      if (isEditingCategory) {
+        // Update existing category
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories/${currentCategory.id}`, {
+          method: 'PUT',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...currentCategory,
+            ...formData,
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Error al actualizar la categoría');
+        }
+
+        const data = await response.json();
+        
+        if (!data.success) {
+          throw new Error(data.message || 'Error al actualizar la categoría');
+        }
+
+        // Update local state
+        const updatedCategories = categories.map((cat) =>
+          cat.id === currentCategory.id ? { ...cat, ...formData } : cat
+        );
+        setCategories(updatedCategories);
+        setFilteredCategories(updatedCategories);
+        setIsEditingCategory(false);
+        setCurrentCategory(null);
+      } else if (isAddingCategory) {
+        // Add new category - using the existing POST endpoint
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories/add`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData)
+        });
+
+        if (!response.ok) {
+          throw new Error('Error al crear la categoría');
+        }
+
+        const data = await response.json();
+        
+        if (!data.success) {
+          throw new Error(data.message || 'Error al crear la categoría');
+        }
+
+        // Update local state with the new category
+        setCategories([...categories, data.category]);
+        setFilteredCategories([...categories, data.category]);
+        setIsAddingCategory(false);
+      }
+
+      // Reset form
+      setFormData({
+        name: "",
+        description: "",
+        icon: "",
+        color: "#6366F1",
+        isTrending: false,
+        image: null,
+      });
+    } catch (err) {
+      setError(err.message);
+      console.error('Error saving category:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // View subcategories
