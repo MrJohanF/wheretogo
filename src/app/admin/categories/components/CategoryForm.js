@@ -17,8 +17,51 @@ import {
   Hotel,
   Waves,
   Image as ImageIcon,
+  Shuffle,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useCallback } from "react";
+
+/**
+ * Modern color palette for categories
+ * These colors are chosen for good contrast, accessibility,
+ * and visual appeal across different interfaces
+ */
+const MODERN_COLOR_PALETTE = [
+  // Blues & Indigos
+  "#3b82f6", // Blue 500
+  "#2563eb", // Blue 600
+  "#4f46e5", // Indigo 600
+  "#6366f1", // Indigo 500
+  "#2dd4bf", // Teal 400
+  
+  // Greens
+  "#10b981", // Emerald 500
+  "#059669", // Emerald 600
+  "#16a34a", // Green 600
+  "#84cc16", // Lime 500
+  
+  // Reds, Oranges & Pinks
+  "#ef4444", // Red 500
+  "#f97316", // Orange 500
+  "#ec4899", // Pink 500
+  "#d946ef", // Fuchsia 500
+  "#f43f5e", // Rose 500
+  
+  // Purples
+  "#a855f7", // Purple 500
+  "#8b5cf6", // Violet 500
+  "#c026d3", // Fuchsia 600
+  
+  // Deep & Rich Colors
+  "#0369a1", // Sky 700
+  "#0e7490", // Cyan 700
+  "#0f766e", // Teal 700
+  "#15803d", // Green 700
+  "#b45309", // Amber 700
+  "#c2410c", // Orange 700
+  "#9f1239", // Rose 800
+  "#7e22ce", // Purple 700
+];
 
 /**
  * Icon options available for categories
@@ -63,6 +106,29 @@ export default function CategoryForm({
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [colorAnimation, setColorAnimation] = useState(false);
+
+  /**
+   * Generate a random color from the modern palette
+   */
+  const generateRandomColor = useCallback(() => {
+    const randomIndex = Math.floor(Math.random() * MODERN_COLOR_PALETTE.length);
+    const randomColor = MODERN_COLOR_PALETTE[randomIndex];
+    
+    // Create a synthetic event to pass to onInputChange
+    const syntheticEvent = {
+      target: {
+        name: 'color',
+        value: randomColor
+      }
+    };
+    
+    onInputChange(syntheticEvent);
+    
+    // Trigger animation effect
+    setColorAnimation(true);
+    setTimeout(() => setColorAnimation(false), 500);
+  }, [onInputChange]);
 
   /**
    * Handle saving the category - performs API call
@@ -185,14 +251,25 @@ export default function CategoryForm({
             ></textarea>
           </div>
 
-          {/* Color picker */}
+          {/* Color picker with random generator */}
           <div>
-            <label
-              htmlFor="color"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Color de Categoría
-            </label>
+            <div className="flex justify-between items-center mb-1">
+              <label
+                htmlFor="color"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Color de Categoría
+              </label>
+              <button
+                type="button"
+                onClick={generateRandomColor}
+                className="inline-flex items-center text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+                aria-label="Generar color aleatorio"
+              >
+                <Shuffle size={14} className="mr-1" />
+                Generar color
+              </button>
+            </div>
             <div className="flex items-center space-x-3">
               <input
                 type="color"
@@ -200,7 +277,7 @@ export default function CategoryForm({
                 name="color"
                 value={formData.color}
                 onChange={onInputChange}
-                className="w-12 h-10 border-0 p-0"
+                className="w-12 h-10 border-0 p-0 cursor-pointer"
               />
               <input
                 type="text"
@@ -209,10 +286,31 @@ export default function CategoryForm({
                 name="color"
                 className="w-28 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
               />
-              <div
-                className="w-10 h-10 rounded-md"
+              <motion.div
+                animate={colorAnimation ? { scale: [1, 1.2, 1] } : {}}
+                transition={{ duration: 0.4 }}
+                className="w-10 h-10 rounded-md shadow-sm"
                 style={{ backgroundColor: formData.color }}
-              ></div>
+              ></motion.div>
+            </div>
+
+            {/* Color palette suggestions */}
+            <div className="mt-3 flex flex-wrap gap-2">
+              {MODERN_COLOR_PALETTE.slice(0, 8).map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  className="w-6 h-6 rounded-full shadow-sm border border-gray-200 transition-transform hover:scale-110 focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500"
+                  style={{ backgroundColor: color }}
+                  onClick={() => {
+                    const syntheticEvent = {
+                      target: { name: 'color', value: color }
+                    };
+                    onInputChange(syntheticEvent);
+                  }}
+                  aria-label={`Seleccionar color ${color}`}
+                ></button>
+              ))}
             </div>
           </div>
 
@@ -248,7 +346,7 @@ export default function CategoryForm({
                   key={option.name}
                   type="button"
                   onClick={() => onIconSelect(option.name)}
-                  className={`w-12 h-12 rounded-md flex items-center justify-center ${
+                  className={`w-12 h-12 rounded-md flex items-center justify-center transition-colors ${
                     formData.icon === option.name
                       ? `bg-indigo-100 text-indigo-600 ring-2 ring-indigo-500`
                       : `bg-gray-100 text-gray-600 hover:bg-gray-200`
@@ -344,4 +442,4 @@ export default function CategoryForm({
       </div>
     </motion.div>
   );
-} 
+}
