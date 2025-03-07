@@ -70,7 +70,7 @@ export default function CategoryDetail() {
       setLoadingCategory(true);
       try {
         // Try to fetch category details
-        const response = await fetch(`https://api.mywheretogo.com/api/categories/${categoryId}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/categories/${categoryId}`);
         
         if (!response.ok) {
           setCategory({
@@ -123,7 +123,7 @@ export default function CategoryDetail() {
       setError(null);
       
       try {
-        const response = await fetch(`https://api.mywheretogo.com/api/categories/${categoryId}/places`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/categories/${categoryId}/places`);
         
         if (!response.ok) {
           throw new Error(`Error ${response.status}: No se pudieron cargar los lugares`);
