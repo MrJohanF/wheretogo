@@ -115,11 +115,28 @@ export default function CategoriesManagement() {
         }
 
         const data = await response.json();
-        setCategories(data);
-        setFilteredCategories(data);
+        
+        if (!data.success) {
+          throw new Error(data.message || 'Error al cargar las categorías');
+        }
+
+        // Get categories array from the response
+        const categoriesArray = data.categories || [];
+        
+        // Transform the data to match the expected format
+        const transformedCategories = categoriesArray.map(category => ({
+          ...category,
+          count: category._count?.places || 0, // Use places count from _count
+          icon: category.icon, // Map API icons to our icon set
+        }));
+
+        setCategories(transformedCategories);
+        setFilteredCategories(transformedCategories);
       } catch (err) {
         setError(err.message);
         console.error('Error fetching categories:', err);
+        setCategories([]);
+        setFilteredCategories([]);
       } finally {
         setLoading(false);
       }
@@ -578,7 +595,9 @@ export default function CategoriesManagement() {
                               <Star
                                 size={18}
                                 fill={
-                                  category.isTrending ? "currentColor" : "none"
+                                  category.isTrending
+                                    ? "currentColor"
+                                    : "none"
                                 }
                               />
                             </button>
