@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
   Edit,
@@ -24,20 +24,37 @@ import {
   Calendar,
   Hotel,
   Waves,
+  ChevronLeft,
+  ChevronDown,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ConfirmationModal from "@/app/components/ConfirmationModal";
 import CategoryForm from "./components/CategoryForm";
 
-// Animation variants
+// Optimized animation variants - using transforms instead of position changes where possible
 const fadeIn = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.3 } },
+  visible: { opacity: 1, transition: { duration: 0.2 } }, // Reduced duration
 };
 
 const slideUp = {
-  hidden: { y: 20, opacity: 0 },
-  visible: { y: 0, opacity: 1, transition: { duration: 0.4 } },
+  hidden: { y: 15, opacity: 0 },
+  visible: { 
+    y: 0, 
+    opacity: 1, 
+    transition: { 
+      type: "spring", 
+      stiffness: 300, 
+      damping: 30, 
+      duration: 0.3 
+    } 
+  },
+};
+
+// Row animation - simpler than before
+const rowFadeIn = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 }
 };
 
 /**
@@ -54,9 +71,12 @@ export default function CategoriesManagement() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [categories, setCategories] = useState([]);
-  const [filteredCategories, setFilteredCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  
   // Category CRUD state
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [isEditingCategory, setIsEditingCategory] = useState(false);
@@ -89,7 +109,7 @@ export default function CategoriesManagement() {
   });
 
   // Available icons for categories
-  const iconOptions = [
+  const iconOptions = useMemo(() => [
     { name: "Coffee", icon: <Coffee size={20} /> },
     { name: "Utensils", icon: <Utensils size={20} /> },
     { name: "Beer", icon: <Beer size={20} /> },
@@ -102,7 +122,32 @@ export default function CategoriesManagement() {
     { name: "Calendar", icon: <Calendar size={20} /> },
     { name: "Hotel", icon: <Hotel size={20} /> },
     { name: "Waves", icon: <Waves size={20} /> },
-  ];
+  ], []);
+
+  // Memoize filtered categories to reduce calculations
+  const filteredCategories = useMemo(() => {
+    return categories.filter(
+      (cat) =>
+        cat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (cat.description && cat.description.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  }, [categories, searchTerm]);
+
+  // Calculate pagination data
+  const totalItems = filteredCategories.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+  
+  // Get current page items
+  const currentCategories = useMemo(() => {
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    return filteredCategories.slice(indexOfFirstItem, indexOfLastItem);
+  }, [filteredCategories, currentPage, itemsPerPage]);
+
+  // Handle page changes
+  const goToPage = useCallback((page) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  }, [totalPages]);
 
   /**
    * Fetch categories from API on component mount
@@ -139,12 +184,11 @@ export default function CategoriesManagement() {
         }));
 
         setCategories(transformedCategories);
-        setFilteredCategories(transformedCategories);
+        setCurrentPage(1); // Reset to first page when data changes
       } catch (err) {
         setError(err.message);
         console.error("Error fetching categories:", err);
         setCategories([]);
-        setFilteredCategories([]);
       } finally {
         setLoading(false);
       }
@@ -153,17 +197,10 @@ export default function CategoriesManagement() {
     fetchCategories();
   }, []);
 
-  /**
-   * Filter categories based on search term
-   */
+  // Reset to first page when search term changes
   useEffect(() => {
-    const filtered = categories.filter(
-      (cat) =>
-        cat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (cat.description && cat.description.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
-    setFilteredCategories(filtered);
-  }, [searchTerm, categories]);
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   /**
    * Form input change handler for category form
@@ -253,9 +290,13 @@ export default function CategoriesManagement() {
 
       // Update local state to remove the deleted category
       setCategories(prev => prev.filter(cat => cat.id !== categoryToDelete.id));
-      setFilteredCategories(prev => prev.filter(cat => cat.id !== categoryToDelete.id));
       setShowDeleteConfirm(false);
       setCategoryToDelete(null);
+      
+      // Update pagination if needed
+      if (currentCategories.length === 1 && currentPage > 1) {
+        setCurrentPage(currentPage - 1);
+      }
     } catch (err) {
       setError(err.message);
       console.error("Error deleting category:", err);
@@ -294,11 +335,11 @@ export default function CategoriesManagement() {
       }
 
       // Update category in local state
-      const updatedCategories = categories.map((cat) =>
-        cat.id === category.id ? { ...cat, isTrending: !cat.isTrending } : cat
+      setCategories(prev => 
+        prev.map((cat) =>
+          cat.id === category.id ? { ...cat, isTrending: !cat.isTrending } : cat
+        )
       );
-      setCategories(updatedCategories);
-      setFilteredCategories(updatedCategories);
     } catch (err) {
       setError(err.message);
       console.error("Error updating category:", err);
@@ -318,16 +359,15 @@ export default function CategoriesManagement() {
       if (isAddingCategory) {
         // Add new category to list
         setCategories(prev => [...prev, updatedCategory]);
-        setFilteredCategories(prev => [...prev, updatedCategory]);
       } else if (isEditingCategory && currentCategory) {
         // Update existing category
-        const updatedCategories = categories.map(cat =>
-          cat.id === updatedCategory.id
-            ? { ...cat, ...updatedCategory, count: cat.count }
-            : cat
+        setCategories(prev => 
+          prev.map(cat =>
+            cat.id === updatedCategory.id
+              ? { ...cat, ...updatedCategory, count: cat.count }
+              : cat
+          )
         );
-        setCategories(updatedCategories);
-        setFilteredCategories(updatedCategories);
       }
     }
 
@@ -343,7 +383,7 @@ export default function CategoriesManagement() {
       isTrending: false,
       image: null,
     });
-  }, [categories, currentCategory, isAddingCategory, isEditingCategory]);
+  }, [currentCategory, isAddingCategory, isEditingCategory]);
 
   /**
    * Navigate to subcategories view for a category
@@ -389,7 +429,7 @@ export default function CategoriesManagement() {
    */
   const handleConfirmDeleteSubcategory = useCallback(() => {
     // Update the parent category to remove the subcategory
-    const updatedCategories = categories.map((cat) => {
+    setCategories(prev => prev.map((cat) => {
       if (cat.id === selectedCategory?.id) {
         return {
           ...cat,
@@ -399,15 +439,20 @@ export default function CategoriesManagement() {
         };
       }
       return cat;
-    });
+    }));
 
-    setCategories(updatedCategories);
-    setSelectedCategory(
-      updatedCategories.find((cat) => cat.id === selectedCategory?.id)
+    setSelectedCategory(prev => 
+      prev ? {
+        ...prev,
+        subcategories: prev.subcategories.filter(
+          (sub) => sub.id !== subcategoryToDelete.id
+        ),
+      } : null
     );
+    
     setShowDeleteSubcategoryConfirm(false);
     setSubcategoryToDelete(null);
-  }, [categories, selectedCategory, subcategoryToDelete]);
+  }, [selectedCategory, subcategoryToDelete]);
 
   /**
    * Handle subcategory form input changes
@@ -438,7 +483,7 @@ export default function CategoriesManagement() {
       };
 
       // Add subcategory to parent category
-      const updatedCategories = categories.map((cat) => {
+      setCategories(prev => prev.map((cat) => {
         if (cat.id === selectedCategory?.id) {
           return {
             ...cat,
@@ -446,15 +491,15 @@ export default function CategoriesManagement() {
           };
         }
         return cat;
-      });
-
-      setCategories(updatedCategories);
-      setSelectedCategory(
-        updatedCategories.find((cat) => cat.id === selectedCategory?.id)
-      );
+      }));
+      
+      setSelectedCategory(prev => prev ? {
+        ...prev,
+        subcategories: [...(prev.subcategories || []), newSubcategory],
+      } : null);
     } else if (isEditingSubcategory && currentSubcategory) {
       // Update existing subcategory
-      const updatedCategories = categories.map((cat) => {
+      setCategories(prev => prev.map((cat) => {
         if (cat.id === selectedCategory?.id) {
           return {
             ...cat,
@@ -466,12 +511,16 @@ export default function CategoriesManagement() {
           };
         }
         return cat;
-      });
-
-      setCategories(updatedCategories);
-      setSelectedCategory(
-        updatedCategories.find((cat) => cat.id === selectedCategory?.id)
-      );
+      }));
+      
+      setSelectedCategory(prev => prev ? {
+        ...prev,
+        subcategories: (prev.subcategories || []).map((sub) =>
+          sub.id === currentSubcategory.id
+            ? { ...sub, name: subcategoryFormData.name }
+            : sub
+        ),
+      } : null);
     }
 
     // Reset form state
@@ -501,6 +550,91 @@ export default function CategoriesManagement() {
       }));
     }
   }, []);
+
+  // Generate pagination buttons
+  const renderPaginationButtons = useMemo(() => {
+    const buttons = [];
+    
+    // Always show first page
+    buttons.push(
+      <button
+        key="first"
+        onClick={() => goToPage(1)}
+        disabled={currentPage === 1}
+        className={`px-3 py-1 rounded-md ${
+          currentPage === 1
+            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+            : "bg-white hover:bg-gray-50 text-gray-700"
+        }`}
+      >
+        1
+      </button>
+    );
+    
+    // Show ellipsis if needed
+    if (currentPage > 3) {
+      buttons.push(
+        <span key="ellipsis1" className="px-2">
+          ...
+        </span>
+      );
+    }
+    
+    // Show current page and neighbors
+    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+      if (i === 1 || i === totalPages) continue; // Skip first and last as they're always shown
+      
+      buttons.push(
+        <button
+          key={i}
+          onClick={() => goToPage(i)}
+          className={`px-3 py-1 rounded-md ${
+            currentPage === i
+              ? "bg-indigo-100 text-indigo-700 font-medium"
+              : "bg-white hover:bg-gray-50 text-gray-700"
+          }`}
+        >
+          {i}
+        </button>
+      );
+    }
+    
+    // Show ellipsis if needed
+    if (currentPage < totalPages - 2) {
+      buttons.push(
+        <span key="ellipsis2" className="px-2">
+          ...
+        </span>
+      );
+    }
+    
+    // Always show last page if it's not the first page
+    if (totalPages > 1) {
+      buttons.push(
+        <button
+          key="last"
+          onClick={() => goToPage(totalPages)}
+          disabled={currentPage === totalPages}
+          className={`px-3 py-1 rounded-md ${
+            currentPage === totalPages
+              ? "bg-indigo-100 text-indigo-700 font-medium"
+              : "bg-white hover:bg-gray-50 text-gray-700"
+          }`}
+        >
+          {totalPages}
+        </button>
+      );
+    }
+    
+    return buttons;
+  }, [currentPage, totalPages, goToPage]);
+
+  // Memoize page info text to avoid re-renders
+  const pageInfoText = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage + 1;
+    const end = Math.min(currentPage * itemsPerPage, totalItems);
+    return `Mostrando ${start} a ${end} de ${totalItems} categorías`;
+  }, [currentPage, itemsPerPage, totalItems]);
 
   return (
     <div className="h-full bg-gray-50 text-gray-800">
@@ -610,7 +744,7 @@ export default function CategoriesManagement() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredCategories.length === 0 ? (
+                  {currentCategories.length === 0 ? (
                     <tr>
                       <td colSpan="6" className="px-6 py-10 text-center text-gray-500">
                         No se encontraron categorías.{" "}
@@ -618,78 +752,142 @@ export default function CategoriesManagement() {
                       </td>
                     </tr>
                   ) : (
-                    filteredCategories.map((category, index) => (
-                      <motion.tr
-                        key={category.id}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: index * 0.05 }}
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div
-                              className="w-10 h-10 rounded-full mr-3 flex items-center justify-center"
-                              style={{
-                                backgroundColor: category.color + "20",
-                                color: category.color,
-                              }}
-                            >
-                              {iconOptions.find((i) => i.name === category.icon)?.icon}
+                    // Only animate the visible rows for better performance
+                    <AnimatePresence>
+                      {currentCategories.map((category) => (
+                        <motion.tr
+                          key={category.id}
+                          layout={false} // Disable layout animations for better performance
+                          variants={rowFadeIn}
+                          initial="hidden"
+                          animate="visible"
+                          exit="hidden"
+                          transition={{ duration: 0.2 }} // Faster transitions
+                          className="hover:bg-gray-50"
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div
+                                className="w-10 h-10 rounded-full mr-3 flex items-center justify-center"
+                                style={{
+                                  backgroundColor: category.color + "20",
+                                  color: category.color,
+                                }}
+                              >
+                                {iconOptions.find((i) => i.name === category.icon)?.icon}
+                              </div>
+                              <span className="font-medium">{category.name}</span>
                             </div>
-                            <span className="font-medium">{category.name}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap max-w-xs truncate">
-                          {category.description || "-"}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                            {category.count}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <button
-                            onClick={() => handleToggleTrending(category)}
-                            className={`p-1 rounded-md ${
-                              category.isTrending
-                                ? "bg-yellow-100 text-yellow-600"
-                                : "bg-gray-100 text-gray-400"
-                            }`}
-                          >
-                            <Star size={18} fill={category.isTrending ? "currentColor" : "none"} />
-                          </button>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <button
-                            onClick={() => handleViewSubcategories(category)}
-                            className="flex items-center text-indigo-600 hover:text-indigo-900"
-                          >
-                            <span>{category.subcategories?.length || 0}</span>
-                            <ChevronRight size={16} className="ml-1" />
-                          </button>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right">
-                          <button
-                            onClick={() => handleEditCategory(category)}
-                            className="text-blue-600 hover:text-blue-900 mr-3"
-                            aria-label="Editar categoría"
-                          >
-                            <Edit size={18} />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteInit(category)}
-                            className="text-red-600 hover:text-red-900"
-                            aria-label="Eliminar categoría"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </td>
-                      </motion.tr>
-                    ))
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap max-w-xs truncate">
+                            {category.description || "-"}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                              {category.count}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <button
+                              onClick={() => handleToggleTrending(category)}
+                              className={`p-1 rounded-md ${
+                                category.isTrending
+                                  ? "bg-yellow-100 text-yellow-600"
+                                  : "bg-gray-100 text-gray-400"
+                              }`}
+                            >
+                              <Star size={18} fill={category.isTrending ? "currentColor" : "none"} />
+                            </button>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <button
+                              onClick={() => handleViewSubcategories(category)}
+                              className="flex items-center text-indigo-600 hover:text-indigo-900"
+                            >
+                              <span>{category.subcategories?.length || 0}</span>
+                              <ChevronRight size={16} className="ml-1" />
+                            </button>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right">
+                            <button
+                              onClick={() => handleEditCategory(category)}
+                              className="text-blue-600 hover:text-blue-900 mr-3"
+                              aria-label="Editar categoría"
+                            >
+                              <Edit size={18} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteInit(category)}
+                              className="text-red-600 hover:text-red-900"
+                              aria-label="Eliminar categoría"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </td>
+                        </motion.tr>
+                      ))}
+                    </AnimatePresence>
                   )}
                 </tbody>
               </table>
             </div>
+            
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="px-6 py-4 flex items-center justify-between border-t border-gray-200">
+                <div className="text-sm text-gray-700">
+                  {pageInfoText}
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => goToPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className={`p-1 rounded-md ${
+                      currentPage === 1
+                        ? "text-gray-300 cursor-not-allowed"
+                        : "text-gray-500 hover:bg-gray-100"
+                    }`}
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+                  
+                  <div className="flex items-center space-x-1">
+                    {renderPaginationButtons}
+                  </div>
+                  
+                  <button
+                    onClick={() => goToPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className={`p-1 rounded-md ${
+                      currentPage === totalPages
+                        ? "text-gray-300 cursor-not-allowed"
+                        : "text-gray-500 hover:bg-gray-100"
+                    }`}
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                  
+                  <div className="relative ml-2">
+                    <select
+                      value={itemsPerPage}
+                      onChange={(e) => {
+                        setItemsPerPage(Number(e.target.value));
+                        setCurrentPage(1); // Reset to first page
+                      }}
+                      className="appearance-none bg-white border rounded-md pl-3 pr-8 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    >
+                      <option value={5}>5 / pág</option>
+                      <option value={10}>10 / pág</option>
+                      <option value={20}>20 / pág</option>
+                      <option value={50}>50 / pág</option>
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                      <ChevronDown size={14} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
 
@@ -716,11 +914,12 @@ export default function CategoriesManagement() {
               </div>
             ) : (
               <div className="space-y-4">
-                {selectedCategory?.subcategories?.map((subcategory) => (
+                {selectedCategory?.subcategories?.map((subcategory, index) => (
                   <motion.div
                     key={subcategory.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: index * 0.03 }} // Reduced delay for better performance
                     className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
                   >
                     <span className="font-medium">{subcategory.name}</span>
@@ -762,6 +961,7 @@ export default function CategoriesManagement() {
             }}
             onSave={handleSaveCategory}
             currentCategory={currentCategory}
+            iconOptions={iconOptions}
           />
         )}
 
@@ -771,7 +971,7 @@ export default function CategoriesManagement() {
           onClose={() => setShowDeleteConfirm(false)}
           onConfirm={handleConfirmDelete}
           title="Eliminar Categoría"
-          message={`¿Estás seguro que deseas eliminar la categoría "${categoryToDelete?.name}"? Esto también eliminará todas las subcategorías relacionadas. Esta acción no se puede deshacer.`}
+          message={`¿Estás seguro que deseas eliminar la categoría "\${categoryToDelete?.name}"? Esto también eliminará todas las subcategorías relacionadas. Esta acción no se puede deshacer.`}
           confirmText="Eliminar"
           cancelText="Cancelar"
           type="delete"
@@ -781,9 +981,15 @@ export default function CategoriesManagement() {
         {(isAddingSubcategory || isEditingSubcategory) && (
           <div className="fixed inset-0 backdrop-blur-sm bg-gray-900/50 dark:bg-black/60 flex items-center justify-center z-50 p-4">
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ 
+                type: "spring", 
+                stiffness: 500, 
+                damping: 35,
+                duration: 0.2
+              }}
               className="bg-white dark:bg-gray-800 rounded-xl p-6 sm:p-8 max-w-md w-full shadow-xl ring-1 ring-gray-200 dark:ring-gray-700"
             >
               <div className="flex justify-between items-center mb-6">
