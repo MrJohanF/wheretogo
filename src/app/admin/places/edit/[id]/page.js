@@ -16,6 +16,10 @@ import {
   Clock,
   LayoutList,
 } from "lucide-react";
+
+// Import all Lucide icons for dynamic rendering
+import * as LucideIcons from "lucide-react";
+
 import { motion } from "framer-motion";
 import { use } from "react";
 
@@ -140,6 +144,12 @@ export default function PlaceFormPage({ params }) {
     },
   };
 
+  // Dynamic icon component that renders the correct Lucide icon based on name
+  const DynamicIcon = ({ name, ...props }) => {
+    const IconComponent = LucideIcons[name] || LucideIcons.Tag; // Default to Tag if icon not found
+    return <IconComponent {...props} />;
+  };
+
   // fetchCategories function with API call
   const fetchCategories = async () => {
     try {
@@ -155,21 +165,46 @@ export default function PlaceFormPage({ params }) {
         throw new Error(`Error fetching categories: ${response.status}`);
       }
 
-      return await response.json();
+      const data = await response.json();
+
+      if (!data.success || !Array.isArray(data.categories)) {
+        throw new Error("Invalid categories response format");
+      }
+
+      return data.categories;
     } catch (error) {
       console.error("Failed to fetch categories:", error);
       return []; // Return empty array as fallback
     }
   };
 
-  const fetchSubcategories = () =>
-    Promise.resolve([
-      { id: 1, name: "Italiano", categoryId: 1 },
-      { id: 2, name: "Japonés", categoryId: 1 },
-      { id: 3, name: "Cafetería", categoryId: 2 },
-      { id: 4, name: "Panadería", categoryId: 2 },
-      { id: 5, name: "Bar de Cócteles", categoryId: 3 },
-    ]);
+  // Fetch all subcategories from API
+  const fetchSubcategories = async () => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/subcategories`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Error fetching subcategories: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (!data.success || !Array.isArray(data.subcategories)) {
+        throw new Error("Invalid subcategories response format");
+      }
+
+      return data.subcategories;
+    } catch (error) {
+      console.error("Failed to fetch subcategories:", error);
+      return []; // Return empty array as fallback
+    }
+  };
 
   const fetchFeatures = () =>
     Promise.resolve([
@@ -185,26 +220,27 @@ export default function PlaceFormPage({ params }) {
     const loadData = async () => {
       try {
         setIsLoading(true);
-        
-        // Fetch real categories from API
-        const categoriesData = await fetchCategories();
-        
-        // Still use mock data for these until you have APIs for them
-        const subcategoriesData = await fetchSubcategories();
-        const featuresData = await fetchFeatures();
-        
+
+        // Fetch data from APIs in parallel for better performance
+        const [categoriesData, subcategoriesData, featuresData] =
+          await Promise.all([
+            fetchCategories(),
+            fetchSubcategories(),
+            fetchFeatures(), // This is still your mock function until you have an API for it
+          ]);
+
         setCategories(categoriesData);
         setSubcategories(subcategoriesData);
         setFeatures(featuresData);
-        
+
         if (isEditing) {
           const placeData = await fetchPlace(resolvedParams.id);
           if (placeData) {
             setFormData({
               ...placeData,
-              categoryIds: placeData.categories?.map(c => c.id) || [],
-              subcategoryIds: placeData.subcategories?.map(s => s.id) || [],
-              featureIds: placeData.features?.map(f => f.id) || [],
+              categoryIds: placeData.categories?.map((c) => c.id) || [],
+              subcategoryIds: placeData.subcategories?.map((s) => s.id) || [],
+              featureIds: placeData.features?.map((f) => f.id) || [],
             });
           }
         }
@@ -214,7 +250,7 @@ export default function PlaceFormPage({ params }) {
         setIsLoading(false);
       }
     };
-    
+
     loadData();
   }, [isEditing, resolvedParams.id]);
 
@@ -309,6 +345,11 @@ export default function PlaceFormPage({ params }) {
         latitude: parseFloat(formData.latitude) || null,
         longitude: parseFloat(formData.longitude) || null,
 
+        // Include category and subcategory IDs
+        categoryIds: formData.categoryIds || [],
+        subcategoryIds: formData.subcategoryIds || [],
+        featureIds: formData.featureIds || [],
+
         // Format images to match the expected structure
         images: formData.images.map((img) => ({
           url: img.url,
@@ -316,12 +357,11 @@ export default function PlaceFormPage({ params }) {
           isFeatured: img.isFeatured || false,
         })),
 
-        // Operating hours are already in the expected format
         operatingHours: formData.operatingHours,
-
-        // Add a default empty array for popular items if not present
-        popularItems: [],
+        popularItems: formData.popularItems || [],
       };
+
+      console.log("Sending data to API:", placeData);
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/admin/places/add`,
@@ -336,16 +376,14 @@ export default function PlaceFormPage({ params }) {
       );
 
       if (!response.ok) {
-        throw new Error(`Error: ${response.status} - ${await response.text()}`);
+        const errorText = await response.text();
+        throw new Error(`Error: ${response.status} - ${errorText}`);
       }
 
       const result = await response.json();
       console.log("Lugar creado exitosamente:", result);
 
-      // Show success notification
       alert("El lugar ha sido añadido exitosamente");
-
-      // Redirect to the places list
       router.push("/admin/places");
     } catch (error) {
       console.error("Error al guardar lugar:", error);
@@ -357,6 +395,12 @@ export default function PlaceFormPage({ params }) {
 
   const handleCancel = () => {
     router.push("/admin/places");
+  };
+
+  // Simple category selection handler
+  const handleCategorySelect = (categoryId) => {
+    // Just toggle the category selection
+    handleMultiSelectChange("categoryIds", categoryId);
   };
 
   return (
@@ -705,6 +749,7 @@ export default function PlaceFormPage({ params }) {
               </h3>
             </div>
             <div className="px-4 py-5 sm:p-6 space-y-6">
+              {/* Categorías */}
               <motion.div variants={itemFadeIn}>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Categorías
@@ -718,14 +763,22 @@ export default function PlaceFormPage({ params }) {
                       transition={{ delay: index * 0.05 }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      onClick={() =>
-                        handleMultiSelectChange("categoryIds", category.id)
-                      }
+                      onClick={() => handleCategorySelect(category.id)}
                       className={`cursor-pointer flex items-center p-3 rounded-md border ${
                         formData.categoryIds.includes(category.id)
-                          ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 dark:border-indigo-600"
+                          ? "dark:bg-opacity-15"
                           : "border-gray-200 dark:border-gray-700"
                       }`}
+                      style={{
+                        borderColor: formData.categoryIds.includes(category.id)
+                          ? category.color
+                          : undefined,
+                        backgroundColor: formData.categoryIds.includes(
+                          category.id
+                        )
+                          ? `${category.color}15`
+                          : undefined,
+                      }}
                     >
                       <input
                         type="checkbox"
@@ -736,9 +789,16 @@ export default function PlaceFormPage({ params }) {
                       />
                       <label
                         htmlFor={`category-${category.id}`}
-                        className="ml-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
+                        className="ml-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex items-center"
                       >
-                        <span className="mr-1">{category.icon}</span>{" "}
+                        {category.icon && (
+                          <span
+                            className="mr-2"
+                            style={{ color: category.color }}
+                          >
+                            <DynamicIcon name={category.icon} size={16} />
+                          </span>
+                        )}
                         {category.name}
                       </label>
                     </motion.div>
@@ -746,15 +806,26 @@ export default function PlaceFormPage({ params }) {
                 </div>
               </motion.div>
 
+              {/* Subcategorías */}
               <motion.div variants={itemFadeIn}>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Subcategorías
                 </label>
+
                 {formData.categoryIds.length === 0 ? (
                   <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/30 rounded-md p-3">
                     <p className="text-sm text-amber-800 dark:text-amber-200">
                       Selecciona categorías para ver las subcategorías
                       disponibles
+                    </p>
+                  </div>
+                ) : subcategories.filter((sub) =>
+                    formData.categoryIds.includes(sub.categoryId)
+                  ).length === 0 ? (
+                  <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md p-3">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      No hay subcategorías disponibles para las categorías
+                      seleccionadas
                     </p>
                   </div>
                 ) : (
@@ -763,43 +834,61 @@ export default function PlaceFormPage({ params }) {
                       .filter((sub) =>
                         formData.categoryIds.includes(sub.categoryId)
                       )
-                      .map((subcategory, index) => (
-                        <motion.div
-                          key={subcategory.id}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.05 }}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() =>
-                            handleMultiSelectChange(
-                              "subcategoryIds",
-                              subcategory.id
-                            )
-                          }
-                          className={`cursor-pointer flex items-center p-3 rounded-md border ${
-                            formData.subcategoryIds.includes(subcategory.id)
-                              ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 dark:border-indigo-600"
-                              : "border-gray-200 dark:border-gray-700"
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            id={`subcategory-${subcategory.id}`}
-                            checked={formData.subcategoryIds.includes(
-                              subcategory.id
-                            )}
-                            onChange={() => {}}
-                            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                          />
-                          <label
-                            htmlFor={`subcategory-${subcategory.id}`}
-                            className="ml-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
+                      .map((subcategory, index) => {
+                        // Find parent category for color
+                        const parentCategory =
+                          categories.find(
+                            (c) => c.id === subcategory.categoryId
+                          ) || subcategory.category; // Use embedded category if available
+                        const categoryColor =
+                          parentCategory?.color || "#6366f1";
+
+                        return (
+                          <motion.div
+                            key={subcategory.id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() =>
+                              handleMultiSelectChange(
+                                "subcategoryIds",
+                                subcategory.id
+                              )
+                            }
+                            className="cursor-pointer flex items-center p-3 rounded-md border"
+                            style={{
+                              borderColor: formData.subcategoryIds.includes(
+                                subcategory.id
+                              )
+                                ? categoryColor
+                                : "rgb(229, 231, 235)",
+                              backgroundColor: formData.subcategoryIds.includes(
+                                subcategory.id
+                              )
+                                ? `${categoryColor}15`
+                                : undefined,
+                            }}
                           >
-                            {subcategory.name}
-                          </label>
-                        </motion.div>
-                      ))}
+                            <input
+                              type="checkbox"
+                              id={`subcategory-${subcategory.id}`}
+                              checked={formData.subcategoryIds.includes(
+                                subcategory.id
+                              )}
+                              onChange={() => {}}
+                              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                            />
+                            <label
+                              htmlFor={`subcategory-${subcategory.id}`}
+                              className="ml-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
+                            >
+                              {subcategory.name}
+                            </label>
+                          </motion.div>
+                        );
+                      })}
                   </div>
                 )}
               </motion.div>
