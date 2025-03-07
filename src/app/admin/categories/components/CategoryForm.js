@@ -18,6 +18,7 @@ import {
   Waves,
   Image,
 } from "lucide-react";
+import { useState } from "react";
 
 // Mock icons for selection
 const iconOptions = [
@@ -44,6 +45,48 @@ export default function CategoryForm({
   onCancel,
   onSave 
 }) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleSave = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      // Prepare the data according to the API structure
+      const categoryData = {
+        name: formData.name,
+        icon: formData.icon,
+        description: formData.description,
+        image: formData.image,
+        color: formData.color,
+        subcategories: [], // Initialize empty subcategories array
+        isTrending: formData.isTrending
+      };
+
+      // Make the API call
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories/add`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(categoryData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al guardar la categoría');
+      }
+
+      const result = await response.json();
+      onSave(result); // Pass the saved category back to parent
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -61,6 +104,12 @@ export default function CategoryForm({
           <X size={20} />
         </button>
       </div>
+
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-sm text-red-600">{error}</p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Left Column */}
@@ -234,17 +283,30 @@ export default function CategoryForm({
         <button
           type="button"
           onClick={onCancel}
+          disabled={isLoading}
           className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 mr-3"
         >
           Cancelar
         </button>
         <button
           type="button"
-          onClick={onSave}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+          onClick={handleSave}
+          disabled={isLoading}
+          className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 ${
+            isLoading ? 'opacity-75 cursor-not-allowed' : ''
+          }`}
         >
-          <Save size={18} className="mr-2" />
-          Guardar Categoría
+          {isLoading ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+              Guardando...
+            </>
+          ) : (
+            <>
+              <Save size={18} className="mr-2" />
+              Guardar Categoría
+            </>
+          )}
         </button>
       </div>
     </motion.div>
