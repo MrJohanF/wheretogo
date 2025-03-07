@@ -16,7 +16,7 @@ import {
   Clock,
   LayoutList,
 } from "lucide-react";
-import { Toaster } from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 
 // Import all Lucide icons for dynamic rendering
 import * as LucideIcons from "lucide-react";
