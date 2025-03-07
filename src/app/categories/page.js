@@ -6,7 +6,8 @@ import {
   Search,
   ChevronRight,
   TrendingUp,
-  Image as ImageIcon,
+  Loader,
+  AlertCircle,
   X,
   Filter,
   Bookmark,
@@ -15,168 +16,97 @@ import {
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-const categories = [
-  {
-    id: 1,
-    name: "Restaurantes",
-    icon: "🍽️",
-    count: 128,
-    description: "Descubre los mejores restaurantes de la ciudad",
-    features: ["Reservas", "Menús", "Reseñas", "Fotos"],
-    color: "from-orange-500 to-red-500",
-    image: "/images/restaurante.avif",
-    trending: true,
-    subcategories: [
-      "Italiano",
-      "Mediterráneo",
-      "Japonés",
-      "Mexicano",
-      "Vegetariano",
-    ],
-  },
-  {
-    id: 2,
-    name: "Cafeterías",
-    icon: "☕",
-    count: 85,
-    description: "Encuentra tu café favorito",
-    features: ["Especialidad", "Ambiente", "WiFi", "Para llevar"],
-    color: "from-amber-500 to-yellow-500",
-    image: "/images/cafe.avif",
-    trending: true,
-    subcategories: [
-      "Café de especialidad",
-      "Pastelería",
-      "Co-working",
-      "Desayunos",
-    ],
-  },
-  {
-    id: 3,
-    name: "Bares",
-    icon: "🍸",
-    count: 64,
-    description: "Los mejores lugares para tomar algo",
-    color: "from-purple-500 to-indigo-500",
-    image: "/images/bar.avif",
-    subcategories: ["Cócteles", "Cervecerías", "Wine Bar", "Terrazas"],
-  },
-  {
-    id: 4,
-    name: "Museos",
-    icon: "🏛️",
-    count: 42,
-    description: "Explora el arte y la cultura",
-    color: "from-blue-500 to-cyan-500",
-    image: "/images/museo.avif",
-    subcategories: ["Arte", "Historia", "Ciencia", "Contemporáneo"],
-  },
-  {
-    id: 5,
-    name: "Parques",
-    icon: "🌳",
-    count: 37,
-    description: "Relájate al aire libre",
-    color: "from-green-500 to-emerald-500",
-    image: "/images/parque.avif",
-    subcategories: [
-      "Jardines",
-      "Parques urbanos",
-      "Áreas recreativas",
-      "Miradores",
-    ],
-  },
-  {
-    id: 6,
-    name: "Cines",
-    icon: "🎬",
-    count: 23,
-    description: "Disfruta de los últimos estrenos",
-    color: "from-red-500 to-pink-500",
-    image: "/images/cine.avif",
-    subcategories: [
-      "Multicines",
-      "Cine independiente",
-      "3D/IMAX",
-      "Al aire libre",
-    ],
-  },
-  {
-    id: 7,
-    name: "Teatros",
-    icon: "🎭",
-    count: 18,
-    description: "Vive la magia de las artes escénicas",
-    color: "from-violet-500 to-purple-500",
-    image: "/images/teatro.avif",
-    subcategories: ["Teatro clásico", "Musical", "Comedia", "Alternativo"],
-  },
-  {
-    id: 8,
-    name: "Deportes",
-    icon: "⚽",
-    count: 56,
-    description: "Actividades y recintos deportivos",
-    color: "from-blue-500 to-indigo-500",
-    image: "/images/deportes.avif",
-    subcategories: ["Fútbol", "Tenis", "Gimnasios", "Deportes acuáticos"],
-  },
-  // Remaining categories with similar enhancements...
-  {
-    id: 9,
-    name: "Compras",
-    icon: "🛍️",
-    count: 94,
-    description: "Las mejores tiendas y centros comerciales",
-    color: "from-pink-500 to-rose-500",
-    image: "/images/compras.avif",
-  },
-  {
-    id: 10,
-    name: "Eventos",
-    icon: "🎉",
-    count: 73,
-    description: "No te pierdas lo que está pasando",
-    color: "from-yellow-500 to-amber-500",
-    image: "/images/eventos.avif",
-    trending: true,
-  },
-  {
-    id: 11,
-    name: "Hoteles",
-    icon: "🏨",
-    count: 45,
-    description: "Alojamientos para todos los gustos",
-    color: "from-sky-500 to-blue-500",
-    image: "/images/hoteles.avif",
-  },
-  {
-    id: 12,
-    name: "Playas",
-    icon: "🏖️",
-    count: 31,
-    description: "Disfruta del sol y el mar",
-    color: "from-cyan-500 to-teal-500",
-    image: "/images/playas.avif",
-  },
-];
+// Icon mapping - convert API icon names to emoji or component references
+const iconMap = {
+  Utensils: "🍽️",
+  Coffee: "☕",
+  Beer: "🍸",
+  Building: "🏛️",
+  TreeDeciduous: "🌳",
+  Film: "🎬",
+  Hotel: "🏨",
+  Football: "⚽",
+  ShoppingBag: "🛍️",
+  Music: "🎉",
+  Waves: "🏖️",
+};
 
 export default function CategoriesPage() {
   const router = useRouter();
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [viewMode, setViewMode] = useState("list"); // "grid" or "list"
-  const [filterMode, setFilterMode] = useState("all"); // "all", "trending"
+  const [viewMode, setViewMode] = useState("list");
+  const [filterMode, setFilterMode] = useState("all");
   const [savedCategories, setSavedCategories] = useState(new Set());
 
   useEffect(() => {
-    setIsInitialLoad(false);
+    const fetchCategories = async () => {
+      try {
+        setLoading(true);
+        const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/categories`;
+        
+        const response = await fetch(apiUrl);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && data.categories) {
+          // Transform API data to match component expectations
+          const transformedCategories = data.categories.map(category => ({
+            id: category.id,
+            name: category.name,
+            icon: iconMap[category.icon] || "📍", // Fallback icon
+            count: category._count.places,
+            description: category.description || `Explora lugares en ${category.name}`,
+            color: mapColorToGradient(category.color),
+            image: category.image || "/images/placeholder.jpg", 
+            trending: category.isTrending,
+            subcategories: category.subcategories.map(sub => sub.name),
+          }));
+          
+          setCategories(transformedCategories);
+        }
+      } catch (err) {
+        console.error("Failed to fetch categories:", err);
+        setError("No se pudieron cargar las categorías. Por favor, intenta de nuevo más tarde.");
+      } finally {
+        setLoading(false);
+        setIsInitialLoad(false);
+      }
+    };
+
+    fetchCategories();
   }, []);
+
+  // Map hex color to gradient class
+  const mapColorToGradient = (hexColor) => {
+    // Simple mapping based on hue ranges
+    const colors = {
+      "#ef4444": "from-red-500 to-orange-500",     // red
+      "#a855f7": "from-purple-500 to-violet-500",  // purple
+      "#f43f5e": "from-rose-500 to-pink-500",      // rose
+      "#c2410c": "from-orange-500 to-amber-500",   // orange
+      "#0369a1": "from-blue-500 to-sky-500",       // blue
+      "#d946ef": "from-fuchsia-500 to-pink-500",   // fuchsia
+      "#2dd4bf": "from-teal-500 to-emerald-500",   // teal
+      "#059669": "from-green-500 to-emerald-500",  // green
+      "#ec4899": "from-pink-500 to-rose-500",      // pink
+      "#c026d3": "from-purple-500 to-indigo-500",  // purple
+      "#b45309": "from-amber-500 to-yellow-500",   // amber
+    };
+    
+    return colors[hexColor] || "from-gray-500 to-gray-700"; // default gradient
+  };
 
   const handleCategoryClick = (category) => {
     setSelectedCategory(category);
-    // Navigate to the category detail page
     router.push(`/categories/${category.id}`);
   };
 
@@ -243,7 +173,7 @@ export default function CategoriesPage() {
       <div
         className={`relative ${isFeatured ? "h-48" : "h-32"} overflow-hidden`}
       >
-        {category.image && (
+        {category.image && !category.image.startsWith("blob:") && (
           <Image
             src={category.image}
             alt={category.name}
@@ -306,7 +236,7 @@ export default function CategoriesPage() {
           <p className="text-gray-600 text-sm mb-3">{category.description}</p>
         )}
 
-        {category.subcategories && (
+        {category.subcategories && category.subcategories.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-3">
             {category.subcategories
               .slice(0, isFeatured ? 5 : 3)
@@ -336,6 +266,39 @@ export default function CategoriesPage() {
       </div>
     </motion.div>
   );
+
+  // Render loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader className="w-12 h-12 text-indigo-600 mx-auto animate-spin" />
+          <p className="mt-4 text-gray-600 font-medium">Cargando categorías...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Render error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl shadow-md p-6 max-w-md w-full">
+          <div className="flex items-center justify-center w-16 h-16 mx-auto rounded-full bg-red-100 mb-4">
+            <AlertCircle className="h-8 w-8 text-red-600" />
+          </div>
+          <h3 className="text-xl font-bold text-center text-gray-900">Error</h3>
+          <p className="mt-2 text-center text-gray-500">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="mt-6 w-full py-3 px-4 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 pb-12">
@@ -564,7 +527,7 @@ export default function CategoriesPage() {
                         {category.count} lugares • {category.description}
                       </p>
 
-                      {category.subcategories && (
+                      {category.subcategories && category.subcategories.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-2">
                           {category.subcategories
                             .slice(0, 3)
