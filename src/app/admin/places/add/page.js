@@ -101,7 +101,7 @@ export default function PlaceFormPage({ params }) {
     name: "Café Deluxe",
     description: "A cozy café with amazing pastries",
     rating: 4.5,
-    priceLevel: "\$",
+    priceLevel: "$",
     address: "123 Main St",
     phone: "+1 (555) 123-4567",
     website: "https://example.com",
@@ -152,7 +152,7 @@ export default function PlaceFormPage({ params }) {
   const handleImageUpload = (event) => {
     const files = Array.from(event.target.files);
     const newImages = files.map((file, index) => ({
-      id: `temp-\${Date.now()}-\${index}`,
+      id: `temp-${Date.now()}-${index}`,
       url: URL.createObjectURL(file),
       file: file,
       altText: file.name,
@@ -419,10 +419,10 @@ export default function PlaceFormPage({ params }) {
                 className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-800 dark:text-white"
               >
                 <option value="">Select price level</option>
-                <option value="\$">\$ (Budget)</option>
-                <option value="\$\$">\$\$ (Moderate)</option>
-                <option value="\$\$\$">\$\$\$ (Expensive)</option>
-                <option value="\$\$\$\$">\$\$\$\$ (Very Expensive)</option>
+                <option value="$">$ (Budget)</option>
+                <option value="$$">$$ (Moderate)</option>
+                <option value="$$$">$$$ (Expensive)</option>
+                <option value="$$$$">$$$$ (Very Expensive)</option>
               </select>
             </div>
 
@@ -480,7 +480,7 @@ export default function PlaceFormPage({ params }) {
                   <div key={category.id} className="flex items-center">
                     <input
                       type="checkbox"
-                      id={`category-\${category.id}`}
+                      id={`category-${category.id}`}
                       checked={formData.categoryIds.includes(category.id)}
                       onChange={() =>
                         handleMultiSelectChange("categoryIds", category.id)
@@ -488,7 +488,7 @@ export default function PlaceFormPage({ params }) {
                       className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                     />
                     <label
-                      htmlFor={`category-\${category.id}`}
+                      htmlFor={`category-${category.id}`}
                       className="ml-2 text-sm text-gray-700 dark:text-gray-300"
                     >
                       {category.icon} {category.name}
@@ -514,7 +514,7 @@ export default function PlaceFormPage({ params }) {
                     >
                       <input
                         type="checkbox"
-                        id={`subcategory-\${subcategory.id}`}
+                        id={`subcategory-${subcategory.id}`}
                         checked={formData.subcategoryIds.includes(
                           subcategory.id
                         )}
@@ -527,7 +527,7 @@ export default function PlaceFormPage({ params }) {
                         className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                       />
                       <label
-                        htmlFor={`subcategory-\${subcategory.id}`}
+                        htmlFor={`subcategory-${subcategory.id}`}
                         className="ml-2 text-sm text-gray-700 dark:text-gray-300"
                       >
                         {subcategory.name}
@@ -551,7 +551,7 @@ export default function PlaceFormPage({ params }) {
                   <div key={feature.id} className="flex items-center">
                     <input
                       type="checkbox"
-                      id={`feature-\${feature.id}`}
+                      id={`feature-${feature.id}`}
                       checked={formData.featureIds.includes(feature.id)}
                       onChange={() =>
                         handleMultiSelectChange("featureIds", feature.id)
@@ -559,7 +559,7 @@ export default function PlaceFormPage({ params }) {
                       className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                     />
                     <label
-                      htmlFor={`feature-\${feature.id}`}
+                      htmlFor={`feature-${feature.id}`}
                       className="ml-2 text-sm text-gray-700 dark:text-gray-300"
                     >
                       {feature.name}
