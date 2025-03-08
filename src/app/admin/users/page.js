@@ -10,18 +10,25 @@ import {
   Users,
   UserPlus,
   Search,
+  Filter,
   ChevronDown,
+  MoreHorizontal,
   Edit,
   Trash2,
+  Ban,
+  CheckCircle,
+  X,
   ArrowUpDown,
   Mail,
   Calendar,
+  Shield,
   AlertTriangle,
   UserCheck,
   Activity,
-  Shield,
+  Clock,
   LayoutList
 } from "lucide-react";
+import Link from "next/link";
 
 // Animation variants
 const fadeIn = {
@@ -40,6 +47,7 @@ export default function UserManagement() {
   
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortDirection, setSortDirection] = useState("desc");
   const [currentPage, setCurrentPage] = useState(1);
@@ -64,14 +72,12 @@ export default function UserManagement() {
 
   // Sort users
   const sortedUsers = [...filteredUsers].sort((a, b) => {
-    // Compare by the selected field
     if (sortBy === 'name' || sortBy === 'email') {
       return sortDirection === 'asc' 
         ? a[sortBy].localeCompare(b[sortBy])
         : b[sortBy].localeCompare(a[sortBy]);
     }
-
-    // For dates
+    
     const dateA = new Date(a[sortBy]).getTime();
     const dateB = new Date(b[sortBy]).getTime();
     return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
@@ -85,13 +91,13 @@ export default function UserManagement() {
   // Calculate stats
   const stats = {
     totalUsers: users.length,
-    adminUsers: users.filter(user => user.role === "ADMIN").length,
+    activeUsers: users.length, // Can be adjusted if we have active status
     newUsers: users.filter(user => {
       const oneWeekAgo = new Date();
       oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
       return new Date(user.createdAt) >= oneWeekAgo;
     }).length,
-    activeUsers: users.length // Simplified - you can adjust based on user status if available
+    suspendedUsers: 0 // Can be adjusted if we have suspended status
   };
 
   const handleDeleteUser = async () => {
@@ -133,7 +139,7 @@ export default function UserManagement() {
     }
   };
 
-  // Table view for users
+  // Table view for users (keeping your original design)
   const renderUsersTable = () => (
     <div className="overflow-x-auto shadow-sm rounded-lg border border-gray-200 dark:border-gray-700">
       <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -228,7 +234,7 @@ export default function UserManagement() {
     </div>
   );
 
-  // Grid view for users
+  // Grid view for users (keeping your original design)
   const renderUsersGrid = () => (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
       {paginatedUsers.map((user, index) => (
@@ -384,7 +390,7 @@ export default function UserManagement() {
                   </dt>
                   <dd>
                     <div className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {stats.adminUsers}
+                      {users.filter(u => u.role === 'ADMIN').length}
                     </div>
                   </dd>
                 </dl>
@@ -434,7 +440,7 @@ export default function UserManagement() {
                   </dt>
                   <dd>
                     <div className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {stats.totalUsers - stats.adminUsers}
+                      {users.filter(u => u.role !== 'ADMIN').length}
                     </div>
                   </dd>
                 </dl>
@@ -513,7 +519,7 @@ export default function UserManagement() {
               whileTap={{ scale: 0.95 }}
               onClick={() => setViewMode('grid')}
               className={`px-3 py-2 ${viewMode === 'grid' ? 
- 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 
+                'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 
                 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400'}`}
             >
               <Users className="h-5 w-5" />
@@ -609,7 +615,7 @@ export default function UserManagement() {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              disabled={currentPage === totalPages}
+              disabled={currentPage === totalPages || totalPages === 0}
               onClick={() => setCurrentPage(currentPage + 1)}
               className={`px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm ${
                 currentPage === totalPages || totalPages === 0

@@ -8,6 +8,8 @@ import {
   User, 
   Mail, 
   Lock, 
+  Camera, 
+  Upload, 
   X, 
   CheckCircle,
   Shield,
@@ -15,6 +17,8 @@ import {
   Eye,
   EyeOff,
   Save,
+  Calendar,
+  Edit
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import useUserStore from "@/app/admin/store/useUserStore";
@@ -22,9 +26,9 @@ import useUserStore from "@/app/admin/store/useUserStore";
 export default function AddUserPage() {
   const router = useRouter();
   const { addUser, isLoading } = useUserStore();
+  const fileInputRef = useRef(null);
   const [formSuccess, setFormSuccess] = useState(false);
   const [formError, setFormError] = useState("");
-  const [validationErrors, setValidationErrors] = useState({});
   
   // Password visibility toggles
   const [showPassword, setShowPassword] = useState(false);
@@ -35,6 +39,8 @@ export default function AddUserPage() {
     email: "",
     password: "",
     confirmPassword: "",
+    avatar: null,
+    avatarPreview: null,
     role: "USER", // Default role
   });
 
@@ -49,43 +55,73 @@ export default function AddUserPage() {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     
-    // Clear validation errors for this field
-    if (validationErrors[name]) {
-      setValidationErrors(prev => ({
-        ...prev,
-        [name]: undefined
-      }));
-    }
-    
-    // Clear any general error
+    // Clear any validation errors
     if (formError) setFormError("");
+  };
+  
+  // Handle avatar upload
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Check file size (limit to 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        setFormError("La imagen no puede ser mayor a 2MB");
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setFormData(prev => ({
+          ...prev,
+          avatar: file,
+          avatarPreview: event.target.result
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  // Remove avatar
+  const handleRemoveAvatar = () => {
+    setFormData(prev => ({
+      ...prev,
+      avatar: null,
+      avatarPreview: null
+    }));
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
   
   // Validate form before submission
   const validateForm = () => {
-    const errors = {};
-    
     if (!formData.name.trim()) {
-      errors.name = "El nombre es obligatorio";
+      setFormError("El nombre es obligatorio");
+      return false;
     }
     
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+\$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email.trim() || !emailRegex.test(formData.email)) {
-      errors.email = "Ingresa un correo electrónico válido";
+      setFormError("Ingresa un correo electrónico válido");
+      return false;
     }
     
     if (!formData.password) {
-      errors.password = "La contraseña es obligatoria";
-    } else if (formData.password.length < 6) {
-      errors.password = "La contraseña debe tener al menos 6 caracteres";
+      setFormError("La contraseña es obligatoria");
+      return false;
+    }
+    
+    if (formData.password.length < 6) {
+      setFormError("La contraseña debe tener al menos 6 caracteres");
+      return false;
     }
     
     if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = "Las contraseñas no coinciden";
+      setFormError("Las contraseñas no coinciden");
+      return false;
     }
     
-    setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
+    return true;
   };
   
   // Handle form submission
@@ -98,7 +134,7 @@ export default function AddUserPage() {
       return;
     }
     
-    // Prepare the data for API
+    // Prepare user data for API
     const userData = {
       name: formData.name.trim(),
       email: formData.email.trim(),
@@ -106,23 +142,30 @@ export default function AddUserPage() {
       role: formData.role
     };
     
-    // Submit data
-    const result = await addUser(userData);
-    
-    if (result.success) {
-      setFormSuccess(true);
-      // Redirect after success
-      setTimeout(() => {
-        router.push('/admin/users');
-      }, 2000);
-    } else {
-      if (result.errors) {
-        // Set specific field validation errors if we got them from the API
-        setValidationErrors(result.errors);
+    try {
+      const result = await addUser(userData);
+      
+      if (result.success) {
+        setFormSuccess(true);
+        // Redirect after success
+        setTimeout(() => {
+          router.push('/admin/users');
+        }, 2000);
       } else {
-        // Set general error message
-        setFormError(result.error || "Ha ocurrido un error al crear el usuario");
+        if (result.errors) {
+          // Format specific validation errors from API
+          const errorMessages = [];
+          for (const field in result.errors) {
+            errorMessages.push(result.errors[field].join('. '));
+          }
+          setFormError(errorMessages.join('. '));
+        } else {
+          setFormError(result.error || "Ha ocurrido un error al crear el usuario");
+        }
       }
+    } catch (error) {
+      console.error('Error creating user:', error);
+      setFormError(error.message || "Ha ocurrido un error al crear el usuario");
     }
   };
 
@@ -322,17 +365,10 @@ export default function AddUserPage() {
                     required
                     value={formData.name}
                     onChange={handleChange}
-                    className={`mt-1 block w-full rounded-md border \${
-                      validationErrors.name 
-                        ? 'border-red-300 dark:border-red-500' 
-                        : 'border-gray-300 dark:border-gray-600'
-                    } py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-800 dark:text-white`}
+                    className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-800 dark:text-white"
                     placeholder="Juan Pérez"
                     whileFocus={{ boxShadow: '0 0 0 3px rgba(99, 102, 241, 0.15)' }}
                   />
-                  {validationErrors.name && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{validationErrors.name}</p>
-                  )}
                 </motion.div>
 
                 <motion.div variants={itemVariant}>
@@ -346,17 +382,10 @@ export default function AddUserPage() {
                     required
                     value={formData.email}
                     onChange={handleChange}
-                    className={`mt-1 block w-full rounded-md border \${
-                      validationErrors.email 
-                        ? 'border-red-300 dark:border-red-500' 
-                        : 'border-gray-300 dark:border-gray-600'
-                    } py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-800 dark:text-white`}
+                    className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-800 dark:text-white"
                     placeholder="usuario@ejemplo.com"
                     whileFocus={{ boxShadow: '0 0 0 3px rgba(99, 102, 241, 0.15)' }}
                   />
-                  {validationErrors.email && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{validationErrors.email}</p>
-                  )}
                 </motion.div>
 
                 <motion.div variants={itemVariant}>
@@ -404,11 +433,7 @@ export default function AddUserPage() {
                       required
                       value={formData.password}
                       onChange={handleChange}
-                      className={`block w-full rounded-md border \${
-                        validationErrors.password 
-                          ? 'border-red-300 dark:border-red-500' 
-                          : 'border-gray-300 dark:border-gray-600'
-                      } py-2 pl-3 pr-10 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-800 dark:text-white`}
+                      className="block w-full rounded-md border border-gray-300 dark:border-gray-600 py-2 pl-3 pr-10 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-800 dark:text-white"
                       placeholder="••••••••"
                       whileFocus={{ boxShadow: '0 0 0 3px rgba(99, 102, 241, 0.15)' }}
                     />
@@ -426,13 +451,9 @@ export default function AddUserPage() {
                       )}
                     </motion.button>
                   </div>
-                  {validationErrors.password ? (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{validationErrors.password}</p>
-                  ) : (
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                      Mínimo 6 caracteres
-                    </p>
-                  )}
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Mínimo 6 caracteres
+                  </p>
                 </motion.div>
 
                 <motion.div variants={itemVariant}>
@@ -447,11 +468,7 @@ export default function AddUserPage() {
                       required
                       value={formData.confirmPassword}
                       onChange={handleChange}
-                      className={`block w-full rounded-md border \${
-                        validationErrors.confirmPassword 
-                          ? 'border-red-300 dark:border-red-500' 
-                          : 'border-gray-300 dark:border-gray-600'
-                      } py-2 pl-3 pr-10 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-800 dark:text-white`}
+                      className="block w-full rounded-md border border-gray-300 dark:border-gray-600 py-2 pl-3 pr-10 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-800 dark:text-white"
                       placeholder="••••••••"
                       whileFocus={{ boxShadow: '0 0 0 3px rgba(99, 102, 241, 0.15)' }}
                     />
@@ -469,9 +486,6 @@ export default function AddUserPage() {
                       )}
                     </motion.button>
                   </div>
-                  {validationErrors.confirmPassword && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{validationErrors.confirmPassword}</p>
-                  )}
                 </motion.div>
 
                 <motion.div 
@@ -487,11 +501,170 @@ export default function AddUserPage() {
                       <ul className="mt-1 text-xs text-amber-700 dark:text-amber-400 list-disc pl-4 space-y-1">
                         <li>Incluir letras mayúsculas y minúsculas</li>
                         <li>Incluir al menos un número</li>
-                        <li>Incluir al menos un carácter especial (ej. !@#\$%)</li>
+                        <li>Incluir al menos un carácter especial (ej. !@#$%)</li>
                       </ul>
                     </div>
                   </div>
                 </motion.div>
+              </motion.div>
+
+              {/* Profile Image */}
+              <motion.div 
+                className="space-y-4 md:col-span-2"
+                variants={itemVariant}
+              >
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
+                  Imagen de Perfil
+                </h3>
+
+                <motion.div 
+                  className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 flex items-center justify-center"
+                  whileHover={{ boxShadow: '0 0 0 2px rgba(99, 102, 241, 0.2)', borderColor: '#6366F1' }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="flex flex-col items-center lg:flex-row lg:items-start lg:justify-center lg:space-x-8">
+                    {/* Avatar Preview */}
+                    <motion.div className="mb-6 lg:mb-0">
+                      <motion.div 
+                        className="h-32 w-32 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 flex items-center justify-center"
+                        animate={{ 
+                          boxShadow: formData.avatarPreview ? '0 0 0 4px rgba(99, 102, 241, 0.3)' : 'none' 
+                        }}
+                      >
+                        {formData.avatarPreview ? (
+                          <motion.img
+                            key={formData.avatarPreview}
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                            src={formData.avatarPreview}
+                            alt="Avatar Preview"
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <User className="h-16 w-16 text-gray-400 dark:text-gray-500" />
+                        )}
+                      </motion.div>
+                    </motion.div>
+
+                    {/* Upload Controls */}
+                    <div className="text-center lg:text-left flex flex-col items-center lg:items-start">
+                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Foto de Perfil (Opcional)
+                      </h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                        Sube una imagen JPG, PNG o GIF. Máximo 2MB.
+                      </p>
+                      <div className="flex space-x-3">
+                        <input
+                          id="avatar-upload"
+                          type="file"
+                          ref={fileInputRef}
+                          accept="image/*"
+                          onChange={handleAvatarChange}
+                          className="hidden"
+                        />
+                        <motion.button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="px-4 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-lg text-sm font-medium flex items-center"
+                          whileHover={{ scale: 1.02, backgroundColor: '#EEF2FF' }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <Upload className="h-4 w-4 mr-1.5" />
+                          {formData.avatarPreview ? "Cambiar Imagen" : "Subir Imagen"}
+                        </motion.button>
+                        
+                        {formData.avatarPreview && (
+                          <motion.button
+                            type="button"
+                            onClick={handleRemoveAvatar}
+                            className="px-4 py-2 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium flex items-center"
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 10 }}
+                            whileHover={{ scale: 1.02, backgroundColor: '#F9FAFB' }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            <X className="h-4 w-4 mr-1.5" />
+                            Eliminar
+                          </motion.button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              </motion.div>
+
+              {/* Role Permissions Description */}
+              <motion.div 
+                className="space-y-4 md:col-span-2"
+                variants={itemVariant}
+              >
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
+                  Permisos por Rol
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    { 
+                      title: "Usuario",
+                      icon: <User className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />,
+                      items: [
+                        "Navegar y ver lugares",
+                        "Crear favoritos",
+                        "Dejar reseñas",
+                        "Editar su perfil"
+                      ]
+                    },
+                    { 
+                      title: "Administrador",
+                      icon: <Shield className="h-5 w-5 text-indigo-500 dark:text-indigo-400 mr-2" />,
+                      items: [
+                        "Acceso completo",
+                        "Gestionar usuarios",
+                        "Configuración del sistema",
+                        "Acceso al panel administrativo"
+                      ]
+                    }
+                  ].map((role, index) => (
+                    <motion.div
+                      key={role.title}
+                      className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 relative overflow-hidden"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 + (index * 0.1) }}
+                      whileHover={{ 
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+                        y: -2 
+                      }}
+                    >
+                      {formData.role === (role.title === "Usuario" ? "USER" : "ADMIN") && (
+                        <motion.div 
+                          className="absolute top-0 right-0 left-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-500"
+                          layoutId="activeRoleIndicator"
+                          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                        />
+                      )}
+                      <div className="flex items-center mb-2">
+                        {role.icon}
+                        <h4 className="font-medium text-gray-800 dark:text-gray-200">{role.title}</h4>
+                      </div>
+                      <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                        {role.items.map((item, i) => (
+                          <motion.li 
+                            key={i}
+                            initial={{ opacity: 0, x: -5 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.3 + (i * 0.05) }}
+                          >
+                            • {item}
+                          </motion.li>
+                        ))}
+                      </ul>
+                    </motion.div>
+                  ))}
+                </div>
               </motion.div>
             </div>
 

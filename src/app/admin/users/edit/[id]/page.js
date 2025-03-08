@@ -17,7 +17,7 @@ import {
   Save,
 } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
-import useUserStore from "@/app/admin/store/adminStore";
+import useUserStore from "@/app/admin/store/useUserStore";
 
 export default function EditUserPage() {
   const router = useRouter();
