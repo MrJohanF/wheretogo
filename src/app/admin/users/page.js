@@ -1,23 +1,18 @@
-// app/admin/users/page.jsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import useUserStore from "@/app/admin/store/useUserStore";
+import debounce from 'lodash.debounce';
 
 import {
   Users,
   UserPlus,
   Search,
-  Filter,
   ChevronDown,
-  MoreHorizontal,
   Edit,
   Trash2,
-  Ban,
-  CheckCircle,
-  X,
   ArrowUpDown,
   Mail,
   Calendar,
@@ -25,8 +20,8 @@ import {
   AlertTriangle,
   UserCheck,
   Activity,
-  Clock,
-  LayoutList
+  LayoutList,
+  User
 } from "lucide-react";
 import Link from "next/link";
 
@@ -45,6 +40,8 @@ export default function UserManagement() {
   const router = useRouter();
   const { users, isLoading, error, fetchUsers, deleteUser } = useUserStore();
   
+  // State
+  const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
@@ -54,53 +51,96 @@ export default function UserManagement() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [viewMode, setViewMode] = useState("table");
-  
+  const [usersPerPage, setUsersPerPage] = useState(10);
+
+  // Fetch users on component mount
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
 
-  // Filter users based on search and role
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = !searchQuery || 
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      user.email.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesRole = !selectedRole || user.role === selectedRole;
-    
-    return matchesSearch && matchesRole;
-  });
+  // Debounced search function
+  const debouncedSearch = useCallback(
+    debounce((value) => {
+      setSearchQuery(value);
+      setCurrentPage(1); // Reset to first page on search
+    }, 300),
+    []
+  );
 
-  // Sort users
-  const sortedUsers = [...filteredUsers].sort((a, b) => {
-    if (sortBy === 'name' || sortBy === 'email') {
-      return sortDirection === 'asc' 
-        ? a[sortBy].localeCompare(b[sortBy])
-        : b[sortBy].localeCompare(a[sortBy]);
-    }
-    
-    const dateA = new Date(a[sortBy]).getTime();
-    const dateB = new Date(b[sortBy]).getTime();
-    return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
-  });
+  // Handle search input changes with debounce
+  useEffect(() => {
+    debouncedSearch(searchInput);
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [searchInput, debouncedSearch]);
 
-  // Pagination
-  const usersPerPage = 10;
-  const totalPages = Math.ceil(sortedUsers.length / usersPerPage);
-  const paginatedUsers = sortedUsers.slice((currentPage - 1) * usersPerPage, currentPage * usersPerPage);
+  // Memoized filtered users
+  const filteredUsers = useMemo(() => {
+    return users.filter(user => {
+      const matchesSearch = !searchQuery || 
+        user.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        user.email.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesRole = !selectedRole || user.role === selectedRole;
+      
+      return matchesSearch && matchesRole;
+    });
+  }, [users, searchQuery, selectedRole]);
+
+  // Memoized sorted users
+  const sortedUsers = useMemo(() => {
+    return [...filteredUsers].sort((a, b) => {
+      if (sortBy === 'name' || sortBy === 'email') {
+        return sortDirection === 'asc' 
+          ? a[sortBy].localeCompare(b[sortBy])
+          : b[sortBy].localeCompare(a[sortBy]);
+      }
+      
+      const dateA = new Date(a[sortBy]).getTime();
+      const dateB = new Date(b[sortBy]).getTime();
+      return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+    });
+  }, [filteredUsers, sortBy, sortDirection]);
+
+  // Memoized paginated users
+  const paginatedUsers = useMemo(() => {
+    return sortedUsers.slice(
+      (currentPage - 1) * usersPerPage, 
+      currentPage * usersPerPage
+    );
+  }, [sortedUsers, currentPage, usersPerPage]);
+
+  // Calculate pagination values
+  const totalPages = useMemo(() => {
+    return Math.ceil(sortedUsers.length / usersPerPage);
+  }, [sortedUsers.length, usersPerPage]);
 
   // Calculate stats
-  const stats = {
-    totalUsers: users.length,
-    activeUsers: users.length, // Can be adjusted if we have active status
-    newUsers: users.filter(user => {
-      const oneWeekAgo = new Date();
-      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-      return new Date(user.createdAt) >= oneWeekAgo;
-    }).length,
-    suspendedUsers: 0 // Can be adjusted if we have suspended status
-  };
+  const stats = useMemo(() => {
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    
+    return {
+      totalUsers: users.length,
+      activeUsers: users.length, // Can be adjusted if we have active status
+      newUsers: users.filter(user => {
+        return new Date(user.createdAt) >= oneWeekAgo;
+      }).length,
+      suspendedUsers: 0, // Can be adjusted if we have suspended status
+      admins: users.filter(u => u.role === 'ADMIN').length,
+      regularUsers: users.filter(u => u.role !== 'ADMIN').length
+    };
+  }, [users]);
 
-  const handleDeleteUser = async () => {
+  // Animation config based on list size
+  const animationConfig = useMemo(() => ({
+    shouldAnimate: sortedUsers.length < 100,
+    getDelay: (index) => sortedUsers.length > 50 ? 0 : Math.min(0.05, index * 0.01)
+  }), [sortedUsers.length]);
+
+  // Handle user delete confirmation
+  const handleDeleteUser = useCallback(async () => {
     if (!selectedUserId) return;
     
     const result = await deleteUser(selectedUserId);
@@ -109,10 +149,15 @@ export default function UserManagement() {
       setIsDeleteModalOpen(false);
       setSelectedUserId(null);
     }
-  };
+  }, [selectedUserId, deleteUser]);
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedRole]);
 
   // Format date for display
-  const formatDate = (dateString) => {
+  const formatDate = useCallback((dateString) => {
     if (!dateString) return "N/A";
     
     const date = new Date(dateString);
@@ -129,186 +174,218 @@ export default function UserManagement() {
       month: 'short',
       day: 'numeric'
     });
-  };
+  }, []);
 
   // Get role badge styling
-  const getRoleBadgeClass = (role) => {
+  const getRoleBadgeClass = useCallback((role) => {
     switch(role) {
       case 'ADMIN': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
     }
-  };
+  }, []);
 
-  // Table view for users (keeping your original design)
+  // Get user initials for avatar
+  const getUserInitials = useCallback((name) => {
+    return name
+      .split(' ')
+      .map(part => part.charAt(0))
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
+  }, []);
+
+  // Table view for users
   const renderUsersTable = () => (
-    <div className="overflow-x-auto shadow-sm rounded-lg border border-gray-200 dark:border-gray-700">
-      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-        <thead className="bg-gray-50 dark:bg-gray-800">
-          <tr>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Usuario
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Rol
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Fecha de Registro
-            </th>
-            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Acciones
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-          {paginatedUsers.map((user, index) => (
-            <motion.tr 
-              key={user.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-              className="hover:bg-gray-50 dark:hover:bg-gray-800"
-            >
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 h-10 w-10">
-                    <div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                      <Users className="h-6 w-6 text-gray-400" />
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">
-                      {user.name}
-                    </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
-                      <Mail className="h-3.5 w-3.5 mr-1" />
-                      {user.email}
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getRoleBadgeClass(user.role)}`}>
-                  {user.role === 'ADMIN' ? 'Administrador' : 'Usuario'}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                <div className="flex items-center">
-                  <Calendar className="h-4 w-4 mr-1" />
-                  {formatDate(user.createdAt)}
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <div className="flex space-x-2 justify-end">
-                  <motion.button 
-                    whileHover={{ scale: 1.1 }} 
-                    whileTap={{ scale: 0.9 }}
-                    className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
-                    onClick={() => router.push(`/admin/users/edit/${user.id}`)}
-                  >
-                    <Edit size={18} />
-                  </motion.button>
-                  <motion.button 
-                    whileHover={{ scale: 1.1 }} 
-                    whileTap={{ scale: 0.9 }}
-                    className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                    onClick={() => {
-                      setSelectedUserId(user.id);
-                      setIsDeleteModalOpen(true);
-                    }}
-                  >
-                    <Trash2 size={18} />
-                  </motion.button>
-                </div>
-              </td>
-            </motion.tr>
-          ))}
-          {paginatedUsers.length === 0 && !isLoading && (
+    <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead className="bg-gray-50 dark:bg-gray-800">
             <tr>
-              <td colSpan={4} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
-                No se encontraron usuarios que coincidan con los filtros.
-              </td>
+              <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <div className="flex items-center space-x-1">
+                  <span>Usuario</span>
+                  <button 
+                    onClick={() => {
+                      setSortBy('name');
+                      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+                    }}
+                    className="hover:bg-gray-200 dark:hover:bg-gray-700 p-1 rounded"
+                  >
+                    <ArrowUpDown size={14} />
+                  </button>
+                </div>
+              </th>
+              <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Rol
+              </th>
+              <th scope="col" className="hidden md:table-cell px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <div className="flex items-center space-x-1">
+                  <span>Fecha</span>
+                  <button 
+                    onClick={() => {
+                      setSortBy('createdAt');
+                      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+                    }}
+                    className="hover:bg-gray-200 dark:hover:bg-gray-700 p-1 rounded"
+                  >
+                    <ArrowUpDown size={14} />
+                  </button>
+                </div>
+              </th>
+              <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Acciones
+              </th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
+            {paginatedUsers.map((user, index) => (
+              <motion.tr 
+                key={user.id}
+                initial={animationConfig.shouldAnimate ? { opacity: 0, y: 10 } : { opacity: 1 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: animationConfig.getDelay(index) }}
+                className="hover:bg-gray-50 dark:hover:bg-gray-800"
+              >
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 h-8 w-8">
+                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center">
+                        <span className="text-xs font-medium text-white">{getUserInitials(user.name)}</span>
+                      </div>
+                    </div>
+                    <div className="ml-3">
+                      <div className="text-sm font-medium text-gray-900 dark:text-white">
+                        {user.name}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
+                        <Mail className="h-3 w-3 mr-1 flex-shrink-0" />
+                        <span className="truncate max-w-[140px] md:max-w-xs">{user.email}</span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getRoleBadgeClass(user.role)}`}>
+                    {user.role === 'ADMIN' ? 'Administrador' : 'Usuario'}
+                  </span>
+                </td>
+                <td className="hidden md:table-cell px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  <div className="flex items-center">
+                    <Calendar className="h-3.5 w-3.5 mr-1 flex-shrink-0" />
+                    {formatDate(user.createdAt)}
+                  </div>
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
+                  <div className="flex space-x-1 justify-end">
+                    <motion.button 
+                      whileHover={{ scale: 1.1 }} 
+                      whileTap={{ scale: 0.9 }}
+                      className="p-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 rounded-md"
+                      onClick={() => router.push(`/admin/users/edit/${user.id}`)}
+                      aria-label="Editar usuario"
+                    >
+                      <Edit size={16} />
+                    </motion.button>
+                    <motion.button 
+                      whileHover={{ scale: 1.1 }} 
+                      whileTap={{ scale: 0.9 }}
+                      className="p-1.5 bg-red-50 dark:bg-red-900/20 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 rounded-md"
+                      onClick={() => {
+                        setSelectedUserId(user.id);
+                        setIsDeleteModalOpen(true);
+                      }}
+                      aria-label="Eliminar usuario"
+                    >
+                      <Trash2 size={16} />
+                    </motion.button>
+                  </div>
+                </td>
+              </motion.tr>
+            ))}
+            {paginatedUsers.length === 0 && !isLoading && (
+              <tr>
+                <td colSpan={4} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                  <div className="flex flex-col items-center">
+                    <User className="h-8 w-8 text-gray-400 mb-2" />
+                    No se encontraron usuarios que coincidan con los filtros.
+                  </div>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 
-  // Grid view for users (keeping your original design)
+  // Grid view for users
   const renderUsersGrid = () => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {paginatedUsers.map((user, index) => (
         <motion.div
           key={user.id}
-          initial={{ opacity: 0, y: 10 }}
+          initial={animationConfig.shouldAnimate ? { opacity: 0, y: 10 } : { opacity: 1 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.05 }}
-          className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm border border-gray-200 dark:border-gray-700"
+          transition={{ delay: animationConfig.getDelay(index) }}
+          className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col"
         >
-          <div className="relative">
-            <div className="h-24 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
-            <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2">
-              <div className="h-20 w-20 rounded-full border-4 border-white dark:border-gray-800 bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                <Users className="h-10 w-10 text-gray-500" />
+          <div className="h-16 bg-gradient-to-r from-indigo-500 to-purple-500 relative">
+            <div className="absolute -bottom-5 left-4">
+              <div className="h-10 w-10 rounded-full border-2 border-white dark:border-gray-800 bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center">
+                <span className="text-sm font-medium text-white">{getUserInitials(user.name)}</span>
               </div>
             </div>
           </div>
           
-          <div className="pt-12 pb-4 px-4">
-            <div className="text-center">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">{user.name}</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center justify-center">
-                <Mail className="h-3.5 w-3.5 mr-1" />
-                {user.email}
+          <div className="p-4 pt-6 flex-1 flex flex-col">
+            <div>
+              <h3 className="text-base font-medium text-gray-900 dark:text-white">{user.name}</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center mt-1">
+                <Mail className="h-3 w-3 mr-1 flex-shrink-0" />
+                <span className="truncate">{user.email}</span>
               </p>
             </div>
             
-            <div className="mt-4 flex justify-center space-x-2">
-              <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getRoleBadgeClass(user.role)}`}>
+            <div className="mt-3 flex items-center">
+              <span className={`px-2 py-0.5 text-xs leading-5 font-medium rounded-full ${getRoleBadgeClass(user.role)}`}>
                 {user.role === 'ADMIN' ? 'Administrador' : 'Usuario'}
+              </span>
+              <span className="ml-2 text-xs text-gray-500 dark:text-gray-400 flex items-center">
+                <Calendar className="h-3 w-3 mr-1" />
+                {formatDate(user.createdAt)}
               </span>
             </div>
             
-            <div className="mt-4 grid grid-cols-1 gap-2 text-center text-sm">
-              <div className="px-2 py-1 rounded-lg bg-gray-50 dark:bg-gray-700">
-                <span className="text-gray-500 dark:text-gray-400">Registrado</span>
-                <p className="text-gray-900 dark:text-white font-medium">{formatDate(user.createdAt)}</p>
-              </div>
-              <div className="px-2 py-1 rounded-lg bg-gray-50 dark:bg-gray-700">
-                <span className="text-gray-500 dark:text-gray-400">Favoritos</span>
-                <p className="text-gray-900 dark:text-white font-medium">
-                  {user._count?.favorites || 0}
-                </p>
-              </div>
-            </div>
-            
-            <div className="mt-4 flex justify-center space-x-2">
+            <div className="mt-auto pt-3 flex justify-end space-x-1">
               <motion.button 
-                whileHover={{ scale: 1.1 }} 
-                whileTap={{ scale: 0.9 }}
-                className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full"
+                whileHover={{ scale: 1.05 }} 
+                whileTap={{ scale: 0.95 }}
+                className="p-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 rounded-md"
                 onClick={() => router.push(`/admin/users/edit/${user.id}`)}
+                aria-label="Editar usuario"
               >
-                <Edit size={18} />
+                <Edit size={16} />
               </motion.button>
               <motion.button 
-                whileHover={{ scale: 1.1 }} 
-                whileTap={{ scale: 0.9 }}
-                className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full"
+                whileHover={{ scale: 1.05 }} 
+                whileTap={{ scale: 0.95 }}
+                className="p-1.5 bg-red-50 dark:bg-red-900/20 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 rounded-md"
                 onClick={() => {
                   setSelectedUserId(user.id);
                   setIsDeleteModalOpen(true);
                 }}
+                aria-label="Eliminar usuario"
               >
-                <Trash2 size={18} />
+                <Trash2 size={16} />
               </motion.button>
             </div>
           </div>
         </motion.div>
       ))}
       {paginatedUsers.length === 0 && !isLoading && (
-        <div className="col-span-full text-center py-10 text-gray-500 dark:text-gray-400">
-          No se encontraron usuarios que coincidan con los filtros.
+        <div className="col-span-full flex flex-col items-center justify-center py-10 text-gray-500 dark:text-gray-400">
+          <User className="h-10 w-10 text-gray-400 mb-2" />
+          <p>No se encontraron usuarios que coincidan con los filtros.</p>
         </div>
       )}
     </div>
@@ -347,183 +424,132 @@ export default function UserManagement() {
       {/* Stats Cards */}
       <motion.div
         variants={slideIn}
-        className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4"
+        className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4"
       >
-        <motion.div
-          whileHover={{ y: -2, transition: { duration: 0.2 } }}
-          className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg border border-gray-200 dark:border-gray-700"
-        >
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 bg-indigo-100 dark:bg-indigo-900/30 rounded-md p-3">
-                <Users className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+        {[
+          { 
+            icon: <Users className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />, 
+            label: "Total de Usuarios", 
+            value: stats.totalUsers,
+            bgColor: "bg-indigo-100 dark:bg-indigo-900/30"
+          },
+          { 
+            icon: <UserCheck className="h-5 w-5 text-green-600 dark:text-green-400" />, 
+            label: "Administradores", 
+            value: stats.admins,
+            bgColor: "bg-green-100 dark:bg-green-900/30"
+          },
+          { 
+            icon: <Activity className="h-5 w-5 text-amber-600 dark:text-amber-400" />, 
+            label: "Nuevos (7 días)", 
+            value: stats.newUsers,
+            bgColor: "bg-amber-100 dark:bg-amber-900/30"
+          },
+          { 
+            icon: <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />, 
+            label: "Usuarios Normales", 
+            value: stats.regularUsers,
+            bgColor: "bg-blue-100 dark:bg-blue-900/30"
+          },
+        ].map((stat, index) => (
+          <motion.div
+            key={index}
+            whileHover={{ y: -2, transition: { duration: 0.2 } }}
+            className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm border border-gray-200 dark:border-gray-700"
+          >
+            <div className="p-4 flex items-center">
+              <div className={`flex-shrink-0 ${stat.bgColor} rounded-md p-2.5`}>
+                {stat.icon}
               </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                    Total de Usuarios
-                  </dt>
-                  <dd>
-                    <div className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {stats.totalUsers}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          whileHover={{ y: -2, transition: { duration: 0.2 } }}
-          className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg border border-gray-200 dark:border-gray-700"
-        >
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 bg-green-100 dark:bg-green-900/30 rounded-md p-3">
-                <UserCheck className="h-6 w-6 text-green-600 dark:text-green-400" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                    Administradores
-                  </dt>
-                  <dd>
-                    <div className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {users.filter(u => u.role === 'ADMIN').length}
-                    </div>
-                  </dd>
-                </dl>
+              <div className="ml-3 w-0 flex-1">
+                <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  {stat.label}
+                </div>
+                <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                  {stat.value}
+                </div>
               </div>
             </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          whileHover={{ y: -2, transition: { duration: 0.2 } }}
-          className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg border border-gray-200 dark:border-gray-700"
-        >
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 bg-amber-100 dark:bg-amber-900/30 rounded-md p-3">
-                <Activity className="h-6 w-6 text-amber-600 dark:text-amber-400" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                    Registros Nuevos (7 días)
-                  </dt>
-                  <dd>
-                    <div className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {stats.newUsers}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          whileHover={{ y: -2, transition: { duration: 0.2 } }}
-          className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg border border-gray-200 dark:border-gray-700"
-        >
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 bg-blue-100 dark:bg-blue-900/30 rounded-md p-3">
-                <Shield className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                    Usuarios Normales
-                  </dt>
-                  <dd>
-                    <div className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {users.filter(u => u.role !== 'ADMIN').length}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        ))}
       </motion.div>
 
       {/* Filters and Search */}
       <motion.div 
         variants={slideIn}
-        className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+        className="mt-6 grid gap-3 md:flex md:items-center md:space-x-3"
       >
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -mt-2.5 h-5 w-5 text-gray-400" />
+        <div className="relative flex-grow">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input
             type="text"
-            placeholder="Buscar usuarios..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 pr-4 py-2 w-full rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
+            placeholder="Buscar por nombre o email..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="pl-9 pr-4 py-2 w-full rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white text-sm"
           />
         </div>
 
-        <div className="relative">
-          <select
-            value={selectedRole}
-            onChange={(e) => setSelectedRole(e.target.value)}
-            className="pl-4 pr-10 py-2 w-full rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white appearance-none"
-          >
-            <option value="">Todos los Roles</option>
-            <option value="ADMIN">Administrador</option>
-            <option value="USER">Usuario</option>
-          </select>
-          <ChevronDown className="absolute right-3 top-1/2 -mt-2 h-4 w-4 text-gray-400" />
-        </div>
-
-        <div className="flex gap-2 lg:col-span-2">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setSortDirection(sortDirection === "asc" ? "desc" : "asc")}
-            className="flex items-center justify-center p-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
-          >
-            <ArrowUpDown className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-          </motion.button>
-
-          <div className="relative flex-1">
+        <div className="flex items-center space-x-2">
+          <div className="relative">
             <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="pl-4 pr-10 py-2 w-full rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white appearance-none"
+              value={selectedRole}
+              onChange={(e) => setSelectedRole(e.target.value)}
+              className="appearance-none pl-3 pr-8 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white text-sm bg-transparent"
             >
-              <option value="createdAt">Fecha de Registro</option>
-              <option value="name">Nombre</option>
-              <option value="email">Email</option>
-              <option value="updatedAt">Última Actualización</option>
+              <option value="">Todos los Roles</option>
+              <option value="ADMIN">Administrador</option>
+              <option value="USER">Usuario</option>
             </select>
-            <ChevronDown className="absolute right-3 top-1/2 -mt-2 h-4 w-4 text-gray-400" />
+            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none text-gray-400" />
+          </div>
+          
+          <div className="flex items-center space-x-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg">
+            <button 
+              onClick={() => {
+                setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+              }}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-l-lg"
+              aria-label={sortDirection === 'asc' ? 'Ordenar descendente' : 'Ordenar ascendente'} 
+            >
+              <ArrowUpDown size={16} className={sortDirection === 'asc' ? 'text-indigo-500' : 'text-gray-500'} />
+            </button>
+            
+            <div className="h-5 w-px bg-gray-300 dark:bg-gray-600"></div>
+            
+            <div className="relative">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="appearance-none pl-2 pr-7 py-2 text-sm border-0 focus:ring-0 bg-transparent"
+              >
+                <option value="createdAt">Por fecha</option>
+                <option value="name">Por nombre</option>
+                <option value="email">Por email</option>
+              </select>
+              <ChevronDown className="absolute right-1 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none text-gray-400" />
+            </div>
           </div>
           
           <div className="flex border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <button
               onClick={() => setViewMode('table')}
-              className={`px-3 py-2 ${viewMode === 'table' ? 
+              className={`p-2 ${viewMode === 'table' ? 
                 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 
                 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400'}`}
+              aria-label="Ver como tabla"
             >
-              <LayoutList className="h-5 w-5" />
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              <LayoutList size={16} />
+            </button>
+            <button
               onClick={() => setViewMode('grid')}
-              className={`px-3 py-2 ${viewMode === 'grid' ? 
+              className={`p-2 ${viewMode === 'grid' ? 
                 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 
                 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400'}`}
+              aria-label="Ver como grid"
             >
-              <Users className="h-5 w-5" />
-            </motion.button>
+              <Users size={16} />
+            </button>
           </div>
         </div>
       </motion.div>
@@ -536,8 +562,8 @@ export default function UserManagement() {
         {isLoading ? (
           <div className="h-60 flex items-center justify-center">
             <div className="animate-pulse flex flex-col items-center">
-              <div className="w-16 h-16 border-4 border-gray-200 dark:border-gray-700 border-t-indigo-600 dark:border-t-indigo-400 rounded-full animate-spin"></div>
-              <p className="mt-4 text-gray-600 dark:text-gray-400 text-lg font-medium">Cargando usuarios...</p>
+              <div className="w-10 h-10 border-3 border-t-indigo-600 border-indigo-200 dark:border-t-indigo-400 dark:border-gray-700 rounded-full animate-spin mb-3"></div>
+              <p className="text-gray-600 dark:text-gray-400">Cargando usuarios...</p>
             </div>
           </div>
         ) : error ? (
@@ -562,65 +588,69 @@ export default function UserManagement() {
       </motion.div>
 
       {/* Pagination */}
-      {!isLoading && !error && paginatedUsers.length > 0 && (
+      {!isLoading && !error && sortedUsers.length > 0 && (
         <motion.div 
           variants={slideIn}
-          className="mt-6 flex items-center justify-between"
+          className="mt-6 flex items-center justify-between flex-wrap gap-3"
         >
           <div className="text-sm text-gray-700 dark:text-gray-300">
             Mostrando {(currentPage - 1) * usersPerPage + 1} a{" "}
             {Math.min(currentPage * usersPerPage, sortedUsers.length)} de{" "}
             <span className="font-medium">{sortedUsers.length}</span> usuarios
           </div>
-          <div className="flex space-x-2">
+          <div className="flex space-x-1">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(currentPage - 1)}
-              className={`px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm ${
+              className={`px-3 py-1 border rounded-md text-sm ${
                 currentPage === 1 
-                  ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' 
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  ? 'border-gray-200 dark:border-gray-800 text-gray-300 dark:text-gray-600 cursor-not-allowed' 
+                  : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
               }`}
             >
               Anterior
             </motion.button>
             
             {/* Page numbers */}
-            {Array.from({ length: Math.min(3, totalPages) }, (_, i) => {
-              const pageNum = currentPage <= 2 ? i + 1 : 
-                            currentPage >= totalPages - 1 ? totalPages - 2 + i : 
-                            currentPage - 1 + i;
-              
-              if (pageNum <= 0 || pageNum > totalPages) return null;
-              
-              return (
-                <motion.button
-                  key={pageNum}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setCurrentPage(pageNum)}
-                  className={`px-3 py-1 border ${
-                    currentPage === pageNum 
-                      ? 'bg-indigo-100 border-indigo-300 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-600 dark:text-indigo-300' 
-                      : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                  } rounded-md text-sm`}
-                >
-                  {pageNum}
-                </motion.button>
-              );
-            })}
+            <div className="flex space-x-1">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const pageNum = currentPage <= 3 
+                  ? i + 1 
+                  : currentPage >= totalPages - 2 
+                    ? totalPages - 4 + i 
+                    : currentPage - 2 + i;
+                
+                if (pageNum <= 0 || pageNum > totalPages) return null;
+                
+                return (
+                  <motion.button
+                    key={pageNum}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`w-8 h-8 flex items-center justify-center border rounded-md text-sm ${
+                      currentPage === pageNum 
+                        ? 'bg-indigo-50 border-indigo-300 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-600 dark:text-indigo-300' 
+                        : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    {pageNum}
+                  </motion.button>
+                );
+              })}
+            </div>
             
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               disabled={currentPage === totalPages || totalPages === 0}
               onClick={() => setCurrentPage(currentPage + 1)}
-              className={`px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm ${
+              className={`px-3 py-1 border rounded-md text-sm ${
                 currentPage === totalPages || totalPages === 0
-                  ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' 
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  ? 'border-gray-200 dark:border-gray-800 text-gray-300 dark:text-gray-600 cursor-not-allowed' 
+                  : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
               Siguiente
@@ -633,51 +663,49 @@ export default function UserManagement() {
       {isDeleteModalOpen && (
         <div className="fixed inset-0 backdrop-blur-sm bg-gray-900/50 dark:bg-black/60 flex items-center justify-center z-50 p-4">
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            initial={{ opacity: 0, scale: 0.9, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="bg-white dark:bg-gray-800 rounded-xl p-6 sm:p-8 max-w-md w-full shadow-xl ring-1 ring-gray-200 dark:ring-gray-700"
+            className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full shadow-xl ring-1 ring-gray-200 dark:ring-gray-700"
           >
-            <div className="sm:flex sm:items-start">
-              <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100/80 text-red-600 ring-4 ring-red-600/20 sm:mx-0 sm:h-10 sm:w-10">
-                <AlertTriangle className="stroke-[2.5]" />
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 flex h-10 w-10 items-center justify-center rounded-full bg-red-100/80 text-red-600 ring-4 ring-red-600/20">
+                <AlertTriangle className="h-5 w-5" />
               </div>
-              <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">
+              <div className="flex-1">
+                <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white mb-1">
                   Eliminar Usuario
                 </h3>
-                <div className="mt-2">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    ¿Estás seguro de que quieres eliminar este usuario? Esta acción
-                    no se puede deshacer y todos sus datos asociados serán eliminados.
-                  </p>
-                </div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  ¿Estás seguro de que quieres eliminar este usuario? Esta acción
+                  no se puede deshacer y todos sus datos asociados serán eliminados.
+                </p>
               </div>
             </div>
 
-            <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-3">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                type="button"
-                onClick={handleDeleteUser}
-                className="inline-flex w-full justify-center rounded-lg border border-transparent px-4 py-2 text-base font-medium text-white shadow-sm bg-gradient-to-b from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 sm:ml-3 sm:w-auto"
-              >
-                Eliminar
-              </motion.button>
+            <div className="mt-6 flex justify-end gap-3">
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 type="button"
                 onClick={() => setIsDeleteModalOpen(false)}
-                className="mt-3 inline-flex w-full justify-center rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-base font-medium text-gray-700 dark:text-gray-200 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 sm:mt-0 sm:w-auto"
+                className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
               >
                 Cancelar
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                type="button"
+                onClick={handleDeleteUser}
+                className="rounded-lg border border-transparent px-4 py-2 text-sm font-medium text-white shadow-sm bg-gradient-to-b from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+              >
+                Eliminar
               </motion.button>
             </div>
           </motion.div>
         </div>
       )}
-    </motion.div>
+       </motion.div>
   );
 }
