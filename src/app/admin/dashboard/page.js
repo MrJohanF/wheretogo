@@ -23,11 +23,13 @@ import {
   Star,
   TrendingUp,
   Activity,
+  // Include all potential icons from your categories
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import useUserStore from "@/app/admin/store/useUserStore";
 import useAdminStore from "@/app/admin/store/adminStore";
+import useCategoriesStore from "@/app/admin/store/useCategoryStore";
 
 // Dashboard animation variants
 const fadeIn = {
@@ -46,6 +48,12 @@ export default function Dashboard() {
     places: { data: places },
     fetchPlaces,
   } = useAdminStore();
+  const { 
+    categories,
+    loading: categoriesLoading, 
+    error: categoriesError, 
+    fetchCategories
+  } = useCategoriesStore();
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeSection, setActiveSection] = useState("overview");
@@ -63,29 +71,38 @@ export default function Dashboard() {
     };
   }, [users, places]);
 
+  // Icon mapping function to convert string icon names to components
+  const getIconComponent = (iconName) => {
+    const iconMap = {
+      "Utensils": <Utensils size={18} />,
+      "Coffee": <Coffee size={18} />,
+      "Beer": <Beer size={18} />,
+      "Building": <Building size={18} />,
+      "TreeDeciduous": <TreeDeciduous size={18} />,
+      "Film": <Film size={18} />,
+      "Music": <Music size={18} />,
+      "Volleyball": <Volleyball size={18} />,
+      "ShoppingBag": <ShoppingBag size={18} />,
+      "Calendar": <Calendar size={18} />,
+      "Hotel": <Hotel size={18} />,
+      "Waves": <Waves size={18} />,
+      "MapPin": <MapPin size={18} />,
+      "Users": <Users size={18} />,
+      "Menu": <Menu size={18} />,
+      "Plus": <Plus size={18} />,
+      "Star": <Star size={18} />,
+      "TrendingUp": <TrendingUp size={18} />,
+      // Add more mappings as needed
+    };
+    return iconMap[iconName] || <MapPin size={18} />; // Default icon
+  };
 
-
-  // Fetch users on component mount
+  // Fetch data on component mount
   useEffect(() => {
     fetchUsers();
     fetchPlaces();
-  }, [fetchUsers, fetchPlaces]);
-
-  // Categories with their icons and counts
-  const categories = [
-    { name: "Restaurantes", icon: <Utensils size={18} />, count: 128 },
-    { name: "Cafeterías", icon: <Coffee size={18} />, count: 85 },
-    { name: "Bares", icon: <Beer size={18} />, count: 97 },
-    { name: "Museos", icon: <Building size={18} />, count: 42 },
-    { name: "Parques", icon: <TreeDeciduous size={18} />, count: 36 },
-    { name: "Cines", icon: <Film size={18} />, count: 18 },
-    { name: "Teatros", icon: <Music size={18} />, count: 24 },
-    { name: "Deportes", icon: <Volleyball size={18} />, count: 31 },
-    { name: "Compras", icon: <ShoppingBag size={18} />, count: 76 },
-    { name: "Eventos", icon: <Calendar size={18} />, count: 54 },
-    { name: "Hoteles", icon: <Hotel size={18} />, count: 63 },
-    { name: "Playas", icon: <Waves size={18} />, count: 29 },
-  ];
+    fetchCategories(); // Add this to load categories
+  }, [fetchUsers, fetchPlaces, fetchCategories]);
 
   // Recent activity mock data
   const recentActivity = [
@@ -200,31 +217,65 @@ export default function Dashboard() {
               >
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-lg font-semibold">Categorías</h2>
-                  <button className="text-sm text-indigo-600 hover:text-indigo-800">
+                  <Link 
+                    href="/admin/categories" 
+                    className="text-sm text-indigo-600 hover:text-indigo-800"
+                  >
                     Ver Todo
-                  </button>
+                  </Link>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {categories.map((category, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="bg-gray-50 hover:bg-gray-100 rounded-lg p-4 flex items-center justify-between cursor-pointer"
-                    >
-                      <div className="flex items-center">
-                        <span className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center mr-3">
-                          {category.icon}
+                
+                {categoriesLoading ? (
+                  <div className="flex justify-center items-center h-40">
+                    <span className="animate-pulse">Cargando categorías...</span>
+                  </div>
+                ) : categoriesError ? (
+                  <div className="text-red-500 text-center py-4">
+                    Error al cargar categorías: {categoriesError}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {categories.slice(0, 12).map((category, index) => (
+                      <motion.div
+                        key={category.id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="bg-gray-50 hover:bg-gray-100 rounded-lg p-4 flex items-center justify-between cursor-pointer"
+                        style={category.color ? { backgroundColor: `${category.color}20` } : {}}
+                        onClick={() => router.push(`/admin/categories?id=${category.id}`)}
+                      >
+                        <div className="flex items-center">
+                          <span 
+                            className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center mr-3"
+                            style={category.color ? { 
+                              backgroundColor: `${category.color}30`, 
+                              color: category.color 
+                            } : {}}
+                          >
+                            {getIconComponent(category.icon)}
+                          </span>
+                          <span className="font-medium">{category.name}</span>
+                        </div>
+                        <span className="text-sm text-gray-500">
+                          {category._count?.places || category.count || 0}
                         </span>
-                        <span className="font-medium">{category.name}</span>
-                      </div>
-                      <span className="text-sm text-gray-500">
-                        {category.count}
-                      </span>
-                    </motion.div>
-                  ))}
-                </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+                
+                {!categoriesLoading && !categoriesError && categories.length === 0 && (
+                  <div className="text-center py-10">
+                    <p className="text-gray-500 mb-4">No hay categorías disponibles</p>
+                    <button 
+                      onClick={() => router.push('/admin/categories')}
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg"
+                    >
+                      Crear categoría
+                    </button>
+                  </div>
+                )}
               </motion.div>
 
               {/* Recent Activity */}

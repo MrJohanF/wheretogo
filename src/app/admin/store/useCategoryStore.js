@@ -208,6 +208,22 @@ const useCategoriesStore = create(
         }
       }),
       
+      cancelCategoryForm: () => {
+        set((state) => ({
+          isAddingCategory: false,
+          isEditingCategory: false,
+          currentCategory: null,
+          formData: {
+            name: "",
+            description: "",
+            icon: "",
+            color: "#6366F1",
+            isTrending: false,
+            image: null,
+          }
+        }));
+      },
+      
       // Category Delete Operations
       initDeleteCategory: (category) => set({
         categoryToDelete: category,
