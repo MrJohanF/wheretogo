@@ -23,8 +23,6 @@ import { useState, useCallback } from "react";
 
 /**
  * Modern color palette for categories
- * These colors are chosen for good contrast, accessibility,
- * and visual appeal across different interfaces
  */
 const MODERN_COLOR_PALETTE = [
   // Blues & Indigos
@@ -64,35 +62,7 @@ const MODERN_COLOR_PALETTE = [
 ];
 
 /**
- * Icon options available for categories
- */
-const iconOptions = [
-  { name: "Coffee", icon: <Coffee size={20} /> },
-  { name: "Utensils", icon: <Utensils size={20} /> },
-  { name: "Beer", icon: <Beer size={20} /> },
-  { name: "Building", icon: <Building size={20} /> },
-  { name: "TreeDeciduous", icon: <TreeDeciduous size={20} /> },
-  { name: "Film", icon: <Film size={20} /> },
-  { name: "Music", icon: <Music size={20} /> },
-  { name: "Football", icon: <Volleyball size={20} /> },
-  { name: "ShoppingBag", icon: <ShoppingBag size={20} /> },
-  { name: "Calendar", icon: <Calendar size={20} /> },
-  { name: "Hotel", icon: <Hotel size={20} /> },
-  { name: "Waves", icon: <Waves size={20} /> },
-];
-
-/**
  * Category form component for adding and editing categories
- * 
- * @param {Object} props Component props
- * @param {boolean} props.isAdding True if adding a new category, false if editing
- * @param {Object} props.formData Form data object
- * @param {Function} props.onInputChange Handler for form input changes
- * @param {Function} props.onImageSelect Handler for image selection
- * @param {Function} props.onIconSelect Handler for icon selection
- * @param {Function} props.onCancel Handler for cancel action
- * @param {Function} props.onSave Handler for save action
- * @param {Object|null} props.currentCategory Current category being edited (null if adding)
  */
 export default function CategoryForm({ 
   isAdding,
@@ -102,7 +72,8 @@ export default function CategoryForm({
   onIconSelect,
   onCancel,
   onSave,
-  currentCategory 
+  currentCategory,
+  iconOptions 
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -271,6 +242,7 @@ export default function CategoryForm({
               </button>
             </div>
             <div className="flex items-center space-x-3">
+              {/* FIX 1: Add onChange to color input */}
               <input
                 type="color"
                 id="color"
@@ -279,13 +251,16 @@ export default function CategoryForm({
                 onChange={onInputChange}
                 className="w-12 h-10 border-0 p-0 cursor-pointer"
               />
+              
+              {/* FIX 2: Add onChange to color text input */}
               <input
                 type="text"
+                name="color"
                 value={formData.color}
                 onChange={onInputChange}
-                name="color"
                 className="w-28 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
               />
+              
               <motion.div
                 animate={colorAnimation ? { scale: [1, 1.2, 1] } : {}}
                 transition={{ duration: 0.4 }}
@@ -314,7 +289,7 @@ export default function CategoryForm({
             </div>
           </div>
 
-          {/* Trending toggle */}
+          {/* FIX 5: Add onChange to checkbox */}
           <div className="flex items-center">
             <input
               type="checkbox"

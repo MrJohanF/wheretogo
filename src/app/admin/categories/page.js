@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
@@ -10,7 +10,6 @@ import {
   ArrowLeft,
   ChevronRight,
   X,
-  Save,
   Star,
   Coffee,
   Utensils,
@@ -30,11 +29,12 @@ import {
 import { useRouter } from "next/navigation";
 import ConfirmationModal from "@/app/components/ConfirmationModal";
 import CategoryForm from "./components/CategoryForm";
+import useCategoriesStore from "@/app/admin/store/useCategoryStore";
 
-// Optimized animation variants - using transforms instead of position changes where possible
+// Animation variants
 const fadeIn = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.2 } }, // Reduced duration
+  visible: { opacity: 1, transition: { duration: 0.2 } },
 };
 
 const slideUp = {
@@ -51,7 +51,6 @@ const slideUp = {
   },
 };
 
-// Row animation - simpler than before
 const rowFadeIn = {
   hidden: { opacity: 0 },
   visible: { opacity: 1 }
@@ -67,46 +66,68 @@ const rowFadeIn = {
 export default function CategoriesManagement() {
   const router = useRouter();
   
-  // Core state
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [categories, setCategories] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  // Access global state from Zustand store
+  const {
+    // Core state
+    loading,
+    error,
+    categories,
+    searchTerm,
 
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  
-  // Category CRUD state
-  const [isAddingCategory, setIsAddingCategory] = useState(false);
-  const [isEditingCategory, setIsEditingCategory] = useState(false);
-  const [currentCategory, setCurrentCategory] = useState(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [categoryToDelete, setCategoryToDelete] = useState(null);
+    // Pagination state
+    currentPage,
+    itemsPerPage,
+    
+    // Category CRUD state
+    isAddingCategory,
+    isEditingCategory,
+    currentCategory,
+    showDeleteConfirm,
+    categoryToDelete,
 
-  // Subcategory state
-  const [viewingSubcategories, setViewingSubcategories] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [isAddingSubcategory, setIsAddingSubcategory] = useState(false);
-  const [isEditingSubcategory, setIsEditingSubcategory] = useState(false);
-  const [currentSubcategory, setCurrentSubcategory] = useState(null);
-  const [showDeleteSubcategoryConfirm, setShowDeleteSubcategoryConfirm] = useState(false);
-  const [subcategoryToDelete, setSubcategoryToDelete] = useState(null);
-  
-  // Form data
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    icon: "",
-    color: "#6366F1", // Default indigo color
-    isTrending: false,
-    image: null,
-  });
-  
-  const [subcategoryFormData, setSubcategoryFormData] = useState({
-    name: "",
-    categoryId: null,
-  });
+    // Subcategory state
+    viewingSubcategories,
+    selectedCategory,
+    isAddingSubcategory,
+    isEditingSubcategory,
+    currentSubcategory,
+    showDeleteSubcategoryConfirm,
+    subcategoryToDelete,
+    
+    // Form data
+    formData,
+    subcategoryFormData,
+    
+    // Derived data
+    getFilteredCategories,
+    
+    // Actions
+    fetchCategories,
+    setSearchTerm,
+    setCurrentPage,
+    setItemsPerPage,
+    initAddCategory,
+    initEditCategory,
+    cancelCategoryForm,
+    handleInputChange,
+    handleIconSelect,
+    handleImageSelect,
+    saveCategory,
+    initDeleteCategory,
+    cancelDeleteCategory,
+    confirmDeleteCategory,
+    toggleTrendingStatus,
+    viewSubcategories,
+    exitSubcategoriesView,
+    initAddSubcategory,
+    initEditSubcategory,
+    cancelSubcategoryForm,
+    handleSubcategoryInputChange,
+    saveSubcategory,
+    initDeleteSubcategory,
+    cancelDeleteSubcategory,
+    confirmDeleteSubcategory,
+  } = useCategoriesStore();
 
   // Available icons for categories
   const iconOptions = useMemo(() => [
@@ -124,16 +145,8 @@ export default function CategoriesManagement() {
     { name: "Waves", icon: <Waves size={20} /> },
   ], []);
 
-  // Memoize filtered categories to reduce calculations
-  const filteredCategories = useMemo(() => {
-    return categories.filter(
-      (cat) =>
-        cat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (cat.description && cat.description.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
-  }, [categories, searchTerm]);
-
-  // Calculate pagination data
+  // Get filtered and paginated data
+  const filteredCategories = getFilteredCategories();
   const totalItems = filteredCategories.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
   
@@ -144,412 +157,12 @@ export default function CategoriesManagement() {
     return filteredCategories.slice(indexOfFirstItem, indexOfLastItem);
   }, [filteredCategories, currentPage, itemsPerPage]);
 
-  // Handle page changes
-  const goToPage = useCallback((page) => {
-    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
-  }, [totalPages]);
-
   /**
    * Fetch categories from API on component mount
    */
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories`,
-          {
-            method: "GET",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Error al cargar las categorías");
-        }
-
-        const data = await response.json();
-        if (!data.success) {
-          throw new Error(data.message || "Error al cargar las categorías");
-        }
-
-        // Transform API data to match component requirements
-        const transformedCategories = (data.categories || []).map((category) => ({
-          ...category,
-          count: category._count?.places || 0,
-          icon: category.icon,
-        }));
-
-        setCategories(transformedCategories);
-        setCurrentPage(1); // Reset to first page when data changes
-      } catch (err) {
-        setError(err.message);
-        console.error("Error fetching categories:", err);
-        setCategories([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchCategories();
-  }, []);
-
-  // Reset to first page when search term changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm]);
-
-  /**
-   * Form input change handler for category form
-   */
-  const handleInputChange = useCallback((e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  }, []);
-
-  /**
-   * Handle icon selection for category form
-   */
-  const handleIconSelect = useCallback((iconName) => {
-    setFormData(prev => ({
-      ...prev,
-      icon: iconName,
-    }));
-  }, []);
-
-  /**
-   * Initialize category creation form
-   */
-  const handleAddCategory = useCallback(() => {
-    setIsAddingCategory(true);
-    setFormData({
-      name: "",
-      description: "",
-      icon: "",
-      color: "#6366F1",
-      isTrending: false,
-      image: null,
-    });
-  }, []);
-
-  /**
-   * Initialize category edit form with existing data
-   */
-  const handleEditCategory = useCallback((category) => {
-    setIsEditingCategory(true);
-    setCurrentCategory(category);
-    setFormData({
-      name: category.name,
-      description: category.description || "",
-      icon: category.icon,
-      color: category.color || "#6366F1",
-      isTrending: category.isTrending,
-      image: category.image,
-    });
-  }, []);
-
-  /**
-   * Initialize category deletion confirmation
-   */
-  const handleDeleteInit = useCallback((category) => {
-    setCategoryToDelete(category);
-    setShowDeleteConfirm(true);
-  }, []);
-
-  /**
-   * Delete a category after confirmation
-   */
-  const handleConfirmDelete = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories/${categoryToDelete.id}`,
-        {
-          method: "DELETE",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Error al eliminar la categoría");
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(data.message || "Error al eliminar la categoría");
-      }
-
-      // Update local state to remove the deleted category
-      setCategories(prev => prev.filter(cat => cat.id !== categoryToDelete.id));
-      setShowDeleteConfirm(false);
-      setCategoryToDelete(null);
-      
-      // Update pagination if needed
-      if (currentCategories.length === 1 && currentPage > 1) {
-        setCurrentPage(currentPage - 1);
-      }
-    } catch (err) {
-      setError(err.message);
-      console.error("Error deleting category:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  /**
-   * Toggle trending status for a category
-   */
-  const handleToggleTrending = async (category) => {
-    try {
-      setLoading(true);
-      
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories/${category.id}`,
-        {
-          method: "PUT",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...category,
-            isTrending: !category.isTrending,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Error al actualizar la categoría");
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(data.message || "Error al actualizar la categoría");
-      }
-
-      // Update category in local state
-      setCategories(prev => 
-        prev.map((cat) =>
-          cat.id === category.id ? { ...cat, isTrending: !cat.isTrending } : cat
-        )
-      );
-    } catch (err) {
-      setError(err.message);
-      console.error("Error updating category:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  /**
-   * Handle category save (create/update) completion
-   * Updates local state with API response data
-   */
-  const handleSaveCategory = useCallback((result) => {
-    if (result && result.success) {
-      const updatedCategory = result.category;
-      
-      if (isAddingCategory) {
-        // Add new category to list
-        setCategories(prev => [...prev, updatedCategory]);
-      } else if (isEditingCategory && currentCategory) {
-        // Update existing category
-        setCategories(prev => 
-          prev.map(cat =>
-            cat.id === updatedCategory.id
-              ? { ...cat, ...updatedCategory, count: cat.count }
-              : cat
-          )
-        );
-      }
-    }
-
-    // Reset form state
-    setIsAddingCategory(false);
-    setIsEditingCategory(false);
-    setCurrentCategory(null);
-    setFormData({
-      name: "",
-      description: "",
-      icon: "",
-      color: "#6366F1",
-      isTrending: false,
-      image: null,
-    });
-  }, [currentCategory, isAddingCategory, isEditingCategory]);
-
-  /**
-   * Navigate to subcategories view for a category
-   */
-  const handleViewSubcategories = useCallback((category) => {
-    setSelectedCategory(category);
-    setViewingSubcategories(true);
-  }, []);
-
-  /**
-   * Initialize subcategory creation form
-   */
-  const handleAddSubcategory = useCallback(() => {
-    setIsAddingSubcategory(true);
-    setSubcategoryFormData({
-      name: "",
-      categoryId: selectedCategory?.id,
-    });
-  }, [selectedCategory]);
-
-  /**
-   * Initialize subcategory edit form
-   */
-  const handleEditSubcategory = useCallback((subcategory) => {
-    setIsEditingSubcategory(true);
-    setCurrentSubcategory(subcategory);
-    setSubcategoryFormData({
-      name: subcategory.name,
-      categoryId: selectedCategory?.id,
-    });
-  }, [selectedCategory]);
-
-  /**
-   * Initialize subcategory deletion confirmation
-   */
-  const handleDeleteSubcategoryInit = useCallback((subcategory) => {
-    setSubcategoryToDelete(subcategory);
-    setShowDeleteSubcategoryConfirm(true);
-  }, []);
-
-  /**
-   * Delete a subcategory after confirmation
-   */
-  const handleConfirmDeleteSubcategory = useCallback(() => {
-    // Update the parent category to remove the subcategory
-    setCategories(prev => prev.map((cat) => {
-      if (cat.id === selectedCategory?.id) {
-        return {
-          ...cat,
-          subcategories: cat.subcategories.filter(
-            (sub) => sub.id !== subcategoryToDelete.id
-          ),
-        };
-      }
-      return cat;
-    }));
-
-    setSelectedCategory(prev => 
-      prev ? {
-        ...prev,
-        subcategories: prev.subcategories.filter(
-          (sub) => sub.id !== subcategoryToDelete.id
-        ),
-      } : null
-    );
-    
-    setShowDeleteSubcategoryConfirm(false);
-    setSubcategoryToDelete(null);
-  }, [selectedCategory, subcategoryToDelete]);
-
-  /**
-   * Handle subcategory form input changes
-   */
-  const handleSubcategoryInputChange = useCallback((e) => {
-    const { name, value } = e.target;
-    setSubcategoryFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }));
-  }, []);
-
-  /**
-   * Save a subcategory (create/update)
-   */
-  const handleSaveSubcategory = useCallback(() => {
-    // Validation
-    if (!subcategoryFormData.name.trim()) {
-      return;
-    }
-
-    if (isAddingSubcategory) {
-      // Create new subcategory
-      const newSubcategory = {
-        id: Math.max(0, ...(selectedCategory?.subcategories.map((s) => s.id) || [])) + 1,
-        name: subcategoryFormData.name,
-        categoryId: selectedCategory?.id,
-      };
-
-      // Add subcategory to parent category
-      setCategories(prev => prev.map((cat) => {
-        if (cat.id === selectedCategory?.id) {
-          return {
-            ...cat,
-            subcategories: [...(cat.subcategories || []), newSubcategory],
-          };
-        }
-        return cat;
-      }));
-      
-      setSelectedCategory(prev => prev ? {
-        ...prev,
-        subcategories: [...(prev.subcategories || []), newSubcategory],
-      } : null);
-    } else if (isEditingSubcategory && currentSubcategory) {
-      // Update existing subcategory
-      setCategories(prev => prev.map((cat) => {
-        if (cat.id === selectedCategory?.id) {
-          return {
-            ...cat,
-            subcategories: (cat.subcategories || []).map((sub) =>
-              sub.id === currentSubcategory.id
-                ? { ...sub, name: subcategoryFormData.name }
-                : sub
-            ),
-          };
-        }
-        return cat;
-      }));
-      
-      setSelectedCategory(prev => prev ? {
-        ...prev,
-        subcategories: (prev.subcategories || []).map((sub) =>
-          sub.id === currentSubcategory.id
-            ? { ...sub, name: subcategoryFormData.name }
-            : sub
-        ),
-      } : null);
-    }
-
-    // Reset form state
-    setIsAddingSubcategory(false);
-    setIsEditingSubcategory(false);
-    setCurrentSubcategory(null);
-    setSubcategoryFormData({ name: "", categoryId: null });
-  }, [
-    categories,
-    currentSubcategory,
-    isAddingSubcategory,
-    isEditingSubcategory,
-    selectedCategory,
-    subcategoryFormData.name
-  ]);
-
-  /**
-   * Handle image selection for category form
-   */
-  const handleImageSelect = useCallback((e) => {
-    if (e === null) {
-      setFormData(prev => ({ ...prev, image: null }));
-    } else if (e.target?.files?.[0]) {
-      setFormData(prev => ({
-        ...prev,
-        image: URL.createObjectURL(e.target.files[0]),
-      }));
-    }
-  }, []);
+  }, [fetchCategories]);
 
   // Generate pagination buttons
   const renderPaginationButtons = useMemo(() => {
@@ -559,7 +172,7 @@ export default function CategoriesManagement() {
     buttons.push(
       <button
         key="first"
-        onClick={() => goToPage(1)}
+        onClick={() => setCurrentPage(1)}
         disabled={currentPage === 1}
         className={`px-3 py-1 rounded-md ${
           currentPage === 1
@@ -587,7 +200,7 @@ export default function CategoriesManagement() {
       buttons.push(
         <button
           key={i}
-          onClick={() => goToPage(i)}
+          onClick={() => setCurrentPage(i)}
           className={`px-3 py-1 rounded-md ${
             currentPage === i
               ? "bg-indigo-100 text-indigo-700 font-medium"
@@ -613,7 +226,7 @@ export default function CategoriesManagement() {
       buttons.push(
         <button
           key="last"
-          onClick={() => goToPage(totalPages)}
+          onClick={() => setCurrentPage(totalPages)}
           disabled={currentPage === totalPages}
           className={`px-3 py-1 rounded-md ${
             currentPage === totalPages
@@ -627,7 +240,7 @@ export default function CategoriesManagement() {
     }
     
     return buttons;
-  }, [currentPage, totalPages, goToPage]);
+  }, [currentPage, totalPages, setCurrentPage]);
 
   // Memoize page info text to avoid re-renders
   const pageInfoText = useMemo(() => {
@@ -649,7 +262,7 @@ export default function CategoriesManagement() {
           {viewingSubcategories ? (
             <div className="flex items-center">
               <button
-                onClick={() => setViewingSubcategories(false)}
+                onClick={exitSubcategoriesView}
                 className="mr-2 p-2 rounded-full hover:bg-gray-200"
               >
                 <ArrowLeft size={20} />
@@ -665,14 +278,14 @@ export default function CategoriesManagement() {
           {/* Action buttons */}
           {!viewingSubcategories ? (
             <button
-              onClick={handleAddCategory}
+              onClick={initAddCategory}
               className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-4 py-2 rounded-lg flex items-center"
             >
               <Plus size={18} className="mr-2" /> Añadir Categoría
             </button>
           ) : (
             <button
-              onClick={handleAddSubcategory}
+              onClick={initAddSubcategory}
               className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-4 py-2 rounded-lg flex items-center"
             >
               <Plus size={18} className="mr-2" /> Añadir Subcategoría
@@ -762,7 +375,7 @@ export default function CategoriesManagement() {
                           initial="hidden"
                           animate="visible"
                           exit="hidden"
-                          transition={{ duration: 0.2 }} // Faster transitions
+                          transition={{ duration: 0.2 }}
                           className="hover:bg-gray-50"
                         >
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -789,7 +402,7 @@ export default function CategoriesManagement() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <button
-                              onClick={() => handleToggleTrending(category)}
+                              onClick={() => toggleTrendingStatus(category)}
                               className={`p-1 rounded-md ${
                                 category.isTrending
                                   ? "bg-yellow-100 text-yellow-600"
@@ -801,7 +414,7 @@ export default function CategoriesManagement() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <button
-                              onClick={() => handleViewSubcategories(category)}
+                              onClick={() => viewSubcategories(category)}
                               className="flex items-center text-indigo-600 hover:text-indigo-900"
                             >
                               <span>{category.subcategories?.length || 0}</span>
@@ -810,14 +423,14 @@ export default function CategoriesManagement() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right">
                             <button
-                              onClick={() => handleEditCategory(category)}
+                              onClick={() => initEditCategory(category)}
                               className="text-blue-600 hover:text-blue-900 mr-3"
                               aria-label="Editar categoría"
                             >
                               <Edit size={18} />
                             </button>
                             <button
-                              onClick={() => handleDeleteInit(category)}
+                              onClick={() => initDeleteCategory(category)}
                               className="text-red-600 hover:text-red-900"
                               aria-label="Eliminar categoría"
                             >
@@ -840,7 +453,7 @@ export default function CategoriesManagement() {
                 </div>
                 <div className="flex items-center space-x-2">
                   <button
-                    onClick={() => goToPage(currentPage - 1)}
+                    onClick={() => setCurrentPage(currentPage - 1)}
                     disabled={currentPage === 1}
                     className={`p-1 rounded-md ${
                       currentPage === 1
@@ -856,7 +469,7 @@ export default function CategoriesManagement() {
                   </div>
                   
                   <button
-                    onClick={() => goToPage(currentPage + 1)}
+                    onClick={() => setCurrentPage(currentPage + 1)}
                     disabled={currentPage === totalPages}
                     className={`p-1 rounded-md ${
                       currentPage === totalPages
@@ -870,10 +483,7 @@ export default function CategoriesManagement() {
                   <div className="relative ml-2">
                     <select
                       value={itemsPerPage}
-                      onChange={(e) => {
-                        setItemsPerPage(Number(e.target.value));
-                        setCurrentPage(1); // Reset to first page
-                      }}
+                      onChange={(e) => setItemsPerPage(Number(e.target.value))}
                       className="appearance-none bg-white border rounded-md pl-3 pr-8 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
                     >
                       <option value={5}>5 / pág</option>
@@ -907,7 +517,7 @@ export default function CategoriesManagement() {
                 </p>
                 <button
                   className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-                  onClick={handleAddSubcategory}
+                  onClick={initAddSubcategory}
                 >
                   <Plus size={16} className="mr-2" /> Añadir Subcategoría
                 </button>
@@ -919,20 +529,20 @@ export default function CategoriesManagement() {
                     key={subcategory.id}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ delay: index * 0.03 }} // Reduced delay for better performance
+                    transition={{ delay: index * 0.03 }}
                     className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
                   >
                     <span className="font-medium">{subcategory.name}</span>
                     <div>
                       <button
-                        onClick={() => handleEditSubcategory(subcategory)}
+                        onClick={() => initEditSubcategory(subcategory)}
                         className="text-blue-600 hover:text-blue-900 mr-3"
                         aria-label="Editar subcategoría"
                       >
                         <Edit size={18} />
                       </button>
                       <button
-                        onClick={() => handleDeleteSubcategoryInit(subcategory)}
+                        onClick={() => initDeleteSubcategory(subcategory)}
                         className="text-red-600 hover:text-red-900"
                         aria-label="Eliminar subcategoría"
                       >
@@ -954,12 +564,8 @@ export default function CategoriesManagement() {
             onInputChange={handleInputChange}
             onImageSelect={handleImageSelect}
             onIconSelect={handleIconSelect}
-            onCancel={() => {
-              setIsAddingCategory(false);
-              setIsEditingCategory(false);
-              setCurrentCategory(null);
-            }}
-            onSave={handleSaveCategory}
+            onCancel={cancelCategoryForm}
+            onSave={saveCategory}
             currentCategory={currentCategory}
             iconOptions={iconOptions}
           />
@@ -968,8 +574,8 @@ export default function CategoriesManagement() {
         {/* Confirmation modals */}
         <ConfirmationModal
           isOpen={showDeleteConfirm}
-          onClose={() => setShowDeleteConfirm(false)}
-          onConfirm={handleConfirmDelete}
+          onClose={cancelDeleteCategory}
+          onConfirm={confirmDeleteCategory}
           title="Eliminar Categoría"
           message={`¿Estás seguro que deseas eliminar la categoría "${categoryToDelete?.name}"? Esto también eliminará todas las subcategorías relacionadas. Esta acción no se puede deshacer.`}
           confirmText="Eliminar"
@@ -999,10 +605,7 @@ export default function CategoriesManagement() {
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.94 }}
-                  onClick={() => {
-                    setIsAddingSubcategory(false);
-                    setIsEditingSubcategory(false);
-                  }}
+                  onClick={cancelSubcategoryForm}
                   className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full p-2 transition-colors"
                   aria-label="Cerrar"
                 >
@@ -1038,7 +641,7 @@ export default function CategoriesManagement() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     type="button"
-                    onClick={handleSaveSubcategory}
+                    onClick={saveSubcategory}
                     className="inline-flex items-center justify-center px-5 py-2.5 border border-transparent 
                     text-base font-medium rounded-lg shadow-sm text-white 
                     bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700
@@ -1051,10 +654,7 @@ export default function CategoriesManagement() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     type="button"
-                    onClick={() => {
-                      setIsAddingSubcategory(false);
-                      setIsEditingSubcategory(false);
-                    }}
+                    onClick={cancelSubcategoryForm}
                     className="inline-flex items-center justify-center px-5 py-2.5 
                     border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm 
                     text-base font-medium text-gray-700 dark:text-gray-200 
@@ -1072,8 +672,8 @@ export default function CategoriesManagement() {
         {/* Delete subcategory confirmation modal */}
         <ConfirmationModal
           isOpen={showDeleteSubcategoryConfirm}
-          onClose={() => setShowDeleteSubcategoryConfirm(false)}
-          onConfirm={handleConfirmDeleteSubcategory}
+          onClose={cancelDeleteSubcategory}
+          onConfirm={confirmDeleteSubcategory}
           title="Eliminar Subcategoría"
           message={`¿Estás seguro que deseas eliminar la subcategoría "${subcategoryToDelete?.name}"? Esta acción no se puede deshacer.`}
           confirmText="Eliminar"
