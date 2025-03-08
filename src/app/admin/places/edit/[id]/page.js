@@ -17,7 +17,7 @@ import {
   LayoutList,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
-import {useAdminStore} from "@/app/admin/store/adminStore";
+import useAdminStore from "@/app/admin/store/adminStore";
 
 // Import all Lucide icons for dynamic rendering
 import * as LucideIcons from "lucide-react";
