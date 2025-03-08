@@ -214,7 +214,7 @@ const useCategoriesStore = create(
         showDeleteConfirm: true
       }),
       
-      deleteCategory: async () => {
+      confirmDeleteCategory: async () => {
         const { categoryToDelete } = get();
         
         try {
