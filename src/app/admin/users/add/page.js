@@ -1,7 +1,7 @@
-// app/admin/users/edit/[id]/page.jsx
+// app/admin/users/add/page.jsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   ArrowLeft, 
@@ -16,17 +16,15 @@ import {
   EyeOff,
   Save,
 } from "lucide-react";
-import { useRouter, useParams } from "next/navigation";
-import useUserStore from "@/app/admin/store/adminStore";
+import { useRouter } from "next/navigation";
+import useUserStore from "@/app/admin/store/useUserStore";
 
-export default function EditUserPage() {
+export default function AddUserPage() {
   const router = useRouter();
-  const params = useParams();
-  const { selectedUser, fetchUserById, updateUser, isLoading, error, clearSelectedUser } = useUserStore();
+  const { addUser, isLoading } = useUserStore();
   const [formSuccess, setFormSuccess] = useState(false);
   const [formError, setFormError] = useState("");
   const [validationErrors, setValidationErrors] = useState({});
-  const [isPageLoading, setIsPageLoading] = useState(true);
   
   // Password visibility toggles
   const [showPassword, setShowPassword] = useState(false);
@@ -37,34 +35,8 @@ export default function EditUserPage() {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "USER",
+    role: "USER", // Default role
   });
-
-  // Fetch user data when component mounts
-  useEffect(() => {
-    const loadUser = async () => {
-      if (params.id) {
-        const userData = await fetchUserById(params.id);
-        if (userData) {
-          setFormData({
-            name: userData.name,
-            email: userData.email,
-            password: "",
-            confirmPassword: "",
-            role: userData.role,
-          });
-        } else {
-          setFormError("No se pudo cargar la información del usuario");
-        }
-      }
-      setIsPageLoading(false);
-    };
-
-    loadUser();
-
-    // Cleanup
-    return () => clearSelectedUser();
-  }, [params.id, fetchUserById, clearSelectedUser]);
 
   // Available roles
   const userRoles = [
@@ -97,20 +69,19 @@ export default function EditUserPage() {
       errors.name = "El nombre es obligatorio";
     }
     
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+\$/;
     if (!formData.email.trim() || !emailRegex.test(formData.email)) {
       errors.email = "Ingresa un correo electrónico válido";
     }
     
-    // Only validate password if it's being changed
-    if (formData.password) {
-      if (formData.password.length < 6) {
-        errors.password = "La contraseña debe tener al menos 6 caracteres";
-      }
-      
-      if (formData.password !== formData.confirmPassword) {
-        errors.confirmPassword = "Las contraseñas no coinciden";
-      }
+    if (!formData.password) {
+      errors.password = "La contraseña es obligatoria";
+    } else if (formData.password.length < 6) {
+      errors.password = "La contraseña debe tener al menos 6 caracteres";
+    }
+    
+    if (formData.password !== formData.confirmPassword) {
+      errors.confirmPassword = "Las contraseñas no coinciden";
     }
     
     setValidationErrors(errors);
@@ -131,16 +102,12 @@ export default function EditUserPage() {
     const userData = {
       name: formData.name.trim(),
       email: formData.email.trim(),
+      password: formData.password,
       role: formData.role
     };
     
-    // Add password only if it was provided
-    if (formData.password) {
-      userData.password = formData.password;
-    }
-    
     // Submit data
-    const result = await updateUser(params.id, userData);
+    const result = await addUser(userData);
     
     if (result.success) {
       setFormSuccess(true);
@@ -154,7 +121,7 @@ export default function EditUserPage() {
         setValidationErrors(result.errors);
       } else {
         // Set general error message
-        setFormError(result.error || "Ha ocurrido un error al actualizar el usuario");
+        setFormError(result.error || "Ha ocurrido un error al crear el usuario");
       }
     }
   };
@@ -214,21 +181,6 @@ export default function EditUserPage() {
     }
   };
 
-  if (isPageLoading) {
-    return (
-      <div className="p-8 flex justify-center">
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="flex flex-col items-center"
-        >
-          <div className="w-12 h-12 border-4 border-gray-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
-          <div className="text-gray-500 dark:text-gray-400">Cargando información...</div>
-        </motion.div>
-      </div>
-    );
-  }
-
   if (isLoading && !formSuccess) {
     return (
       <div className="p-8 flex justify-center">
@@ -238,7 +190,7 @@ export default function EditUserPage() {
           className="flex flex-col items-center"
         >
           <div className="w-12 h-12 border-4 border-gray-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
-          <div className="text-gray-500 dark:text-gray-400">Actualizando usuario...</div>
+          <div className="text-gray-500 dark:text-gray-400">Creando usuario...</div>
         </motion.div>
       </div>
     );
@@ -261,10 +213,10 @@ export default function EditUserPage() {
           transition={{ duration: 0.3 }}
         >
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Editar Usuario
+            Agregar Usuario
           </h1>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Modificar información del usuario
+            Crear una nueva cuenta de usuario en la plataforma
           </p>
         </motion.div>
       </div>
@@ -292,7 +244,7 @@ export default function EditUserPage() {
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.3 }}
             >
-              ¡Usuario Actualizado Exitosamente!
+              ¡Usuario Creado Exitosamente!
             </motion.h2>
             <motion.p 
               className="text-green-700 dark:text-green-300"
@@ -300,7 +252,7 @@ export default function EditUserPage() {
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.4 }}
             >
-              Los cambios han sido guardados correctamente.
+              El usuario ha sido agregado a la plataforma.
             </motion.p>
             <motion.p 
               className="text-sm text-green-600 dark:text-green-400 mt-4"
@@ -370,7 +322,7 @@ export default function EditUserPage() {
                     required
                     value={formData.name}
                     onChange={handleChange}
-                    className={`mt-1 block w-full rounded-md border ${
+                    className={`mt-1 block w-full rounded-md border \${
                       validationErrors.name 
                         ? 'border-red-300 dark:border-red-500' 
                         : 'border-gray-300 dark:border-gray-600'
@@ -394,7 +346,7 @@ export default function EditUserPage() {
                     required
                     value={formData.email}
                     onChange={handleChange}
-                    className={`mt-1 block w-full rounded-md border ${
+                    className={`mt-1 block w-full rounded-md border \${
                       validationErrors.email 
                         ? 'border-red-300 dark:border-red-500' 
                         : 'border-gray-300 dark:border-gray-600'
@@ -437,26 +389,27 @@ export default function EditUserPage() {
                 variants={itemVariant}
               >
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
-                  Cambiar Contraseña (opcional)
+                  Seguridad
                 </h3>
 
                 <motion.div variants={itemVariant}>
                   <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Nueva Contraseña
+                    Contraseña <span className="text-red-500">*</span>
                   </label>
                   <div className="mt-1 relative">
                     <motion.input
                       type={showPassword ? "text" : "password"}
                       id="password"
                       name="password"
+                      required
                       value={formData.password}
                       onChange={handleChange}
-                      className={`block w-full rounded-md border ${
+                      className={`block w-full rounded-md border \${
                         validationErrors.password 
                           ? 'border-red-300 dark:border-red-500' 
                           : 'border-gray-300 dark:border-gray-600'
                       } py-2 pl-3 pr-10 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-800 dark:text-white`}
-                      placeholder="Dejar en blanco para mantener la actual"
+                      placeholder="••••••••"
                       whileFocus={{ boxShadow: '0 0 0 3px rgba(99, 102, 241, 0.15)' }}
                     />
                     <motion.button
@@ -477,28 +430,29 @@ export default function EditUserPage() {
                     <p className="mt-1 text-sm text-red-600 dark:text-red-400">{validationErrors.password}</p>
                   ) : (
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                      Dejar en blanco para mantener la contraseña actual
+                      Mínimo 6 caracteres
                     </p>
                   )}
                 </motion.div>
 
                 <motion.div variants={itemVariant}>
                   <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Confirmar Nueva Contraseña
+                    Confirmar Contraseña <span className="text-red-500">*</span>
                   </label>
                   <div className="mt-1 relative">
                     <motion.input
                       type={showConfirmPassword ? "text" : "password"}
                       id="confirmPassword"
                       name="confirmPassword"
+                      required
                       value={formData.confirmPassword}
                       onChange={handleChange}
-                      className={`block w-full rounded-md border ${
+                      className={`block w-full rounded-md border \${
                         validationErrors.confirmPassword 
                           ? 'border-red-300 dark:border-red-500' 
                           : 'border-gray-300 dark:border-gray-600'
                       } py-2 pl-3 pr-10 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-800 dark:text-white`}
-                      placeholder="Confirmar nueva contraseña"
+                      placeholder="••••••••"
                       whileFocus={{ boxShadow: '0 0 0 3px rgba(99, 102, 241, 0.15)' }}
                     />
                     <motion.button
@@ -533,7 +487,7 @@ export default function EditUserPage() {
                       <ul className="mt-1 text-xs text-amber-700 dark:text-amber-400 list-disc pl-4 space-y-1">
                         <li>Incluir letras mayúsculas y minúsculas</li>
                         <li>Incluir al menos un número</li>
-                        <li>Incluir al menos un carácter especial (ej. !@#$%)</li>
+                        <li>Incluir al menos un carácter especial (ej. !@#\$%)</li>
                       </ul>
                     </div>
                   </div>
@@ -567,7 +521,7 @@ export default function EditUserPage() {
                   className="flex items-center"
                 >
                   <Save size={18} className="inline-block mr-2" />
-                  Guardar Cambios
+                  Crear Usuario
                 </motion.span>
               </motion.button>
             </motion.div>

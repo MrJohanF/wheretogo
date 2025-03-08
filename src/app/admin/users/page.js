@@ -1,32 +1,27 @@
+// app/admin/users/page.jsx
 "use client";
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import useUserStore from "@/app/admin/store/useUserStore";
 
 import {
   Users,
   UserPlus,
   Search,
-  Filter,
   ChevronDown,
-  MoreHorizontal,
   Edit,
   Trash2,
-  Ban,
-  CheckCircle,
-  X,
   ArrowUpDown,
   Mail,
   Calendar,
-  Shield,
   AlertTriangle,
   UserCheck,
   Activity,
-  Clock,
+  Shield,
   LayoutList
 } from "lucide-react";
-import Link from "next/link";
 
 // Animation variants
 const fadeIn = {
@@ -40,174 +35,73 @@ const slideIn = {
 };
 
 export default function UserManagement() {
-  const [users, setUsers] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+  const { users, isLoading, error, fetchUsers, deleteUser } = useUserStore();
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("");
-  const [sortBy, setSortBy] = useState("created_at");
+  const [sortBy, setSortBy] = useState("createdAt");
   const [sortDirection, setSortDirection] = useState("desc");
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
-  const [viewMode, setViewMode] = useState("table"); // table or grid
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    activeUsers: 0,
-    newUsers: 0,
-    suspendedUsers: 0,
+  const [viewMode, setViewMode] = useState("table");
+  
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  // Filter users based on search and role
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = !searchQuery || 
+      user.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      user.email.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesRole = !selectedRole || user.role === selectedRole;
+    
+    return matchesSearch && matchesRole;
   });
 
-  const router = useRouter();
+  // Sort users
+  const sortedUsers = [...filteredUsers].sort((a, b) => {
+    // Compare by the selected field
+    if (sortBy === 'name' || sortBy === 'email') {
+      return sortDirection === 'asc' 
+        ? a[sortBy].localeCompare(b[sortBy])
+        : b[sortBy].localeCompare(a[sortBy]);
+    }
 
-  // User roles available
-  const roles = [
-    { value: "", label: "Todos los Roles" },
-    { value: "admin", label: "Administrador" },
-    { value: "editor", label: "Editor" },
-    { value: "user", label: "Usuario" },
-  ];
+    // For dates
+    const dateA = new Date(a[sortBy]).getTime();
+    const dateB = new Date(b[sortBy]).getTime();
+    return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+  });
 
-  // User statuses
-  const statuses = [
-    { value: "", label: "Todos los Estados" },
-    { value: "active", label: "Activo" },
-    { value: "pending", label: "Pendiente" },
-    { value: "suspended", label: "Suspendido" },
-  ];
+  // Pagination
+  const usersPerPage = 10;
+  const totalPages = Math.ceil(sortedUsers.length / usersPerPage);
+  const paginatedUsers = sortedUsers.slice((currentPage - 1) * usersPerPage, currentPage * usersPerPage);
 
-  useEffect(() => {
-    // Fetch users from API endpoint
-    const fetchUsers = async () => {
-      try {
-        setIsLoading(true);
-        // This would be an actual API call in your implementation
-        // const response = await fetch('/api/users?page=\${currentPage}&limit=10&sort=\${sortBy}&direction=\${sortDirection}');
-        // const data = await response.json();
-        
-        // Mock data for demonstration
-        const mockUsers = generateMockUsers(50);
-        
-        // Filter and sort the mock data on the client side (normally done server-side)
-        const filtered = mockUsers.filter(user => {
-          const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                               user.email.toLowerCase().includes(searchQuery.toLowerCase());
-          const matchesRole = selectedRole ? user.role === selectedRole : true;
-          const matchesStatus = selectedStatus ? user.status === selectedStatus : true;
-          
-          return matchesSearch && matchesRole && matchesStatus;
-        });
-        
-        // Calculate stats
-        setStats({
-          totalUsers: mockUsers.length,
-          activeUsers: mockUsers.filter(u => u.status === 'active').length,
-          newUsers: mockUsers.filter(u => {
-            const userDate = new Date(u.created_at);
-            const lastWeek = new Date();
-            lastWeek.setDate(lastWeek.getDate() - 7);
-            return userDate >= lastWeek;
-          }).length,
-          suspendedUsers: mockUsers.filter(u => u.status === 'suspended').length,
-        });
-        
-        setUsers(filtered.slice(0, 10)); // Only show 10 per page
-        setTotalPages(Math.ceil(filtered.length / 10));
-        
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUsers();
-  }, [searchQuery, selectedRole, selectedStatus, sortBy, sortDirection, currentPage]);
-
-  // Mock user data generator
-  const generateMockUsers = (count) => {
-    const roles = ["admin", "editor", "user"];
-    const statuses = ["active", "pending", "suspended"];
-    
-    return Array.from({ length: count }, (_, i) => {
-      const id = i + 1;
-      const role = roles[Math.floor(Math.random() * roles.length)];
-      const status = statuses[Math.floor(Math.random() * statuses.length)];
-      const created_at = new Date(Date.now() - Math.floor(Math.random() * 365 * 24 * 60 * 60 * 1000)).toISOString();
-      
-      return {
-        id,
-        name: `Usuario ${id}`,
-        email: `usuario${id}@ejemplo.com`,
-        avatar: `https://i.pravatar.cc/150?u=${id}`,
-        role,
-        status,
-        created_at,
-        last_login: status === 'active' ? new Date(Date.now() - Math.floor(Math.random() * 7 * 24 * 60 * 60 * 1000)).toISOString() : null,
-        saved_places: Math.floor(Math.random() * 20),
-        reviews: Math.floor(Math.random() * 15),
-      };
-    });
+  // Calculate stats
+  const stats = {
+    totalUsers: users.length,
+    adminUsers: users.filter(user => user.role === "ADMIN").length,
+    newUsers: users.filter(user => {
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      return new Date(user.createdAt) >= oneWeekAgo;
+    }).length,
+    activeUsers: users.length // Simplified - you can adjust based on user status if available
   };
 
   const handleDeleteUser = async () => {
     if (!selectedUserId) return;
     
-    try {
-      // This would be an actual API call in your implementation
-      // await fetch(`/api/users/\${selectedUserId}`, { method: 'DELETE' });
-      
-      // Update local state
-      setUsers(users.filter(user => user.id !== selectedUserId));
-      setStats(prev => ({
-        ...prev,
-        totalUsers: prev.totalUsers - 1,
-        activeUsers: users.find(u => u.id === selectedUserId)?.status === 'active' 
-          ? prev.activeUsers - 1 
-          : prev.activeUsers,
-        suspendedUsers: users.find(u => u.id === selectedUserId)?.status === 'suspended'
-          ? prev.suspendedUsers - 1
-          : prev.suspendedUsers
-      }));
-      
+    const result = await deleteUser(selectedUserId);
+    
+    if (result.success) {
       setIsDeleteModalOpen(false);
       setSelectedUserId(null);
-    } catch (error) {
-      console.error("Error deleting user:", error);
-    }
-  };
-
-  const handleToggleUserStatus = async (userId, currentStatus) => {
-    try {
-      // This would be an actual API call in your implementation
-      // const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
-      // await fetch(`/api/users/\${userId}/status`, { 
-      //   method: 'PATCH',
-      //   body: JSON.stringify({ status: newStatus })
-      // });
-      
-      // Update local state
-      const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
-      setUsers(users.map(user => 
-        user.id === userId ? { ...user, status: newStatus } : user
-      ));
-      
-      if (newStatus === 'active') {
-        setStats(prev => ({
-          ...prev,
-          activeUsers: prev.activeUsers + 1,
-          suspendedUsers: prev.suspendedUsers - 1
-        }));
-      } else {
-        setStats(prev => ({
-          ...prev,
-          activeUsers: prev.activeUsers - 1,
-          suspendedUsers: prev.suspendedUsers + 1
-        }));
-      }
-    } catch (error) {
-      console.error("Error updating user status:", error);
     }
   };
 
@@ -220,42 +114,22 @@ export default function UserManagement() {
     const diffTime = Math.abs(today - date);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
-    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    if (diffDays <= 1) return "Hoy";
+    if (diffDays <= 2) return "Ayer";
+    if (diffDays <= 7) return `Hace ${diffDays} días`;
     
-    if (diffDays <= 1) {
-      return "Hoy";
-    } else if (diffDays <= 2) {
-      return "Ayer";
-    } else if (diffDays <= 7) {
-      return `Hace ${diffDays} días`;
-    } else {
-      return date.toLocaleDateString('es-ES', options);
-    }
-  };
-
-  // Get status badge styling
-  const getStatusBadgeClass = (status) => {
-    switch(status) {
-      case 'active':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300';
-      case 'pending':
-        return 'bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300';
-      case 'suspended':
-        return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
-    }
+    return date.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   // Get role badge styling
   const getRoleBadgeClass = (role) => {
     switch(role) {
-      case 'admin':
-        return 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300';
-      case 'editor':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+      case 'ADMIN': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
     }
   };
 
@@ -272,13 +146,7 @@ export default function UserManagement() {
               Rol
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Estado
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               Fecha de Registro
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Último Acceso
             </th>
             <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               Acciones
@@ -286,7 +154,7 @@ export default function UserManagement() {
           </tr>
         </thead>
         <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-          {users.map((user, index) => (
+          {paginatedUsers.map((user, index) => (
             <motion.tr 
               key={user.id}
               initial={{ opacity: 0, y: 10 }}
@@ -297,11 +165,9 @@ export default function UserManagement() {
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 h-10 w-10">
-                    <img 
-                      className="h-10 w-10 rounded-full object-cover" 
-                      src={user.avatar} 
-                      alt={user.name} 
-                    />
+                    <div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                      <Users className="h-6 w-6 text-gray-400" />
+                    </div>
                   </div>
                   <div className="ml-4">
                     <div className="text-sm font-medium text-gray-900 dark:text-white">
@@ -316,26 +182,13 @@ export default function UserManagement() {
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getRoleBadgeClass(user.role)}`}>
-                  {user.role === 'admin' ? 'Administrador' : 
-                   user.role === 'editor' ? 'Editor' : 'Usuario'}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(user.status)}`}>
-                  {user.status === 'active' ? 'Activo' : 
-                   user.status === 'pending' ? 'Pendiente' : 'Suspendido'}
+                  {user.role === 'ADMIN' ? 'Administrador' : 'Usuario'}
                 </span>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                 <div className="flex items-center">
                   <Calendar className="h-4 w-4 mr-1" />
-                  {formatDate(user.created_at)}
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                <div className="flex items-center">
-                  <Clock className="h-4 w-4 mr-1" />
-                  {user.last_login ? formatDate(user.last_login) : "Nunca"}
+                  {formatDate(user.createdAt)}
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -343,29 +196,10 @@ export default function UserManagement() {
                   <motion.button 
                     whileHover={{ scale: 1.1 }} 
                     whileTap={{ scale: 0.9 }}
-                    className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
-                    onClick={() => {/* View details or profile */}}
-                  >
-                    <Users size={18} />
-                  </motion.button>
-                  <motion.button 
-                    whileHover={{ scale: 1.1 }} 
-                    whileTap={{ scale: 0.9 }}
                     className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
-                    onClick={() => {/* Edit user */}}
+                    onClick={() => router.push(`/admin/users/edit/${user.id}`)}
                   >
                     <Edit size={18} />
-                  </motion.button>
-                  <motion.button 
-                    whileHover={{ scale: 1.1 }} 
-                    whileTap={{ scale: 0.9 }}
-                    className={user.status === 'active' ? 
-                      "text-amber-600 hover:text-amber-900 dark:text-amber-400 dark:hover:text-amber-300" :
-                      "text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
-                    }
-                    onClick={() => handleToggleUserStatus(user.id, user.status)}
-                  >
-                    {user.status === 'active' ? <Ban size={18} /> : <CheckCircle size={18} />}
                   </motion.button>
                   <motion.button 
                     whileHover={{ scale: 1.1 }} 
@@ -382,9 +216,9 @@ export default function UserManagement() {
               </td>
             </motion.tr>
           ))}
-          {users.length === 0 && !isLoading && (
+          {paginatedUsers.length === 0 && !isLoading && (
             <tr>
-              <td colSpan={6} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+              <td colSpan={4} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
                 No se encontraron usuarios que coincidan con los filtros.
               </td>
             </tr>
@@ -397,7 +231,7 @@ export default function UserManagement() {
   // Grid view for users
   const renderUsersGrid = () => (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-      {users.map((user, index) => (
+      {paginatedUsers.map((user, index) => (
         <motion.div
           key={user.id}
           initial={{ opacity: 0, y: 10 }}
@@ -408,11 +242,9 @@ export default function UserManagement() {
           <div className="relative">
             <div className="h-24 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
             <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2">
-              <img 
-                className="h-20 w-20 rounded-full border-4 border-white dark:border-gray-800 object-cover" 
-                src={user.avatar} 
-                alt={user.name} 
-              />
+              <div className="h-20 w-20 rounded-full border-4 border-white dark:border-gray-800 bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                <Users className="h-10 w-10 text-gray-500" />
+              </div>
             </div>
           </div>
           
@@ -427,24 +259,19 @@ export default function UserManagement() {
             
             <div className="mt-4 flex justify-center space-x-2">
               <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getRoleBadgeClass(user.role)}`}>
-                {user.role === 'admin' ? 'Administrador' : 
-                 user.role === 'editor' ? 'Editor' : 'Usuario'}
-              </span>
-              <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(user.status)}`}>
-                {user.status === 'active' ? 'Activo' : 
-                 user.status === 'pending' ? 'Pendiente' : 'Suspendido'}
+                {user.role === 'ADMIN' ? 'Administrador' : 'Usuario'}
               </span>
             </div>
             
-            <div className="mt-4 grid grid-cols-2 gap-2 text-center text-sm">
+            <div className="mt-4 grid grid-cols-1 gap-2 text-center text-sm">
               <div className="px-2 py-1 rounded-lg bg-gray-50 dark:bg-gray-700">
                 <span className="text-gray-500 dark:text-gray-400">Registrado</span>
-                <p className="text-gray-900 dark:text-white font-medium">{formatDate(user.created_at)}</p>
+                <p className="text-gray-900 dark:text-white font-medium">{formatDate(user.createdAt)}</p>
               </div>
               <div className="px-2 py-1 rounded-lg bg-gray-50 dark:bg-gray-700">
-                <span className="text-gray-500 dark:text-gray-400">Último acceso</span>
+                <span className="text-gray-500 dark:text-gray-400">Favoritos</span>
                 <p className="text-gray-900 dark:text-white font-medium">
-                  {user.last_login ? formatDate(user.last_login) : "Nunca"}
+                  {user._count?.favorites || 0}
                 </p>
               </div>
             </div>
@@ -453,29 +280,10 @@ export default function UserManagement() {
               <motion.button 
                 whileHover={{ scale: 1.1 }} 
                 whileTap={{ scale: 0.9 }}
-                className="p-2 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-full"
-                onClick={() => {/* View details or profile */}}
-              >
-                <Users size={18} />
-              </motion.button>
-              <motion.button 
-                whileHover={{ scale: 1.1 }} 
-                whileTap={{ scale: 0.9 }}
                 className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full"
-                onClick={() => {/* Edit user */}}
+                onClick={() => router.push(`/admin/users/edit/${user.id}`)}
               >
                 <Edit size={18} />
-              </motion.button>
-              <motion.button 
-                whileHover={{ scale: 1.1 }} 
-                whileTap={{ scale: 0.9 }}
-                className={`p-2 rounded-full ${user.status === 'active' ? 
-                  "text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20" :
-                  "text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20"
-                }`}
-                onClick={() => handleToggleUserStatus(user.id, user.status)}
-              >
-                {user.status === 'active' ? <Ban size={18} /> : <CheckCircle size={18} />}
               </motion.button>
               <motion.button 
                 whileHover={{ scale: 1.1 }} 
@@ -492,7 +300,7 @@ export default function UserManagement() {
           </div>
         </motion.div>
       ))}
-      {users.length === 0 && !isLoading && (
+      {paginatedUsers.length === 0 && !isLoading && (
         <div className="col-span-full text-center py-10 text-gray-500 dark:text-gray-400">
           No se encontraron usuarios que coincidan con los filtros.
         </div>
@@ -507,6 +315,7 @@ export default function UserManagement() {
       variants={fadeIn}
       className="px-4 py-6 sm:px-6 lg:px-8"
     >
+      {/* Header */}
       <motion.div variants={slideIn} className="sm:flex sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -550,7 +359,7 @@ export default function UserManagement() {
                   </dt>
                   <dd>
                     <div className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {stats.totalUsers.toLocaleString()}
+                      {stats.totalUsers}
                     </div>
                   </dd>
                 </dl>
@@ -571,11 +380,11 @@ export default function UserManagement() {
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                    Usuarios Activos
+                    Administradores
                   </dt>
                   <dd>
                     <div className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {stats.activeUsers.toLocaleString()}
+                      {stats.adminUsers}
                     </div>
                   </dd>
                 </dl>
@@ -600,7 +409,7 @@ export default function UserManagement() {
                   </dt>
                   <dd>
                     <div className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {stats.newUsers.toLocaleString()}
+                      {stats.newUsers}
                     </div>
                   </dd>
                 </dl>
@@ -615,17 +424,17 @@ export default function UserManagement() {
         >
           <div className="p-5">
             <div className="flex items-center">
-              <div className="flex-shrink-0 bg-red-100 dark:bg-red-900/30 rounded-md p-3">
-                <Ban className="h-6 w-6 text-red-600 dark:text-red-400" />
+              <div className="flex-shrink-0 bg-blue-100 dark:bg-blue-900/30 rounded-md p-3">
+                <Shield className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                    Usuarios Suspendidos
+                    Usuarios Normales
                   </dt>
                   <dd>
                     <div className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {stats.suspendedUsers.toLocaleString()}
+                      {stats.totalUsers - stats.adminUsers}
                     </div>
                   </dd>
                 </dl>
@@ -657,37 +466,18 @@ export default function UserManagement() {
             onChange={(e) => setSelectedRole(e.target.value)}
             className="pl-4 pr-10 py-2 w-full rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white appearance-none"
           >
-            {roles.map(role => (
-              <option key={role.value} value={role.value}>
-                {role.label}
-              </option>
-            ))}
+            <option value="">Todos los Roles</option>
+            <option value="ADMIN">Administrador</option>
+            <option value="USER">Usuario</option>
           </select>
           <ChevronDown className="absolute right-3 top-1/2 -mt-2 h-4 w-4 text-gray-400" />
         </div>
 
-        <div className="relative">
-          <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            className="pl-4 pr-10 py-2 w-full rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white appearance-none"
-          >
-            {statuses.map(status => (
-              <option key={status.value} value={status.value}>
-                {status.label}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="absolute right-3 top-1/2 -mt-2 h-4 w-4 text-gray-400" />
-        </div>
-
-        <div className="flex gap-2">
+        <div className="flex gap-2 lg:col-span-2">
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() =>
-              setSortDirection(sortDirection === "asc" ? "desc" : "asc")
-            }
+            onClick={() => setSortDirection(sortDirection === "asc" ? "desc" : "asc")}
             className="flex items-center justify-center p-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
           >
             <ArrowUpDown className="h-5 w-5 text-gray-500 dark:text-gray-400" />
@@ -699,9 +489,10 @@ export default function UserManagement() {
               onChange={(e) => setSortBy(e.target.value)}
               className="pl-4 pr-10 py-2 w-full rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white appearance-none"
             >
-              <option value="created_at">Fecha de Registro</option>
+              <option value="createdAt">Fecha de Registro</option>
               <option value="name">Nombre</option>
-              <option value="last_login">Último Acceso</option>
+              <option value="email">Email</option>
+              <option value="updatedAt">Última Actualización</option>
             </select>
             <ChevronDown className="absolute right-3 top-1/2 -mt-2 h-4 w-4 text-gray-400" />
           </div>
@@ -722,7 +513,7 @@ export default function UserManagement() {
               whileTap={{ scale: 0.95 }}
               onClick={() => setViewMode('grid')}
               className={`px-3 py-2 ${viewMode === 'grid' ? 
-                'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 
+ 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 
                 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400'}`}
             >
               <Users className="h-5 w-5" />
@@ -743,19 +534,37 @@ export default function UserManagement() {
               <p className="mt-4 text-gray-600 dark:text-gray-400 text-lg font-medium">Cargando usuarios...</p>
             </div>
           </div>
+        ) : error ? (
+          <div className="h-60 flex items-center justify-center">
+            <div className="flex flex-col items-center text-center">
+              <div className="rounded-full bg-red-100 dark:bg-red-900/20 p-4 mb-4">
+                <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400" />
+              </div>
+              <p className="text-lg font-medium text-gray-800 dark:text-white mb-2">Error al cargar usuarios</p>
+              <p className="text-gray-500 dark:text-gray-400">{error}</p>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={fetchUsers}
+                className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+              >
+                Reintentar
+              </motion.button>
+            </div>
+          </div>
         ) : viewMode === 'table' ? renderUsersTable() : renderUsersGrid()}
       </motion.div>
 
       {/* Pagination */}
-      {!isLoading && users.length > 0 && (
+      {!isLoading && !error && paginatedUsers.length > 0 && (
         <motion.div 
           variants={slideIn}
           className="mt-6 flex items-center justify-between"
         >
           <div className="text-sm text-gray-700 dark:text-gray-300">
-            Mostrando {(currentPage - 1) * 10 + 1} a{" "}
-            {Math.min(currentPage * 10, users.length)} de{" "}
-            <span className="font-medium">{stats.totalUsers}</span> usuarios
+            Mostrando {(currentPage - 1) * usersPerPage + 1} a{" "}
+            {Math.min(currentPage * usersPerPage, sortedUsers.length)} de{" "}
+            <span className="font-medium">{sortedUsers.length}</span> usuarios
           </div>
           <div className="flex space-x-2">
             <motion.button
@@ -775,8 +584,8 @@ export default function UserManagement() {
             {/* Page numbers */}
             {Array.from({ length: Math.min(3, totalPages) }, (_, i) => {
               const pageNum = currentPage <= 2 ? i + 1 : 
-                              currentPage >= totalPages - 1 ? totalPages - 2 + i : 
-                              currentPage - 1 + i;
+                            currentPage >= totalPages - 1 ? totalPages - 2 + i : 
+                            currentPage - 1 + i;
               
               if (pageNum <= 0 || pageNum > totalPages) return null;
               
@@ -803,7 +612,7 @@ export default function UserManagement() {
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage(currentPage + 1)}
               className={`px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm ${
-                currentPage === totalPages 
+                currentPage === totalPages || totalPages === 0
                   ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' 
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
