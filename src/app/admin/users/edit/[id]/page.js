@@ -540,7 +540,7 @@ export default function EditUserPage() {
                   <motion.div 
                     className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6"
                     variants={itemVariant}
-                    whileHover={{ y: -2, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
+                    whileHover={{ boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
                     transition={{ duration: 0.2 }}
                   >
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-3 mb-5 flex items-center">
@@ -673,7 +673,7 @@ export default function EditUserPage() {
                   <motion.div 
                     className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6"
                     variants={itemVariant}
-                    whileHover={{ y: -2, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
+                    whileHover={{ boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
                     transition={{ duration: 0.2 }}
                   >
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-3 mb-5 flex items-center">
@@ -714,7 +714,7 @@ export default function EditUserPage() {
                   <motion.div 
                     className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6"
                     variants={itemVariant}
-                    whileHover={{ y: -2, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
+                    whileHover={{ boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
                     transition={{ duration: 0.2 }}
                   >
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-3 mb-5 flex items-center">
