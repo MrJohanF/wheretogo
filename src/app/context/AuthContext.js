@@ -1,3 +1,5 @@
+// context/AuthContext.js
+
 "use client";
 
 import { createContext, useState, useContext, useEffect } from "react";
@@ -122,7 +124,7 @@ export const AuthProvider = ({ children }) => {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`,
         {
-          method: "POST",
+          method: "GET",
           headers: {
             "Content-Type": "application/json",
           },

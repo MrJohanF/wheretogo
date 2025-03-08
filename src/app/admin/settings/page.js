@@ -1,3 +1,5 @@
+// src/app/admin/settings/page.js
+
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, memo, lazy, Suspense } from "react";

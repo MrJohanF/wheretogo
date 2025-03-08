@@ -1,3 +1,5 @@
+// src/app/admin/settings/SettingsTabs/SecurityTab.js
+
 import { motion } from "framer-motion";
 import { Shield, Save, X } from "lucide-react";
 
