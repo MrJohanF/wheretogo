@@ -78,50 +78,60 @@ export default function AddUserPage() {
   const passwordStrength = getPasswordStrength(formData.password);
 
   // Field validation function
-  const validateField = (name, value) => {
-    switch (name) {
-      case 'name':
-        return !value.trim() ? "El nombre es obligatorio" : "";
-      case 'email': {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return !value.trim() ? "El correo electrónico es obligatorio" : 
-              !emailRegex.test(value) ? "Ingresa un correo electrónico válido" : "";
-      }
-      case 'password':
-        return !value ? "La contraseña es obligatoria" : 
-              value.length < 6 ? "La contraseña debe tener al menos 6 caracteres" : "";
-      case 'confirmPassword':
-        return value !== formData.password ? "Las contraseñas no coinciden" : "";
-      default:
-        return "";
+// 1. Update the validateField function to accept a second parameter with current form data
+const validateField = (name, value, currentFormData = formData) => {
+  switch (name) {
+    case 'name':
+      return !value.trim() ? "El nombre es obligatorio" : "";
+    case 'email': {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+\$/;
+      return !value.trim() ? "El correo electrónico es obligatorio" : 
+            !emailRegex.test(value) ? "Ingresa un correo electrónico válido" : "";
     }
-  };
+    case 'password':
+      return !value ? "La contraseña es obligatoria" : 
+            value.length < 6 ? "La contraseña debe tener al menos 6 caracteres" : "";
+    case 'confirmPassword':
+      // Use the passed currentFormData.password instead of formData.password
+      return value !== currentFormData.password ? "Las contraseñas no coinciden" : "";
+    default:
+      return "";
+  }
+};
 
-  // Create debounced validation function
-  const debouncedValidate = useCallback(
-    debounce((name, value) => {
-      const error = validateField(name, value);
-      setFieldErrors(prev => ({ ...prev, [name]: error }));
-    }, 300),
-    []
-  );
+// 2. Update the debounced validation to include the current form state
+const debouncedValidate = useCallback(
+  debounce((name, value, currentFormData) => {
+    const error = validateField(name, value, currentFormData);
+    setFieldErrors(prev => ({ ...prev, [name]: error }));
+  }, 300),
+  []
+);
 
-  // Handle form input changes
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    
-    // Clear any global errors
-    if (formError) setFormError("");
-    
-    // Use debounced validation for better performance
-    debouncedValidate(name, value);
-    
-    // For confirmPassword, validate immediately when password changes
-    if (name === 'password' && formData.confirmPassword) {
-      debouncedValidate('confirmPassword', formData.confirmPassword);
-    }
-  };
+
+
+// 3. Update handleChange to pass the current form data with any updates
+const handleChange = (e) => {
+  const { name, value } = e.target;
+  
+  // Create updated form data to pass to validation
+  const updatedFormData = { ...formData, [name]: value };
+  
+  // Update form state
+  setFormData(updatedFormData);
+  
+  // Clear any global errors
+  if (formError) setFormError("");
+  
+  // Use debounced validation with updated form data
+  debouncedValidate(name, value, updatedFormData);
+  
+  // For confirmPassword, validate immediately when password changes
+  if (name === 'password' && formData.confirmPassword) {
+    // Pass the updated password value when validating confirmPassword
+    debouncedValidate('confirmPassword', formData.confirmPassword, updatedFormData);
+  }
+};
   
   // Handle avatar upload
   const handleAvatarChange = (e) => {
