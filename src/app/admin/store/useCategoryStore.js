@@ -2,6 +2,7 @@
 // src/store/useCategoriesStore.js
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
+import { uploadImageToCloudinary } from '@/app/services/cloudinary';
 
 const useCategoriesStore = create(
   devtools(
@@ -11,6 +12,7 @@ const useCategoriesStore = create(
       loading: false,
       error: null,
       searchTerm: '',
+      isUploading: false,
       
       // ============= Pagination State =============
       currentPage: 1,
@@ -40,6 +42,7 @@ const useCategoriesStore = create(
         color: "#6366F1", // Default indigo color
         isTrending: false,
         image: null,
+        imagePublicId: null,
       },
       
       subcategoryFormData: {
@@ -157,6 +160,7 @@ const useCategoriesStore = create(
           color: category.color || "#6366F1",
           isTrending: category.isTrending,
           image: category.image,
+          imagePublicId: category.imagePublicId
         }
       }),
       
@@ -177,21 +181,67 @@ const useCategoriesStore = create(
         }
       })),
       
-      handleImageSelect: (e) => {
+      handleImageSelect: async (e) => {
+        // Si es null, estamos eliminando la imagen
         if (e === null) {
           set((state) => ({ 
             formData: { 
               ...state.formData, 
-              image: null 
+              image: null,
+              imagePublicId: null
             } 
           }));
-        } else if (e.target?.files?.[0]) {
-          set((state) => ({ 
-            formData: {
-              ...state.formData,
-              image: URL.createObjectURL(e.target.files[0]),
-            }
-          }));
+          return;
+        }
+        
+        // Si tenemos un archivo, subir a Cloudinary
+        if (e.target?.files?.[0]) {
+          const file = e.target.files[0];
+          
+          // Validar tipo y tamaño
+          const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+          if (!validTypes.includes(file.type)) {
+            set({ error: 'Formato de archivo no válido. Por favor sube JPG, PNG o GIF.' });
+            return;
+          }
+          
+          if (file.size > 10 * 1024 * 1024) { // 10MB
+            set({ error: 'La imagen es demasiado grande. El tamaño máximo es 10MB.' });
+            return;
+          }
+          
+          // Mostrar estado de carga
+          set({ isUploading: true, error: null });
+          
+          try {
+            // Mostrar vista previa local temporalmente mientras sube
+            const tempPreviewUrl = URL.createObjectURL(file);
+            set((state) => ({ 
+              formData: {
+                ...state.formData,
+                image: tempPreviewUrl,
+              }
+            }));
+            
+            // Subir a Cloudinary
+            const result = await uploadImageToCloudinary(file);
+            
+            // Actualizar formulario con la URL de Cloudinary
+            set((state) => ({
+              formData: {
+                ...state.formData,
+                image: result.url,
+                imagePublicId: result.publicId
+              },
+              isUploading: false
+            }));
+          } catch (error) {
+            set({ 
+              error: 'Error al subir la imagen. Por favor intenta de nuevo.',
+              isUploading: false 
+            });
+            console.error('Error al subir imagen:', error);
+          }
         }
       },
       
@@ -206,6 +256,7 @@ const useCategoriesStore = create(
           color: "#6366F1",
           isTrending: false,
           image: null,
+          imagePublicId: null
         }
       }),
       
@@ -221,6 +272,7 @@ const useCategoriesStore = create(
             color: "#6366F1",
             isTrending: false,
             image: null,
+            imagePublicId: null
           }
         }));
       },
@@ -345,6 +397,7 @@ const useCategoriesStore = create(
             icon: formData.icon,
             description: formData.description,
             image: formData.image,
+            imagePublicId: formData.imagePublicId,
             color: formData.color,
             isTrending: formData.isTrending
           };
@@ -403,6 +456,7 @@ const useCategoriesStore = create(
                 color: "#6366F1",
                 isTrending: false,
                 image: null,
+                imagePublicId: null,
               }
             }));
           }

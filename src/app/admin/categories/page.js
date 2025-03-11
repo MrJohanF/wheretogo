@@ -130,6 +130,7 @@ export default function CategoriesManagement() {
     initDeleteSubcategory,
     cancelDeleteSubcategory,
     confirmDeleteSubcategory,
+    isUploading,
   } = useCategoriesStore();
 
   // Available icons for categories
@@ -571,6 +572,7 @@ export default function CategoriesManagement() {
             onSave={saveCategory}
             currentCategory={currentCategory}
             iconOptions={iconOptions}
+            isUploading={isUploading} 
           />
         )}
 

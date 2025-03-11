@@ -3,24 +3,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import {
-  X,
-  Save,
-  Coffee,
-  Utensils,
-  Beer,
-  Building,
-  TreeDeciduous,
-  Film,
-  Music,
-  Volleyball,
-  ShoppingBag,
-  Calendar,
-  Hotel,
-  Waves,
-  Image as ImageIcon,
-  Shuffle,
-} from "lucide-react";
+import { X, Save, Image as ImageIcon, Shuffle } from "lucide-react";
 import { useState, useCallback } from "react";
 
 /**
@@ -33,25 +16,25 @@ const MODERN_COLOR_PALETTE = [
   "#4f46e5", // Indigo 600
   "#6366f1", // Indigo 500
   "#2dd4bf", // Teal 400
-  
+
   // Greens
   "#10b981", // Emerald 500
   "#059669", // Emerald 600
   "#16a34a", // Green 600
   "#84cc16", // Lime 500
-  
+
   // Reds, Oranges & Pinks
   "#ef4444", // Red 500
   "#f97316", // Orange 500
   "#ec4899", // Pink 500
   "#d946ef", // Fuchsia 500
   "#f43f5e", // Rose 500
-  
+
   // Purples
   "#a855f7", // Purple 500
   "#8b5cf6", // Violet 500
   "#c026d3", // Fuchsia 600
-  
+
   // Deep & Rich Colors
   "#0369a1", // Sky 700
   "#0e7490", // Cyan 700
@@ -66,7 +49,7 @@ const MODERN_COLOR_PALETTE = [
 /**
  * Category form component for adding and editing categories
  */
-export default function CategoryForm({ 
+export default function CategoryForm({
   isAddingCategory,
   formData,
   onInputChange,
@@ -75,7 +58,8 @@ export default function CategoryForm({
   onCancel,
   onSave,
   currentCategory,
-  iconOptions 
+  iconOptions,
+  isUploading = false,
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -87,17 +71,17 @@ export default function CategoryForm({
   const generateRandomColor = useCallback(() => {
     const randomIndex = Math.floor(Math.random() * MODERN_COLOR_PALETTE.length);
     const randomColor = MODERN_COLOR_PALETTE[randomIndex];
-    
+
     // Create a synthetic event to pass to onInputChange
     const syntheticEvent = {
       target: {
-        name: 'color',
-        value: randomColor
-      }
+        name: "color",
+        value: randomColor,
+      },
     };
-    
+
     onInputChange(syntheticEvent);
-    
+
     // Trigger animation effect
     setColorAnimation(true);
     setTimeout(() => setColorAnimation(false), 500);
@@ -208,7 +192,7 @@ export default function CategoryForm({
                 onChange={onInputChange}
                 className="w-12 h-10 border-0 p-0 cursor-pointer"
               />
-              
+
               {/* FIX 2: Add onChange to color text input */}
               <input
                 type="text"
@@ -217,7 +201,7 @@ export default function CategoryForm({
                 onChange={onInputChange}
                 className="w-28 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
               />
-              
+
               <motion.div
                 animate={colorAnimation ? { scale: [1, 1.2, 1] } : {}}
                 transition={{ duration: 0.4 }}
@@ -236,7 +220,7 @@ export default function CategoryForm({
                   style={{ backgroundColor: color }}
                   onClick={() => {
                     const syntheticEvent = {
-                      target: { name: 'color', value: color }
+                      target: { name: "color", value: color },
                     };
                     onInputChange(syntheticEvent);
                   }}
@@ -313,31 +297,44 @@ export default function CategoryForm({
                 </div>
               ) : (
                 <div className="space-y-1 text-center">
-                  <ImageIcon size={36} className="mx-auto text-gray-400" />
-                  <div className="flex text-sm text-gray-600">
-                    <label
-                      htmlFor="file-upload"
-                      className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500"
-                    >
-                      <span>Subir un archivo</span>
-                      <input
-                        id="file-upload"
-                        name="file-upload"
-                        type="file"
-                        accept="image/*"
-                        className="sr-only"
-                        onChange={(e) => onImageSelect(e)}
-                      />
-                    </label>
-                    <p className="pl-1">o arrastrar y soltar</p>
-                  </div>
-                  <p className="text-xs text-gray-500">
-                    PNG, JPG, GIF hasta 10MB
-                  </p>
+                  {isUploading ? (
+                    <div className="flex flex-col items-center">
+                      <div className="w-10 h-10 border-4 border-t-indigo-500 border-r-indigo-200 border-b-indigo-200 border-l-indigo-200 rounded-full animate-spin mb-2"></div>
+                      <p className="text-sm text-gray-600">
+                        Subiendo imagen...
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <ImageIcon size={36} className="mx-auto text-gray-400" />
+                      <div className="flex text-sm text-gray-600">
+                        <label
+                          htmlFor="file-upload"
+                          className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500"
+                        >
+                          <span>Subir un archivo</span>
+                          <input
+                            id="file-upload"
+                            name="file-upload"
+                            type="file"
+                            accept="image/*"
+                            className="sr-only"
+                            onChange={(e) => onImageSelect(e)}
+                          />
+                        </label>
+                        <p className="pl-1">o arrastrar y soltar</p>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        PNG, JPG, GIF hasta 10MB
+                      </p>
+                    </>
+                  )}
                 </div>
               )}
             </div>
           </div>
+
+          
         </div>
       </div>
 
@@ -356,7 +353,7 @@ export default function CategoryForm({
           onClick={handleSave}
           disabled={isLoading}
           className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 ${
-            isLoading ? 'opacity-75 cursor-not-allowed' : ''
+            isLoading ? "opacity-75 cursor-not-allowed" : ""
           }`}
         >
           {isLoading ? (

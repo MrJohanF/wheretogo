@@ -156,7 +156,7 @@ export default function SecurityTab({
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className={`p-5 border rounded-xl \${
+                  className={`p-5 border rounded-xl ${
                     session.current
                       ? "border-green-200 bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-900/20 dark:to-green-800/10 dark:border-green-800/30"
                       : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
