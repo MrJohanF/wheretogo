@@ -211,6 +211,10 @@ export default function CategoriesPage() {
 
   // Component for list view items with optimized images
   const CategoryListItem = ({ category }) => {
+
+ // Use smaller image dimensions for list items
+  const optimizedImageUrl = getOptimizedImageUrl(category.image, 200, 200);
+
     return (
       <motion.div
         variants={item}

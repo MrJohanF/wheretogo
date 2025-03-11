@@ -2,7 +2,7 @@
 // src/store/useCategoriesStore.js
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { uploadImageToCloudinary } from '@/app/services/cloudinary';
+import { uploadImageToCloudinary, deleteImageFromCloudinary } from '@/app/services/cloudinary';
 
 const useCategoriesStore = create(
   devtools(
@@ -184,6 +184,10 @@ const useCategoriesStore = create(
       handleImageSelect: async (e) => {
         // Si es null, estamos eliminando la imagen
         if (e === null) {
+          // Get current image public ID before removing
+          const currentPublicId = get().formData.imagePublicId;
+          
+          // Update form state to remove image
           set((state) => ({ 
             formData: { 
               ...state.formData, 
@@ -191,6 +195,17 @@ const useCategoriesStore = create(
               imagePublicId: null
             } 
           }));
+          
+          // If there was an image, delete it from Cloudinary
+          if (currentPublicId) {
+            try {
+              await deleteImageFromCloudinary(currentPublicId);
+              console.log('Image deleted successfully:', currentPublicId);
+            } catch (error) {
+              console.error('Error deleting image:', error);
+              // Don't set error state as the UI update already happened
+            }
+          }
           return;
         }
         
@@ -285,6 +300,7 @@ const useCategoriesStore = create(
       
       confirmDeleteCategory: async () => {
         const { categoryToDelete } = get();
+        const imagePublicId = categoryToDelete?.imagePublicId;
         
         try {
           set({ loading: true, error: null });
@@ -305,6 +321,17 @@ const useCategoriesStore = create(
           const data = await response.json();
           if (!data.success) {
             throw new Error(data.message || "Error al eliminar la categoría");
+          }
+          
+          // If category had an image, delete it from Cloudinary
+          if (imagePublicId) {
+            try {
+              await deleteImageFromCloudinary(imagePublicId);
+              console.log('Category image deleted successfully:', imagePublicId);
+            } catch (deleteErr) {
+              // Log but don't fail the operation if image deletion fails
+              console.error('Failed to delete category image:', deleteErr);
+            }
           }
           
           // Update local state
@@ -391,6 +418,10 @@ const useCategoriesStore = create(
         try {
           set({ loading: true, error: null });
           
+          // Store old image public ID for potential deletion
+          const oldImagePublicId = !isAddingCategory ? currentCategory?.imagePublicId : null;
+          const imageChanged = oldImagePublicId && oldImagePublicId !== formData.imagePublicId;
+          
           // Prepare data for API
           const categoryData = {
             name: formData.name,
@@ -405,7 +436,7 @@ const useCategoriesStore = create(
           let response;
           
           if (isAddingCategory) {
-            // Create new category
+            // Create new category - same as before
             response = await fetch(
               `${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories/add`,
               {
@@ -416,7 +447,7 @@ const useCategoriesStore = create(
               }
             );
           } else {
-            // Update existing category
+            // Update existing category - same as before
             response = await fetch(
               `${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories/${currentCategory.id}`,
               {
@@ -435,13 +466,23 @@ const useCategoriesStore = create(
           const result = await response.json();
           
           if (result.success) {
-            const updatedCategory = result.category;
+            // Now that the update is successful, delete the old image if it was replaced
+            if (imageChanged) {
+              try {
+                await deleteImageFromCloudinary(oldImagePublicId);
+                console.log('Previous image deleted successfully:', oldImagePublicId);
+              } catch (deleteErr) {
+                // Log but don't fail the whole operation if image deletion fails
+                console.error('Failed to delete old image:', deleteErr);
+              }
+            }
             
-            // Update state based on operation
+            // Update state - same as before
+            const updatedCategory = result.category;
             set((state) => ({
               categories: isAddingCategory
-                ? [...state.categories, updatedCategory]  // Add new category
-                : state.categories.map(cat =>            // Update existing category
+                ? [...state.categories, updatedCategory]
+                : state.categories.map(cat =>
                     cat.id === updatedCategory.id
                       ? { ...cat, ...updatedCategory, count: cat.count }
                       : cat
