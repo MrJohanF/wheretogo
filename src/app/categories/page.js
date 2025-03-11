@@ -94,11 +94,11 @@ export default function CategoriesPage() {
 
   // Component for displaying category cards with optimized images
   const CategoryCard = ({ category, isFeatured = false }) => {
-    // Get optimized image URL for this specific card size
+    // Reduce image dimensions for faster loading - much smaller dimensions
     const optimizedImageUrl = getOptimizedImageUrl(
       category.image,
-      isFeatured ? 800 : 400, 
-      isFeatured ? 384 : 256
+      isFeatured ? 600 : 300, 
+      isFeatured ? 240 : 160
     );
 
     return (
@@ -116,23 +116,32 @@ export default function CategoriesPage() {
             <Image
               src={optimizedImageUrl}
               alt={category.name}
-              width={isFeatured ? 800 : 400}
-              height={isFeatured ? 384 : 256}
+              width={isFeatured ? 600 : 300}
+              height={isFeatured ? 240 : 160}
               className="w-full h-full object-cover"
               priority={isFeatured}
-              quality={80}
-              sizes={isFeatured ? "(max-width: 768px) 100vw, 800px" : "(max-width: 768px) 100vw, 400px"}
+              quality={75} // Reduce quality slightly for faster loading
+              sizes={isFeatured ? "(max-width: 768px) 100vw, 600px" : "(max-width: 768px) 100vw, 300px"}
               loading={isFeatured ? "eager" : "lazy"}
             />
           )}
           <div
-            className={`absolute inset-0 bg-gradient-to-br ${category.color} opacity-80`}
+            className="absolute inset-0 bg-gradient-to-br from-black/40 to-black/10"
           ></div>
 
           {/* Category Icon and Badge */}
           <div className="absolute inset-0 p-6 flex flex-col justify-between">
             <div className="flex justify-between items-start">
-              <span className="text-4xl drop-shadow-md">{category.icon}</span>
+              {/* Fixed Icon with Background */}
+              <div
+                className={`w-12 h-12 rounded-xl flex items-center justify-center text-white text-2xl`}
+                style={{
+                  backgroundColor: category.color ? `${category.color}` : '#6366F1',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                }}
+              >
+                {category.icon}
+              </div>
               <div className="flex space-x-2">
                 {category.trending && (
                   <span className="bg-white/30 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-medium flex items-center">
@@ -211,9 +220,8 @@ export default function CategoriesPage() {
 
   // Component for list view items with optimized images
   const CategoryListItem = ({ category }) => {
-
- // Use smaller image dimensions for list items
-  const optimizedImageUrl = getOptimizedImageUrl(category.image, 200, 200);
+    // Use smaller image dimensions for list items
+    const optimizedImageUrl = getOptimizedImageUrl(category.image, 100, 100);
 
     return (
       <motion.div
@@ -223,7 +231,10 @@ export default function CategoriesPage() {
       >
         <div className="flex items-center p-4">
           <div
-            className={`w-14 h-14 rounded-xl bg-gradient-to-br ${category.color} flex items-center justify-center text-white text-2xl mr-5`}
+            className={`w-14 h-14 rounded-xl flex items-center justify-center text-white text-2xl mr-5`}
+            style={{
+              backgroundColor: category.color ? `${category.color}` : '#6366F1'
+            }}
           >
             {category.icon}
           </div>
@@ -563,3 +574,4 @@ export default function CategoriesPage() {
     </div>
   );
 }
+

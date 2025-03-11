@@ -1,4 +1,3 @@
-
 // src/store/useCategoriesStore.js
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
@@ -43,6 +42,7 @@ const useCategoriesStore = create(
         isTrending: false,
         image: null,
         imagePublicId: null,
+        imageFile: null, // Added to store the file object before upload
       },
       
       subcategoryFormData: {
@@ -147,6 +147,8 @@ const useCategoriesStore = create(
           color: "#6366F1",
           isTrending: false,
           image: null,
+          imagePublicId: null,
+          imageFile: null
         }
       }),
       
@@ -160,7 +162,8 @@ const useCategoriesStore = create(
           color: category.color || "#6366F1",
           isTrending: category.isTrending,
           image: category.image,
-          imagePublicId: category.imagePublicId
+          imagePublicId: category.imagePublicId,
+          imageFile: null // No file object for existing images
         }
       }),
       
@@ -182,7 +185,7 @@ const useCategoriesStore = create(
       })),
       
       handleImageSelect: async (e) => {
-        // Si es null, estamos eliminando la imagen
+        // If e is null, we're removing the image
         if (e === null) {
           // Get current image public ID before removing
           const currentPublicId = get().formData.imagePublicId;
@@ -192,11 +195,12 @@ const useCategoriesStore = create(
             formData: { 
               ...state.formData, 
               image: null,
+              imageFile: null,
               imagePublicId: null
             } 
           }));
           
-          // If there was an image, delete it from Cloudinary
+          // If there was a cloud image, delete it from Cloudinary
           if (currentPublicId) {
             try {
               await deleteImageFromCloudinary(currentPublicId);
@@ -209,11 +213,11 @@ const useCategoriesStore = create(
           return;
         }
         
-        // Si tenemos un archivo, subir a Cloudinary
+        // If we have a file, store it without uploading yet
         if (e.target?.files?.[0]) {
           const file = e.target.files[0];
           
-          // Validar tipo y tamaño
+          // Validate type and size
           const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
           if (!validTypes.includes(file.type)) {
             set({ error: 'Formato de archivo no válido. Por favor sube JPG, PNG o GIF.' });
@@ -225,38 +229,17 @@ const useCategoriesStore = create(
             return;
           }
           
-          // Mostrar estado de carga
-          set({ isUploading: true, error: null });
+          // Create local preview URL without uploading to Cloudinary
+          const tempPreviewUrl = URL.createObjectURL(file);
           
-          try {
-            // Mostrar vista previa local temporalmente mientras sube
-            const tempPreviewUrl = URL.createObjectURL(file);
-            set((state) => ({ 
-              formData: {
-                ...state.formData,
-                image: tempPreviewUrl,
-              }
-            }));
-            
-            // Subir a Cloudinary
-            const result = await uploadImageToCloudinary(file);
-            
-            // Actualizar formulario con la URL de Cloudinary
-            set((state) => ({
-              formData: {
-                ...state.formData,
-                image: result.url,
-                imagePublicId: result.publicId
-              },
-              isUploading: false
-            }));
-          } catch (error) {
-            set({ 
-              error: 'Error al subir la imagen. Por favor intenta de nuevo.',
-              isUploading: false 
-            });
-            console.error('Error al subir imagen:', error);
-          }
+          // Store file and preview in state without uploading
+          set((state) => ({ 
+            formData: {
+              ...state.formData,
+              image: tempPreviewUrl,  // Local preview URL
+              imageFile: file         // Store the file for later upload
+            }
+          }));
         }
       },
       
@@ -271,11 +254,17 @@ const useCategoriesStore = create(
           color: "#6366F1",
           isTrending: false,
           image: null,
-          imagePublicId: null
+          imagePublicId: null,
+          imageFile: null
         }
       }),
       
       cancelCategoryForm: () => {
+        // Clean up any created object URLs to avoid memory leaks
+        if (get().formData.image && get().formData.imageFile) {
+          URL.revokeObjectURL(get().formData.image);
+        }
+        
         set((state) => ({
           isAddingCategory: false,
           isEditingCategory: false,
@@ -287,7 +276,8 @@ const useCategoriesStore = create(
             color: "#6366F1",
             isTrending: false,
             image: null,
-            imagePublicId: null
+            imagePublicId: null,
+            imageFile: null
           }
         }));
       },
@@ -420,15 +410,39 @@ const useCategoriesStore = create(
           
           // Store old image public ID for potential deletion
           const oldImagePublicId = !isAddingCategory ? currentCategory?.imagePublicId : null;
-          const imageChanged = oldImagePublicId && oldImagePublicId !== formData.imagePublicId;
           
-          // Prepare data for API
+          // Prepare image data for API
+          let imageUrl = formData.image;
+          let imagePublicId = formData.imagePublicId;
+          
+          // If we have a new image file, upload it to Cloudinary now
+          if (formData.imageFile) {
+            set({ isUploading: true });
+            
+            try {
+              const result = await uploadImageToCloudinary(formData.imageFile);
+              imageUrl = result.url;
+              imagePublicId = result.publicId;
+            } catch (uploadError) {
+              set({ 
+                error: 'Error al subir la imagen. Por favor intenta de nuevo.',
+                isUploading: false,
+                loading: false
+              });
+              console.error('Error al subir imagen:', uploadError);
+              return { success: false, message: 'Error al subir la imagen' };
+            } finally {
+              set({ isUploading: false });
+            }
+          }
+          
+          // Prepare data for API with potentially updated image info
           const categoryData = {
             name: formData.name,
             icon: formData.icon,
             description: formData.description,
-            image: formData.image,
-            imagePublicId: formData.imagePublicId,
+            image: imageUrl,
+            imagePublicId: imagePublicId,
             color: formData.color,
             isTrending: formData.isTrending
           };
@@ -436,7 +450,7 @@ const useCategoriesStore = create(
           let response;
           
           if (isAddingCategory) {
-            // Create new category - same as before
+            // Create new category
             response = await fetch(
               `${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories/add`,
               {
@@ -447,7 +461,7 @@ const useCategoriesStore = create(
               }
             );
           } else {
-            // Update existing category - same as before
+            // Update existing category
             response = await fetch(
               `${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories/${currentCategory.id}`,
               {
@@ -466,7 +480,10 @@ const useCategoriesStore = create(
           const result = await response.json();
           
           if (result.success) {
-            // Now that the update is successful, delete the old image if it was replaced
+            // Check if we should delete the old image (if it was replaced)
+            const imageChanged = oldImagePublicId && oldImagePublicId !== imagePublicId;
+            
+            // If update is successful and old image was replaced, delete old image
             if (imageChanged) {
               try {
                 await deleteImageFromCloudinary(oldImagePublicId);
@@ -477,7 +494,12 @@ const useCategoriesStore = create(
               }
             }
             
-            // Update state - same as before
+            // Clean up any created object URLs to avoid memory leaks
+            if (formData.imageFile && formData.image && formData.image.startsWith('blob:')) {
+              URL.revokeObjectURL(formData.image);
+            }
+            
+            // Update state
             const updatedCategory = result.category;
             set((state) => ({
               categories: isAddingCategory
@@ -498,6 +520,7 @@ const useCategoriesStore = create(
                 isTrending: false,
                 image: null,
                 imagePublicId: null,
+                imageFile: null,
               }
             }));
           }
@@ -556,7 +579,6 @@ const useCategoriesStore = create(
         }));
       },
       
-      // NEW - Updated to use API
       saveSubcategory: async () => {
         const { 
           subcategoryFormData, isAddingSubcategory, isEditingSubcategory, 
@@ -679,7 +701,6 @@ const useCategoriesStore = create(
         }
       },
       
-      // FIXED - Implement cancelSubcategoryForm
       cancelSubcategoryForm: () => set({
         isAddingSubcategory: false,
         isEditingSubcategory: false,
@@ -691,13 +712,11 @@ const useCategoriesStore = create(
         error: null
       }),
       
-      // Function to initialize delete confirmation
       initDeleteSubcategory: (subcategory) => set({
         subcategoryToDelete: subcategory,
         showDeleteSubcategoryConfirm: true
       }),
       
-      // NEW - Updated confirmDeleteSubcategory to use API
       confirmDeleteSubcategory: async () => {
         const { subcategoryToDelete, selectedCategory } = get();
         
@@ -755,7 +774,6 @@ const useCategoriesStore = create(
         }
       },
       
-      // Function to cancel delete confirmation
       cancelDeleteSubcategory: () => set({
         showDeleteSubcategoryConfirm: false,
         subcategoryToDelete: null

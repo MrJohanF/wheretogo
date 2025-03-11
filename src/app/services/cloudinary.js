@@ -37,7 +37,7 @@ export async function uploadImageToCloudinary(file, options = {}) {
         // Use status text if JSON parsing fails
       }
       
-      throw new Error(`Upload error: ${response.status} - ${errorDetails}`);
+      throw new Error(`Upload error: \${response.status} - ${errorDetails}`);
     }
     
     const data = await response.json();
@@ -95,7 +95,7 @@ export async function deleteImageFromCloudinary(publicId) {
   if (!publicId) return false;
   
   try {
-    const response = await fetch('/api/admin/cloudinary/delete', {
+    const response = await fetch('/api/admin/cloudinary', {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
