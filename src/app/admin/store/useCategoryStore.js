@@ -611,7 +611,7 @@ const useCategoriesStore = create(
           
           // Call API to delete subcategory
           const response = await fetch(
-            `\${process.env.NEXT_PUBLIC_API_URL}/api/admin/subcategories/\${subcategoryToDelete.id}`,
+            `${process.env.NEXT_PUBLIC_API_URL}/api/admin/subcategories/${subcategoryToDelete.id}`,
             {
               method: 'DELETE',
               headers: { 'Content-Type': 'application/json' },
