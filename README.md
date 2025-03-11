@@ -168,6 +168,7 @@ yarn dev
 3. In a separate terminal, run the SSL proxy:
 ```bash
 local-ssl-proxy --source 3443 --target 3000
+local-ssl-proxy --source 5000 --target 4000
 ```
 
 4. Access your app at:

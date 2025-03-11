@@ -17,19 +17,20 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import useCategoryStore from "../store/categoryStore"; // Import the store
 
-// Icon mapping - convert API icon names to emoji or component references
-const iconMap = {
-  Utensils: "🍽️",
-  Coffee: "☕",
-  Beer: "🍸",
-  Building: "🏛️",
-  TreeDeciduous: "🌳",
-  Film: "🎬",
-  Hotel: "🏨",
-  Football: "⚽",
-  ShoppingBag: "🛍️",
-  Music: "🎉",
-  Waves: "🏖️",
+// Animation variants
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.07,
+    },
+  },
+};
+
+const item = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 },
 };
 
 export default function CategoriesPage() {
@@ -41,11 +42,10 @@ export default function CategoriesPage() {
   const [filterMode, setFilterMode] = useState("all");
   const [savedCategories, setSavedCategories] = useState(new Set());
 
-  const { categories, isLoading, error, fetchCategories } = useCategoryStore();
+  const { categories, isLoading, error, fetchCategories, getOptimizedImageUrl } = useCategoryStore();
 
-
-   // Fetch categories on component mount
-   useEffect(() => {
+  // Fetch categories on component mount
+  useEffect(() => {
     fetchCategories();
     setIsInitialLoad(false);
   }, [fetchCategories]);
@@ -92,125 +92,199 @@ export default function CategoriesPage() {
     );
   }
 
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.07,
-      },
-    },
-  };
+  // Component for displaying category cards with optimized images
+  const CategoryCard = ({ category, isFeatured = false }) => {
+    // Get optimized image URL for this specific card size
+    const optimizedImageUrl = getOptimizedImageUrl(
+      category.image,
+      isFeatured ? 800 : 400, 
+      isFeatured ? 384 : 256
+    );
 
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 },
-  };
-
-  const CategoryCard = ({ category, isFeatured = false }) => (
-    <motion.div
-      variants={item}
-      onClick={() => handleCategoryClick(category)}
-      className={`bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden h-full ${
-        isFeatured ? "col-span-1 md:col-span-2 lg:col-span-2" : ""
-      }`}
-    >
-      <div
-        className={`relative ${isFeatured ? "h-48" : "h-32"} overflow-hidden`}
+    return (
+      <motion.div
+        variants={item}
+        onClick={() => handleCategoryClick(category)}
+        className={`bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden h-full ${
+          isFeatured ? "col-span-1 md:col-span-2 lg:col-span-2" : ""
+        }`}
       >
-        {category.image && !category.image.startsWith("blob:") && (
-          <Image
-            src={category.image}
-            alt={category.name}
-            width={800}
-            height={isFeatured ? 384 : 256}
-            className="w-full h-full object-cover"
-            priority={isFeatured}
-            quality={50}
-          />
-        )}
         <div
-          className={`absolute inset-0 bg-gradient-to-br ${category.color} opacity-80`}
-        ></div>
+          className={`relative ${isFeatured ? "h-48" : "h-32"} overflow-hidden`}
+        >
+          {category.image && !category.image.startsWith("blob:") && (
+            <Image
+              src={optimizedImageUrl}
+              alt={category.name}
+              width={isFeatured ? 800 : 400}
+              height={isFeatured ? 384 : 256}
+              className="w-full h-full object-cover"
+              priority={isFeatured}
+              quality={80}
+              sizes={isFeatured ? "(max-width: 768px) 100vw, 800px" : "(max-width: 768px) 100vw, 400px"}
+              loading={isFeatured ? "eager" : "lazy"}
+            />
+          )}
+          <div
+            className={`absolute inset-0 bg-gradient-to-br ${category.color} opacity-80`}
+          ></div>
 
-        {/* Category Icon and Badge */}
-        <div className="absolute inset-0 p-6 flex flex-col justify-between">
-          <div className="flex justify-between items-start">
-            <span className="text-4xl drop-shadow-md">{category.icon}</span>
-            <div className="flex space-x-2">
+          {/* Category Icon and Badge */}
+          <div className="absolute inset-0 p-6 flex flex-col justify-between">
+            <div className="flex justify-between items-start">
+              <span className="text-4xl drop-shadow-md">{category.icon}</span>
+              <div className="flex space-x-2">
+                {category.trending && (
+                  <span className="bg-white/30 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-medium flex items-center">
+                    <TrendingUp size={12} className="mr-1" />
+                    Trending
+                  </span>
+                )}
+                <button
+                  onClick={(e) => toggleSaveCategory(e, category.id)}
+                  className={`p-1.5 rounded-full ${
+                    savedCategories.has(category.id)
+                      ? "bg-white text-indigo-600"
+                      : "bg-white/30 backdrop-blur-sm text-white hover:bg-white/50"
+                  } transition-colors`}
+                >
+                  <Bookmark
+                    size={14}
+                    className={
+                      savedCategories.has(category.id) ? "fill-indigo-600" : ""
+                    }
+                  />
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="font-bold text-white text-xl drop-shadow-sm">
+                {category.name}
+              </h3>
+              <div className="flex items-center mt-1">
+                <span className="bg-white/30 backdrop-blur-sm text-white px-2 py-0.5 rounded-full text-xs">
+                  {category.count} lugares
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Category Details */}
+        <div className="p-5">
+          {category.description && (
+            <p className="text-gray-600 text-sm mb-3">{category.description}</p>
+          )}
+
+          {category.subcategories && category.subcategories.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {category.subcategories
+                .slice(0, isFeatured ? 5 : 3)
+                .map((sub, idx) => (
+                  <span
+                    key={idx}
+                    className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full"
+                  >
+                    {sub}
+                  </span>
+                ))}
+              {category.subcategories.length > (isFeatured ? 5 : 3) && (
+                <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
+                  +{category.subcategories.length - (isFeatured ? 5 : 3)} más
+                </span>
+              )}
+            </div>
+          )}
+
+          <div className="flex items-center text-indigo-600 group">
+            <span className="text-sm font-medium">Explorar</span>
+            <ChevronRight
+              size={16}
+              className="ml-1 transform transition-transform duration-300 group-hover:translate-x-1"
+            />
+          </div>
+        </div>
+      </motion.div>
+    );
+  };
+
+  // Component for list view items with optimized images
+  const CategoryListItem = ({ category }) => {
+    return (
+      <motion.div
+        variants={item}
+        onClick={() => handleCategoryClick(category)}
+        className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
+      >
+        <div className="flex items-center p-4">
+          <div
+            className={`w-14 h-14 rounded-xl bg-gradient-to-br ${category.color} flex items-center justify-center text-white text-2xl mr-5`}
+          >
+            {category.icon}
+          </div>
+
+          <div className="flex-1">
+            <div className="flex items-center">
+              <h3 className="font-semibold text-gray-800">
+                {category.name}
+              </h3>
               {category.trending && (
-                <span className="bg-white/30 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-medium flex items-center">
-                  <TrendingUp size={12} className="mr-1" />
+                <span className="ml-2 bg-indigo-100 text-indigo-700 text-xs px-2 py-0.5 rounded-full flex items-center">
+                  <TrendingUp size={10} className="mr-1" />
                   Trending
                 </span>
               )}
-              <button
-                onClick={(e) => toggleSaveCategory(e, category.id)}
-                className={`p-1.5 rounded-full ${
-                  savedCategories.has(category.id)
-                    ? "bg-white text-indigo-600"
-                    : "bg-white/30 backdrop-blur-sm text-white hover:bg-white/50"
-                } transition-colors`}
-              >
-                <Bookmark
-                  size={14}
-                  className={
-                    savedCategories.has(category.id) ? "fill-indigo-600" : ""
-                  }
-                />
-              </button>
             </div>
-          </div>
+            <p className="text-sm text-gray-500 mt-0.5">
+              {category.count} lugares • {category.description}
+            </p>
 
-          <div>
-            <h3 className="font-bold text-white text-xl drop-shadow-sm">
-              {category.name}
-            </h3>
-            <div className="flex items-center mt-1">
-              <span className="bg-white/30 backdrop-blur-sm text-white px-2 py-0.5 rounded-full text-xs">
-                {category.count} lugares
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Category Details */}
-      <div className="p-5">
-        {category.description && (
-          <p className="text-gray-600 text-sm mb-3">{category.description}</p>
-        )}
-
-        {category.subcategories && category.subcategories.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-3">
-            {category.subcategories
-              .slice(0, isFeatured ? 5 : 3)
-              .map((sub, idx) => (
-                <span
-                  key={idx}
-                  className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full"
-                >
-                  {sub}
-                </span>
-              ))}
-            {category.subcategories.length > (isFeatured ? 5 : 3) && (
-              <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
-                +{category.subcategories.length - (isFeatured ? 5 : 3)} más
-              </span>
+            {category.subcategories && category.subcategories.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {category.subcategories
+                  .slice(0, 3)
+                  .map((sub, idx) => (
+                    <span
+                      key={idx}
+                      className="text-xs bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded-full"
+                    >
+                      {sub}
+                    </span>
+                  ))}
+                {category.subcategories.length > 3 && (
+                  <span className="text-xs text-gray-500">
+                    +{category.subcategories.length - 3} más
+                  </span>
+                )}
+              </div>
             )}
           </div>
-        )}
 
-        <div className="flex items-center text-indigo-600 group">
-          <span className="text-sm font-medium">Explorar</span>
-          <ChevronRight
-            size={16}
-            className="ml-1 transform transition-transform duration-300 group-hover:translate-x-1"
-          />
+          <div className="flex items-center">
+            <button
+              onClick={(e) => toggleSaveCategory(e, category.id)}
+              className={`p-2 rounded-full mr-2 ${
+                savedCategories.has(category.id)
+                  ? "text-indigo-600"
+                  : "text-gray-400 hover:text-gray-700"
+              }`}
+            >
+              <Bookmark
+                size={18}
+                className={
+                  savedCategories.has(category.id)
+                    ? "fill-indigo-600"
+                    : ""
+                }
+              />
+            </button>
+            <ChevronRight size={20} className="text-gray-400" />
+          </div>
         </div>
-      </div>
-    </motion.div>
-  );
+      </motion.div>
+    );
+  };
 
   // Render loading state
   if (isLoading) {
@@ -443,78 +517,7 @@ export default function CategoriesPage() {
               className="space-y-4"
             >
               {filteredCategories.map((category) => (
-                <motion.div
-                  key={category.id}
-                  variants={item}
-                  onClick={() => handleCategoryClick(category)}
-                  className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
-                >
-                  <div className="flex items-center p-4">
-                    <div
-                      className={`w-14 h-14 rounded-xl bg-gradient-to-br ${category.color} flex items-center justify-center text-white text-2xl mr-5`}
-                    >
-                      {category.icon}
-                    </div>
-
-                    <div className="flex-1">
-                      <div className="flex items-center">
-                        <h3 className="font-semibold text-gray-800">
-                          {category.name}
-                        </h3>
-                        {category.trending && (
-                          <span className="ml-2 bg-indigo-100 text-indigo-700 text-xs px-2 py-0.5 rounded-full flex items-center">
-                            <TrendingUp size={10} className="mr-1" />
-                            Trending
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-500 mt-0.5">
-                        {category.count} lugares • {category.description}
-                      </p>
-
-                      {category.subcategories && category.subcategories.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {category.subcategories
-                            .slice(0, 3)
-                            .map((sub, idx) => (
-                              <span
-                                key={idx}
-                                className="text-xs bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded-full"
-                              >
-                                {sub}
-                              </span>
-                            ))}
-                          {category.subcategories.length > 3 && (
-                            <span className="text-xs text-gray-500">
-                              +{category.subcategories.length - 3} más
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex items-center">
-                      <button
-                        onClick={(e) => toggleSaveCategory(e, category.id)}
-                        className={`p-2 rounded-full mr-2 ${
-                          savedCategories.has(category.id)
-                            ? "text-indigo-600"
-                            : "text-gray-400 hover:text-gray-700"
-                        }`}
-                      >
-                        <Bookmark
-                          size={18}
-                          className={
-                            savedCategories.has(category.id)
-                              ? "fill-indigo-600"
-                              : ""
-                          }
-                        />
-                      </button>
-                      <ChevronRight size={20} className="text-gray-400" />
-                    </div>
-                  </div>
-                </motion.div>
+                <CategoryListItem key={category.id} category={category} />
               ))}
             </motion.div>
           )}

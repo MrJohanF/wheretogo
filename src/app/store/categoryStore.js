@@ -25,19 +25,38 @@ const useCategoryStore = create((set, get) => ({
       
       if (data.success && data.categories) {
         // Transform API data to match component expectations
-        const transformedCategories = data.categories.map(category => ({
-          id: category.id,
-          name: category.name,
-          icon: mapIconToEmoji(category.icon) || "📍", // Using a helper function
-          count: category._count.places,
-          description: category.description || `Explora lugares en ${category.name}`,
-          color: mapColorToGradient(category.color),
-          image: category.image || "/images/placeholder.jpg", 
-          trending: category.isTrending,
-          subcategories: category.subcategories.map(sub => sub.name),
-          filters: ["Valoración", "Precio", "Distancia"], // Default filters
-          features: []  // Can be populated if your API returns features
-        }));
+        const transformedCategories = data.categories.map(category => {
+          // Optimizar URLs de Cloudinary si existen
+          let imageUrl = category.image || "/images/placeholder.jpg";
+          
+          // Si la imagen proviene de Cloudinary, podemos aplicar transformaciones
+          if (imageUrl && imageUrl.includes('cloudinary.com')) {
+            // Extraer el path después de 'upload/'
+            const uploadIndex = imageUrl.indexOf('upload/');
+            if (uploadIndex !== -1) {
+              const basePath = imageUrl.substring(0, uploadIndex + 7);
+              const imagePath = imageUrl.substring(uploadIndex + 7);
+              
+              // Aplicar transformaciones (calidad automática, formato automático)
+              imageUrl = `${basePath}c_fill,w_800,h_400,q_auto,f_auto/${imagePath}`;
+            }
+          }
+          
+          return {
+            id: category.id,
+            name: category.name,
+            icon: mapIconToEmoji(category.icon) || "📍", // Using a helper function
+            count: category._count?.places || 0,
+            description: category.description || `Explora lugares en ${category.name}`,
+            color: mapColorToGradient(category.color),
+            image: imageUrl,
+            imagePublicId: category.imagePublicId, // Guardar el publicId por si es necesario
+            trending: category.isTrending,
+            subcategories: category.subcategories?.map(sub => sub.name) || [],
+            filters: ["Valoración", "Precio", "Distancia"], // Default filters
+            features: []  // Can be populated if your API returns features
+          };
+        });
         
         set({ 
           categories: transformedCategories,
@@ -73,6 +92,26 @@ const useCategoryStore = create((set, get) => ({
       features: [],
       filters: ["Valoración", "Precio", "Distancia"]
     };
+  },
+  
+  // Helper method to optimize Cloudinary images on the fly
+  getOptimizedImageUrl: (imageUrl, width = 800, height = 400) => {
+    if (!imageUrl || imageUrl.startsWith('blob:') || imageUrl === '/images/placeholder.jpg') {
+      return imageUrl;
+    }
+    
+    // Si es una imagen de Cloudinary, optimizarla
+    if (imageUrl.includes('cloudinary.com')) {
+      const uploadIndex = imageUrl.indexOf('upload/');
+      if (uploadIndex !== -1) {
+        const basePath = imageUrl.substring(0, uploadIndex + 7);
+        const imagePath = imageUrl.substring(uploadIndex + 7);
+        
+        return `${basePath}c_fill,w_${width},h_${height},q_auto,f_auto/${imagePath}`;
+      }
+    }
+    
+    return imageUrl;
   }
 }));
 
