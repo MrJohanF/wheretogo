@@ -15,7 +15,7 @@ export async function uploadImageToCloudinary(file, options = {}) {
     formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'ml_default');
     
     // Temporarily remove format restriction for testing
-    // formData.append('format', 'avif');
+    formData.append('format', 'avif');
     formData.append('quality', 'auto');
     
     const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
@@ -37,7 +37,7 @@ export async function uploadImageToCloudinary(file, options = {}) {
         // Use status text if JSON parsing fails
       }
       
-      throw new Error(`Upload error: \${response.status} - ${errorDetails}`);
+      throw new Error(`Upload error: ${response.status} - ${errorDetails}`);
     }
     
     const data = await response.json();
