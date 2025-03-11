@@ -1,6 +1,11 @@
 // store/categoryStore.js
 import { create } from 'zustand';
 import { getOptimizedImageUrl } from '../services/cloudinary';
+import { 
+  Coffee, Utensils, Beer, Building, TreeDeciduous, 
+  Film, Music, Volleyball, ShoppingBag, Calendar, 
+  Hotel, Waves, MapPin 
+} from 'lucide-react';
 
 const useCategoryStore = create((set, get) => ({
   // State remains the same
@@ -42,7 +47,7 @@ const useCategoryStore = create((set, get) => ({
           return {
             id: category.id,
             name: category.name,
-            icon: mapIconToEmoji(category.icon) || "📍",
+            icon: mapIconToComponent(category.icon) || "📍",
             count: category._count?.places || 0,
             description: category.description || `Explora lugares en ${category.name}`,
             color: mapColorToGradient(category.color),
@@ -102,19 +107,27 @@ const useCategoryStore = create((set, get) => ({
   }
 }));
 
-// Helper functions remain the same
-function mapIconToEmoji(iconName) {
-  if (!iconName) return '📍'; // Default icon
+// Helper functions Icons
+
+function mapIconToComponent(iconName) {
+  if (!iconName) return <MapPin size={20} />; // Default icon
   
-  // Map icon names to emoji or other representations
   const iconMap = {
-    'ShoppingBag': '🛍️',
-    'Coffee': '☕',
-    'Restaurant': '🍽️',
-    'Hotel': '🏨',
+    "Coffee": <Coffee size={20} />,
+    "Utensils": <Utensils size={20} />,
+    "Beer": <Beer size={20} />,
+    "Building": <Building size={20} />,
+    "TreeDeciduous": <TreeDeciduous size={20} />,
+    "Film": <Film size={20} />,
+    "Music": <Music size={20} />,
+    "Football": <Volleyball size={20} />, // You were using Volleyball for Football
+    "ShoppingBag": <ShoppingBag size={20} />,
+    "Calendar": <Calendar size={20} />,
+    "Hotel": <Hotel size={20} />,
+    "Waves": <Waves size={20} />
   };
   
-  return iconMap[iconName] || '📍'; // Return mapped icon or default
+  return iconMap[iconName] || <MapPin size={20} />; // Return mapped icon or default
 }
 
 function mapColorToGradient(hexColor) {
