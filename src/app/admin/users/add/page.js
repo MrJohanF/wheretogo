@@ -84,7 +84,7 @@ const validateField = (name, value, currentFormData = formData) => {
     case 'name':
       return !value.trim() ? "El nombre es obligatorio" : "";
     case 'email': {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+\$/;
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       return !value.trim() ? "El correo electrónico es obligatorio" : 
             !emailRegex.test(value) ? "Ingresa un correo electrónico válido" : "";
     }

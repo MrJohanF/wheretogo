@@ -257,11 +257,11 @@ export default function AdminLayout({ children }) {
                       <p className="text-xs text-gray-500">{user?.email || 'admin@wheretogo.com'}</p>
                     </div>
                     <Link 
-                      href="/admin/profile" 
+                      href="/" 
                       className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center transition-colors duration-75"
                       onClick={() => setProfileOpen(false)}
                     >
-                      <User size={16} className="mr-2 text-gray-500" /> Mi Perfil
+                      <Home size={16} className="mr-2 text-gray-500" /> Inicio
                     </Link>
                     <Link 
                       href="/admin/settings" 
