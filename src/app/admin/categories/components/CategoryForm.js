@@ -1,3 +1,5 @@
+// src/app/admin/categories/components/CategoryForm.js
+
 "use client";
 
 import { motion } from "framer-motion";
