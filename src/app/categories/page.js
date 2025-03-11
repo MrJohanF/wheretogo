@@ -233,7 +233,7 @@ export default function CategoriesPage() {
           <div
             className={`w-14 h-14 rounded-xl flex items-center justify-center text-white text-2xl mr-5`}
             style={{
-              backgroundColor: category.color ? `${category.color}` : '#6366F1'
+              background: category.color ? `${category.color}` : '#6366F1'
             }}
           >
             {category.icon}
