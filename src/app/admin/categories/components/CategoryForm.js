@@ -65,7 +65,7 @@ const MODERN_COLOR_PALETTE = [
  * Category form component for adding and editing categories
  */
 export default function CategoryForm({ 
-  isAdding,
+  isAddingCategory,
   formData,
   onInputChange,
   onImageSelect,
@@ -105,52 +105,7 @@ export default function CategoryForm({
    * Handle saving the category - performs API call
    */
   const handleSave = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      // Prepare data for API
-      const categoryData = {
-        name: formData.name,
-        icon: formData.icon,
-        description: formData.description,
-        image: formData.image,
-        color: formData.color,
-        isTrending: formData.isTrending
-      };
-
-      let response;
-
-      if (isAdding) {
-        // Create new category
-        response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories/add`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify(categoryData),
-        });
-      } else {
-        // Update existing category
-        response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/categories/${currentCategory.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify(categoryData),
-        });
-      }
-
-      if (!response.ok) {
-        throw new Error(isAdding ? 'Error al crear la categoría' : 'Error al actualizar la categoría');
-      }
-
-      const result = await response.json();
-      onSave(result); // Pass the result back to parent
-    } catch (err) {
-      setError(err.message);
-      console.error('Error saving category:', err);
-    } finally {
-      setIsLoading(false);
-    }
+    onSave();
   };
 
   return (
@@ -162,7 +117,7 @@ export default function CategoryForm({
       {/* Form header */}
       <div className="mb-6 flex justify-between items-center">
         <h2 className="text-xl font-semibold">
-          {isAdding ? "Añadir Nueva Categoría" : "Editar Categoría"}
+          {isAddingCategory ? "Añadir Nueva Categoría" : "Editar Categoría"}
         </h2>
         <button
           onClick={onCancel}

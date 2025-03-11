@@ -1,3 +1,5 @@
+// src\app\admin\categories\page.js
+
 "use client";
 
 import { useEffect, useMemo } from "react";
@@ -559,7 +561,7 @@ export default function CategoriesManagement() {
         {/* Category form (add/edit) */}
         {(isAddingCategory || isEditingCategory) && (
           <CategoryForm
-            isAdding={isAddingCategory}
+            isAddingCategory={isAddingCategory}
             formData={formData}
             onInputChange={handleInputChange}
             onImageSelect={handleImageSelect}
