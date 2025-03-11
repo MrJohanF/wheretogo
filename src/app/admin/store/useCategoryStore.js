@@ -1,4 +1,4 @@
-// src/store/useCategoriesStore.js
+// src/admin/store/useCategoriesStore.js
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { uploadImageToCloudinary, deleteImageFromCloudinary } from '@/app/services/cloudinary';
