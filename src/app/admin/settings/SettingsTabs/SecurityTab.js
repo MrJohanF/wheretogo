@@ -2,24 +2,31 @@
 
 import { motion } from "framer-motion";
 import { Shield, Save, X, Clock, MapPin, Monitor } from "lucide-react";
+import ToggleSwitch from "../../../components/ui/toggle"; // Adjust path as needed
 
-export default function SecurityTab({ formData, onChange, onRemoveSession, onCloseAllSessions, onSubmit }) {
+export default function SecurityTab({
+  formData,
+  onChange,
+  onRemoveSession,
+  onCloseAllSessions,
+  onSubmit,
+}) {
   // Helper function to format date
   const formatDate = (dateString) => {
     try {
-      const options = { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+      const options = {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       };
-      return new Date(dateString).toLocaleDateString('es-ES', options);
+      return new Date(dateString).toLocaleDateString("es-ES", options);
     } catch (error) {
       return dateString;
     }
   };
-  
+
   return (
     <motion.form
       initial={{ opacity: 0, y: 20 }}
@@ -28,9 +35,7 @@ export default function SecurityTab({ formData, onChange, onRemoveSession, onClo
       transition={{ duration: 0.4 }}
       onSubmit={onSubmit}
     >
-      <motion.div 
-        className="bg-white/80 dark:bg-gray-800/90 backdrop-blur-sm shadow-lg rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700 mb-6"
-      >
+      <motion.div className="bg-white/80 dark:bg-gray-800/90 backdrop-blur-sm shadow-lg rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700 mb-6">
         <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white flex items-center">
             <span className="bg-indigo-100 dark:bg-indigo-900/50 p-2 rounded-lg mr-3">
@@ -39,94 +44,76 @@ export default function SecurityTab({ formData, onChange, onRemoveSession, onClo
             Opciones de Seguridad
           </h3>
         </div>
-        
+
         <div className="px-6 py-6 space-y-6">
           {/* Two Factor Authentication */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/40 dark:to-gray-700/40"
+            className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/40 dark:to-gray-700/40 gap-3 sm:gap-4"
           >
-            <div>
-              <h4 className="font-medium text-gray-900 dark:text-white text-base">Autenticación de dos factores</h4>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Añade una capa extra de seguridad a tu cuenta requiriendo un código además de tu contraseña
+            <div className="flex-1 min-w-0">
+              <h4 className="font-medium text-gray-900 dark:text-white text-base">
+                Autenticación de dos factores
+              </h4>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-md">
+                Añade una capa extra de seguridad a tu cuenta requiriendo un
+                código además de tu contraseña
               </p>
             </div>
-            <div className="flex items-center">
-              <label className="inline-flex relative items-center cursor-pointer">
-                <input
-                  id="twoFactorEnabled"
-                  name="twoFactorEnabled"
-                  type="checkbox"
-                  checked={formData.twoFactorEnabled}
-                  onChange={(e) => onChange('twoFactorEnabled', e.target.checked)}
-                  className="sr-only"
-                />
-                <div className={`w-12 h-6 rounded-full transition-colors ${
-                  formData.twoFactorEnabled 
-                    ? 'bg-indigo-600' 
-                    : 'bg-gray-300 dark:bg-gray-600'
-                }`}>
-                  <div className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform ${
-                    formData.twoFactorEnabled 
-                      ? 'translate-x-6' 
-                      : 'translate-x-1'
-                  }`}></div>
-                </div>
-                <span className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {formData.twoFactorEnabled ? "Activado" : "Desactivado"}
-                </span>
-              </label>
+            <div className="flex items-center self-start sm:self-center mt-2 sm:mt-0 shrink-0">
+              {/* Toggle replaced with the new ToggleSwitch component */}
+              <ToggleSwitch
+                id="twoFactorEnabled"
+                name="twoFactorEnabled"
+                checked={formData.twoFactorEnabled}
+                onChange={(value) => onChange("twoFactorEnabled", value)}
+                enabledText="Activado"
+                disabledText="Desactivado"
+                ariaLabel="Toggle two-factor authentication"
+              />
             </div>
           </motion.div>
 
           {/* Login Alerts */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/40 dark:to-gray-700/40"
+            className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/40 dark:to-gray-700/40 gap-3 sm:gap-4"
           >
-            <div>
-              <h4 className="font-medium text-gray-900 dark:text-white text-base">Alertas de inicio de sesión</h4>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Recibe notificaciones cuando alguien inicie sesión en tu cuenta desde un nuevo dispositivo o ubicación
+            <div className="flex-1 min-w-0">
+              <h4 className="font-medium text-gray-900 dark:text-white text-base">
+                Alertas de inicio de sesión
+              </h4>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-md">
+                Recibe notificaciones cuando alguien inicie sesión en tu cuenta
+                desde un nuevo dispositivo o ubicación
               </p>
             </div>
-            <div className="flex items-center">
-              <label className="inline-flex relative items-center cursor-pointer">
-                <input
-                  id="loginAlerts"
-                  name="loginAlerts"
-                  type="checkbox"
-                  checked={formData.loginAlerts}
-                  onChange={(e) => onChange('loginAlerts', e.target.checked)}
-                  className="sr-only"
-                />
-                <div className={`w-12 h-6 rounded-full transition-colors ${
-                  formData.loginAlerts 
-                    ? 'bg-indigo-600' 
-                    : 'bg-gray-300 dark:bg-gray-600'
-                }`}>
-                  <div className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform ${
-                    formData.loginAlerts 
-                      ? 'translate-x-6' 
-                      : 'translate-x-1'
-                  }`}></div>
-                </div>
-                <span className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {formData.loginAlerts ? "Activado" : "Desactivado"}
-                </span>
-              </label>
+
+            <div className="flex items-center self-start sm:self-center mt-2 sm:mt-0 shrink-0">
+              {/* Toggle replaced with the new ToggleSwitch component */}
+              <ToggleSwitch
+                id="loginAlerts"
+                name="loginAlerts"
+                checked={formData.loginAlerts}
+                onChange={(value) => onChange("loginAlerts", value)}
+                enabledText="Activado"
+                disabledText="Desactivado"
+                ariaLabel="Toggle login alerts"
+              />
             </div>
           </motion.div>
         </div>
-        
+
         <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-700/50 text-right">
           <motion.button
-            whileHover={{ scale: 1.03, boxShadow: "0 4px 12px rgba(79, 70, 229, 0.2)" }}
+            whileHover={{
+              scale: 1.03,
+              boxShadow: "0 4px 12px rgba(79, 70, 229, 0.2)",
+            }}
             whileTap={{ scale: 0.98 }}
             type="submit"
             className="px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-lg shadow font-medium flex items-center ml-auto"
@@ -138,9 +125,7 @@ export default function SecurityTab({ formData, onChange, onRemoveSession, onClo
       </motion.div>
 
       {/* Active Sessions */}
-      <motion.div 
-        className="bg-white/80 dark:bg-gray-800/90 backdrop-blur-sm shadow-lg rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700"
-      >
+      <motion.div className="bg-white/80 dark:bg-gray-800/90 backdrop-blur-sm shadow-lg rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700">
         <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white flex items-center">
             <span className="bg-indigo-100 dark:bg-indigo-900/50 p-2 rounded-lg mr-3">
@@ -160,20 +145,21 @@ export default function SecurityTab({ formData, onChange, onRemoveSession, onClo
                   No se encontraron sesiones activas
                 </p>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  Cuando inicies sesión en diferentes dispositivos, aparecerán aquí
+                  Cuando inicies sesión en diferentes dispositivos, aparecerán
+                  aquí
                 </p>
               </div>
             ) : (
               formData.activeSessions.map((session, index) => (
-                <motion.div 
+                <motion.div
                   key={session.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className={`p-5 border rounded-xl ${
-                    session.current 
-                      ? 'border-green-200 bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-900/20 dark:to-green-800/10 dark:border-green-800/30' 
-                      : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors'
+                  className={`p-5 border rounded-xl \${
+                    session.current
+                      ? "border-green-200 bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-900/20 dark:to-green-800/10 dark:border-green-800/30"
+                      : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
                   }`}
                 >
                   <div className="flex justify-between items-start">
@@ -188,8 +174,17 @@ export default function SecurityTab({ formData, onChange, onRemoveSession, onClo
                       </h4>
                       <div className="mt-2 space-y-2">
                         <p className="text-sm flex items-center text-gray-500 dark:text-gray-400">
-                          <svg className="h-4 w-4 mr-1.5 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M14.243 5.757a6 6 0 10-.986 9.284 1 1 0 111.087 1.678A8 8 0 1118 10a3 3 0 01-3.757-4.243z" clipRule="evenodd" />
+                          <svg
+                            className="h-4 w-4 mr-1.5 text-gray-400 dark:text-gray-500"
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M14.243 5.757a6 6 0 10-.986 9.284 1 1 0 111.087 1.678A8 8 0 1118 10a3 3 0 01-3.757-4.243z"
+                              clipRule="evenodd"
+                            />
                             <path d="M12 10a2 2 0 11-4 0 2 2 0 014 0z" />
                           </svg>
                           {session.ipAddress}
@@ -221,7 +216,7 @@ export default function SecurityTab({ formData, onChange, onRemoveSession, onClo
               ))
             )}
           </div>
-          
+
           {formData.activeSessions.length > 1 && (
             <div className="mt-6">
               <motion.button
@@ -231,8 +226,19 @@ export default function SecurityTab({ formData, onChange, onRemoveSession, onClo
                 className="w-full flex items-center justify-center px-4 py-3 border border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 rounded-lg font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200"
                 onClick={onCloseAllSessions}
               >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  ></path>
                 </svg>
                 Cerrar Todas las Otras Sesiones
               </motion.button>
@@ -242,12 +248,14 @@ export default function SecurityTab({ formData, onChange, onRemoveSession, onClo
             </div>
           )}
         </div>
-        
+
         <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 sm:px-6 flex justify-between items-center border-t border-gray-200 dark:border-gray-700">
           <span className="text-sm text-gray-500 dark:text-gray-400">
-            {formData.activeSessions.length} sesión{formData.activeSessions.length !== 1 ? 'es' : ''} activa{formData.activeSessions.length !== 1 ? 's' : ''}
+            {formData.activeSessions.length} sesión
+            {formData.activeSessions.length !== 1 ? "es" : ""} activa
+            {formData.activeSessions.length !== 1 ? "s" : ""}
           </span>
-          
+
           {/* This is blank to maintain the justify-between spacing */}
           <div></div>
         </div>
