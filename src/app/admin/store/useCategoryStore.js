@@ -1,3 +1,4 @@
+
 // src/store/useCategoriesStore.js
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
@@ -460,56 +461,181 @@ const useCategoriesStore = create(
         }));
       },
       
-      saveSubcategory: () => {
+      // NEW - Updated to use API
+      saveSubcategory: async () => {
         const { 
           subcategoryFormData, isAddingSubcategory, isEditingSubcategory, 
           currentSubcategory, selectedCategory
         } = get();
         
-        // Validation
+        // Form validation
         if (!subcategoryFormData.name.trim()) {
+          set({ error: "El nombre de la subcategoría es obligatorio" });
           return;
         }
         
-        if (isAddingSubcategory) {
-          // Create new subcategory
-          const maxId = selectedCategory?.subcategories?.length 
-            ? Math.max(...selectedCategory.subcategories.map(s => s.id || 0), 0)
-            : 0;
-            
-          const newSubcategory = {
-            id: maxId + 1,
+        try {
+          set({ loading: true, error: null });
+          
+          const requestData = {
             name: subcategoryFormData.name,
-            categoryId: selectedCategory?.id,
+            categoryId: selectedCategory?.id
           };
           
-          // Add subcategory to parent category
-          set((state) => ({
-            categories: state.categories.map((cat) => {
+          let response;
+          let updatedSubcategory;
+          
+          if (isAddingSubcategory) {
+            // Create new subcategory via API
+            response = await fetch(
+              `${process.env.NEXT_PUBLIC_API_URL}/api/admin/subcategories/add`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(requestData),
+              }
+            );
+            
+            if (!response.ok) {
+              throw new Error('Error al crear la subcategoría');
+            }
+            
+            const result = await response.json();
+            if (!result.success) {
+              throw new Error(result.message || 'Error al crear la subcategoría');
+            }
+            
+            updatedSubcategory = result.subcategory;
+          } 
+          else if (isEditingSubcategory && currentSubcategory) {
+            // Update existing subcategory via API
+            response = await fetch(
+              `${process.env.NEXT_PUBLIC_API_URL}/api/admin/subcategories/${currentSubcategory.id}`,
+              {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(requestData),
+              }
+            );
+            
+            if (!response.ok) {
+              throw new Error('Error al actualizar la subcategoría');
+            }
+            
+            const result = await response.json();
+            if (!result.success) {
+              throw new Error(result.message || 'Error al actualizar la subcategoría');
+            }
+            
+            updatedSubcategory = result.subcategory;
+          }
+          
+          // Update local state based on the operation
+          set((state) => {
+            // Find the parent category and update its subcategories
+            const updatedCategories = state.categories.map((cat) => {
               if (cat.id === selectedCategory?.id) {
-                return {
-                  ...cat,
-                  subcategories: [...(cat.subcategories || []), newSubcategory],
-                };
+                let updatedSubcategories;
+                
+                if (isAddingSubcategory) {
+                  // Add new subcategory to the list
+                  updatedSubcategories = [
+                    ...(cat.subcategories || []),
+                    updatedSubcategory
+                  ];
+                } else {
+                  // Update existing subcategory
+                  updatedSubcategories = (cat.subcategories || []).map((sub) =>
+                    sub.id === updatedSubcategory.id ? updatedSubcategory : sub
+                  );
+                }
+                
+                return { ...cat, subcategories: updatedSubcategories };
               }
               return cat;
-            }),
-            selectedCategory: selectedCategory ? {
-              ...selectedCategory,
-              subcategories: [...(selectedCategory.subcategories || []), newSubcategory],
-            } : null
-          }));
-        } else if (isEditingSubcategory && currentSubcategory) {
-          // Update existing subcategory
+            });
+            
+            // Update the selected category in the view
+            const updatedSelectedCategory = updatedCategories.find(
+              (cat) => cat.id === selectedCategory?.id
+            );
+            
+            return {
+              categories: updatedCategories,
+              selectedCategory: updatedSelectedCategory,
+              isAddingSubcategory: false,
+              isEditingSubcategory: false,
+              currentSubcategory: null,
+              subcategoryFormData: {
+                name: "",
+                categoryId: null
+              }
+            };
+          });
+        } 
+        catch (err) {
+          set({ error: err.message });
+          console.error('Error saving subcategory:', err);
+        } 
+        finally {
+          set({ loading: false });
+        }
+      },
+      
+      // FIXED - Implement cancelSubcategoryForm
+      cancelSubcategoryForm: () => set({
+        isAddingSubcategory: false,
+        isEditingSubcategory: false,
+        currentSubcategory: null,
+        subcategoryFormData: {
+          name: "",
+          categoryId: null
+        },
+        error: null
+      }),
+      
+      // Function to initialize delete confirmation
+      initDeleteSubcategory: (subcategory) => set({
+        subcategoryToDelete: subcategory,
+        showDeleteSubcategoryConfirm: true
+      }),
+      
+      // NEW - Updated confirmDeleteSubcategory to use API
+      confirmDeleteSubcategory: async () => {
+        const { subcategoryToDelete, selectedCategory } = get();
+        
+        try {
+          set({ loading: true, error: null });
+          
+          // Call API to delete subcategory
+          const response = await fetch(
+            `\${process.env.NEXT_PUBLIC_API_URL}/api/admin/subcategories/\${subcategoryToDelete.id}`,
+            {
+              method: 'DELETE',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+            }
+          );
+          
+          if (!response.ok) {
+            throw new Error('Error al eliminar la subcategoría');
+          }
+          
+          const data = await response.json();
+          if (!data.success) {
+            throw new Error(data.message || 'Error al eliminar la subcategoría');
+          }
+          
+          // Update local state to remove the deleted subcategory
           set((state) => ({
             categories: state.categories.map((cat) => {
               if (cat.id === selectedCategory?.id) {
                 return {
                   ...cat,
-                  subcategories: (cat.subcategories || []).map((sub) =>
-                    sub.id === currentSubcategory.id
-                      ? { ...sub, name: subcategoryFormData.name }
-                      : sub
+                  subcategories: (cat.subcategories || []).filter(
+                    (sub) => sub.id !== subcategoryToDelete.id
                   ),
                 };
               }
@@ -517,72 +643,27 @@ const useCategoriesStore = create(
             }),
             selectedCategory: selectedCategory ? {
               ...selectedCategory,
-              subcategories: (selectedCategory.subcategories || []).map((sub) =>
-                sub.id === currentSubcategory.id
-                  ? { ...sub, name: subcategoryFormData.name }
-                  : sub
+              subcategories: (selectedCategory.subcategories || []).filter(
+                (sub) => sub.id !== subcategoryToDelete.id
               ),
-            } : null
+            } : null,
+            showDeleteSubcategoryConfirm: false,
+            subcategoryToDelete: null
           }));
+        } 
+        catch (err) {
+          set({ error: err.message });
+          console.error('Error deleting subcategory:', err);
+        } 
+        finally {
+          set({ loading: false });
         }
-        
-        // Reset form state
-        set({
-          isAddingSubcategory: false,
-          isEditingSubcategory: false,
-          currentSubcategory: null,
-          subcategoryFormData: { 
-            name: "", 
-            categoryId: null 
-          }
-        });
       },
       
-      resetSubcategoryForm: () => set({
-        isAddingSubcategory: false,
-        isEditingSubcategory: false,
-        currentSubcategory: null,
-        subcategoryFormData: { 
-          name: "", 
-          categoryId: null 
-        }
-      }),
-      
-      initDeleteSubcategory: (subcategory) => set({
-        subcategoryToDelete: subcategory,
-        showDeleteSubcategoryConfirm: true
-      }),
-      
-      deleteSubcategory: () => {
-        const { subcategoryToDelete, selectedCategory } = get();
-        
-        // Update the parent category to remove the subcategory
-        set((state) => ({
-          categories: state.categories.map((cat) => {
-            if (cat.id === selectedCategory?.id) {
-              return {
-                ...cat,
-                subcategories: cat.subcategories.filter(
-                  (sub) => sub.id !== subcategoryToDelete.id
-                ),
-              };
-            }
-            return cat;
-          }),
-          selectedCategory: selectedCategory ? {
-            ...selectedCategory,
-            subcategories: selectedCategory.subcategories.filter(
-              (sub) => sub.id !== subcategoryToDelete.id
-            ),
-          } : null,
-          showDeleteSubcategoryConfirm: false,
-          subcategoryToDelete: null
-        }));
-      },
-      
-      cancelDeleteSubcategory: () => set({ 
-        showDeleteSubcategoryConfirm: false, 
-        subcategoryToDelete: null 
+      // Function to cancel delete confirmation
+      cancelDeleteSubcategory: () => set({
+        showDeleteSubcategoryConfirm: false,
+        subcategoryToDelete: null
       }),
     }),
     {
