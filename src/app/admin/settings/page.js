@@ -112,12 +112,14 @@ export default function AdminSettings() {
   });
   
   const [preferencesData, setPreferencesData] = useState({
-    theme: "system",
-    language: "es",
-    timezone: "America/New_York",
-    emailNotifications: true,
-    pushNotifications: true,
-    marketingEmails: false
+    themePreference: "Claro",
+    language: "Español",
+    timezone: "Bogotá, Colombia",
+    notificationPreferences: {
+      emailNotifications: true,
+      pushNotifications: true,
+      marketingEmails: false
+    }
   });
   
   const [securityData, setSecurityData] = useState({
@@ -134,15 +136,16 @@ export default function AdminSettings() {
 
   // Static data arrays
   const languages = [
-    { code: "es", name: "Español" },
-    { code: "en", name: "Inglés" },
-    { code: "fr", name: "Francés" },
-    { code: "de", name: "Alemán" },
-    { code: "it", name: "Italiano" },
-    { code: "pt", name: "Portugués" }
+    { code: "Español", name: "Español" },
+    { code: "English", name: "Inglés" },
+    { code: "Français", name: "Francés" },
+    { code: "Deutsch", name: "Alemán" },
+    { code: "Italiano", name: "Italiano" },
+    { code: "Português", name: "Portugués" }
   ];
 
   const timezones = [
+    { code: "Bogotá, Colombia", name: "Bogotá, Colombia" },
     { code: "America/New_York", name: "Hora del Este (EE.UU. y Canadá)" },
     { code: "America/Chicago", name: "Hora Central (EE.UU. y Canadá)" },
     { code: "America/Denver", name: "Hora de Montaña (EE.UU. y Canadá)" },
@@ -165,6 +168,31 @@ export default function AdminSettings() {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 5000);
   };
+
+  // Extract preferences from the response
+  const extractPreferences = useCallback((preferences) => {
+    const result = {
+      themePreference: "Claro",
+      language: "Español",
+      timezone: "Bogotá, Colombia",
+      notificationPreferences: {
+        emailNotifications: true,
+        pushNotifications: true,
+        marketingEmails: false
+      }
+    };
+    
+    // Map preferences to state object
+    preferences.forEach(pref => {
+      if (typeof pref.value === 'object' && pref.value !== null) {
+        result[pref.key] = pref.value;
+      } else if (pref.key in result) {
+        result[pref.key] = pref.value;
+      }
+    });
+    
+    return result;
+  }, []);
 
   // Fetch user profile data
   const fetchUserProfile = useCallback(async () => {
@@ -201,7 +229,7 @@ export default function AdminSettings() {
         // Populate security data
         setSecurityData({
           twoFactorEnabled: data.profile.security.twoFactorEnabled || false,
-          loginAlerts: true, // Default since not provided by API
+          loginAlerts: data.profile.security.loginAlerts || true,
           activeSessions: data.profile.sessions.map(session => ({
             id: session.id,
             device: session.deviceName,
@@ -210,18 +238,13 @@ export default function AdminSettings() {
             lastActive: session.lastActivity,
             startTime: session.startTime,
             userAgent: session.userAgent,
-            current: false // Will mark current session later
+            // Mark current session (this is an approximation)
+            current: session.id === parseInt(localStorage.getItem('sessionId') || '0')
           }))
         });
         
-        // Populate preferences
-        const theme = data.profile.preferences.find(pref => pref.key === "theme");
-        if (theme) {
-          setPreferencesData(prev => ({
-            ...prev,
-            theme: theme.value
-          }));
-        }
+        // Extract preferences with proper fallbacks
+        setPreferencesData(extractPreferences(data.profile.preferences));
       }
     } catch (error) {
       console.error("Error fetching profile data:", error);
@@ -229,7 +252,7 @@ export default function AdminSettings() {
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id, extractPreferences]);
 
   // Load profile data when component mounts
   useEffect(() => {
@@ -272,12 +295,24 @@ export default function AdminSettings() {
   // Handle session management
   const handleRemoveSession = async (sessionId) => {
     try {
-      // Here you would make an API call to revoke the session
-      // For now, we'll just update the UI
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/sessions/${sessionId}`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include"
+        }
+      );
+      
+      if (!response.ok) {
+        throw new Error("Failed to end session");
+      }
+      
       setSecurityData(prev => ({
         ...prev,
         activeSessions: prev.activeSessions.filter(session => session.id !== sessionId)
       }));
+      
       showNotification("Sesión cerrada exitosamente");
     } catch (error) {
       console.error("Error removing session:", error);
@@ -287,13 +322,26 @@ export default function AdminSettings() {
   
   const handleCloseAllSessions = async () => {
     try {
-      // Here you would make an API call to revoke all sessions except current
-      // For now, we'll just update the UI
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/sessions`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include"
+        }
+      );
+      
+      if (!response.ok) {
+        throw new Error("Failed to end all sessions");
+      }
+      
+      // Keep only current session in the UI
       const currentSession = securityData.activeSessions.find(s => s.current);
       setSecurityData(prev => ({
         ...prev,
         activeSessions: currentSession ? [currentSession] : []
       }));
+      
       showNotification("Todas las sesiones han sido cerradas");
     } catch (error) {
       console.error("Error closing sessions:", error);
@@ -307,19 +355,31 @@ export default function AdminSettings() {
     if (!user?.id) return;
     
     try {
+      // Prepare data for submission - handle avatar specially
+      const submitData = {
+        name: profileData.name,
+        email: profileData.email,
+        // Only send avatar if it's a valid URL
+        ...(profileData.avatar && (
+          profileData.avatar.startsWith('http://') || 
+          profileData.avatar.startsWith('https://')
+        ) ? { avatar: profileData.avatar } : { avatar: null })
+      };
+      
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/profile/${user.id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/profile/${user.id}/personal`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify({
-            name: profileData.name,
-            email: profileData.email,
-            avatar: `https://api.mywheretogo.com/api/auth/profile/${user.id}`
-          })
+          body: JSON.stringify(submitData)
         }
       );
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Error updating profile");
+      }
       
       const data = await response.json();
       
@@ -346,9 +406,9 @@ export default function AdminSettings() {
     
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/profile/${user.id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/profile/${user.id}/password`,
         {
-          method: "POST",
+          method: "PUT",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({
@@ -357,6 +417,11 @@ export default function AdminSettings() {
           })
         }
       );
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Error updating password");
+      }
       
       const data = await response.json();
       
@@ -381,30 +446,33 @@ export default function AdminSettings() {
     if (!user?.id) return;
     
     try {
-      // Update theme preference
-      const themeResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/preferences/${user.id}`,
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/profile/${user.id}/preferences`,
         {
-          method: "POST",
+          method: "PUT",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({
-            key: "theme",
-            value: preferencesData.theme
+            themePreference: preferencesData.themePreference,
+            language: preferencesData.language,
+            timezone: preferencesData.timezone,
+            notificationPreferences: preferencesData.notificationPreferences
           })
         }
       );
       
-      const themeData = await themeResponse.json();
-      
-      if (themeData.success) {
-        showNotification("Preferencias actualizadas exitosamente");
-      } else {
-        throw new Error(themeData.message || "Error updating preferences");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Error updating preferences");
       }
       
-      // Here you would add more API calls for other preferences if needed
+      const data = await response.json();
       
+      if (data.success) {
+        showNotification("Preferencias actualizadas exitosamente");
+      } else {
+        throw new Error(data.message || "Error updating preferences");
+      }
     } catch (error) {
       console.error("Error updating preferences:", error);
       showNotification(error.message || "Error al actualizar las preferencias", "error");
@@ -413,8 +481,37 @@ export default function AdminSettings() {
   
   const handleSecuritySubmit = async (e) => {
     e.preventDefault();
-    // Currently there's no direct API for security settings
-    showNotification("Configuración de seguridad actualizada");
+    if (!user?.id) return;
+    
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/profile/${user.id}/security`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            loginAlerts: securityData.loginAlerts
+          })
+        }
+      );
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Error updating security settings");
+      }
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        showNotification("Configuración de seguridad actualizada exitosamente");
+      } else {
+        throw new Error(data.message || "Error updating security settings");
+      }
+    } catch (error) {
+      console.error("Error updating security settings:", error);
+      showNotification(error.message || "Error al actualizar configuración de seguridad", "error");
+    }
   };
 
   if (isLoading) {

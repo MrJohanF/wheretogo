@@ -1,3 +1,5 @@
+// src/app/admin/settings/SettingsTabs/PasswordTab.js
+
 import { motion } from "framer-motion";
 import { Lock, Key, Eye, EyeOff, AlertTriangle } from "lucide-react";
 

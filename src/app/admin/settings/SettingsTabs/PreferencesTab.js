@@ -1,7 +1,24 @@
+
+// src/app/admin/settings/SettingsTabs/PreferencesTab.js
 import { motion } from "framer-motion";
 import { Settings, Sun, Moon, Globe, Clock, Save } from "lucide-react";
 
 export default function PreferencesTab({ formData, languages, timezones, onChange, onSubmit }) {
+  // Helper function to safely access nested notification preferences
+  const getNotificationValue = (key) => {
+    return formData.notificationPreferences && 
+           typeof formData.notificationPreferences === 'object' ? 
+           formData.notificationPreferences[key] : false;
+  };
+
+  // Helper function to update nested notification preferences
+  const handleNotificationChange = (key, value) => {
+    onChange('notificationPreferences', {
+      ...formData.notificationPreferences,
+      [key]: value
+    });
+  };
+
   return (
     <motion.form 
       initial={{ opacity: 0, y: 20 }}
@@ -26,19 +43,19 @@ export default function PreferencesTab({ formData, languages, timezones, onChang
           >
             <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Preferencia de Tema</h4>
             <div className="grid grid-cols-3 gap-3">
-              {/* Light theme option */}
+              {/* Light theme option - Fixed template literal */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.1 }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className={`border rounded-lg p-3 cursor-pointer \${
-                  formData.theme === "light" 
+                className={`border rounded-lg p-3 cursor-pointer ${
+                  formData.themePreference === "Claro" 
                     ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' 
                     : 'border-gray-200 dark:border-gray-700'
                 }`}
-                onClick={() => onChange('theme', 'light')}
+                onClick={() => onChange('themePreference', 'Claro')}
               >
                 <div className="flex justify-center mb-2">
                   <Sun className="h-6 w-6 text-amber-500" />
@@ -47,10 +64,10 @@ export default function PreferencesTab({ formData, languages, timezones, onChang
                   <input 
                     type="radio" 
                     id="theme-light" 
-                    name="theme" 
-                    value="light" 
-                    checked={formData.theme === "light"} 
-                    onChange={() => onChange('theme', 'light')}
+                    name="themePreference" 
+                    value="Claro" 
+                    checked={formData.themePreference === "Claro"} 
+                    onChange={() => onChange('themePreference', 'Claro')}
                     className="sr-only"
                   />
                   <label 
@@ -69,12 +86,12 @@ export default function PreferencesTab({ formData, languages, timezones, onChang
                 transition={{ delay: 0.15 }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className={`border rounded-lg p-3 cursor-pointer \${
-                  formData.theme === "dark" 
+                className={`border rounded-lg p-3 cursor-pointer ${
+                  formData.themePreference === "Oscuro" 
                     ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' 
                     : 'border-gray-200 dark:border-gray-700'
                 }`}
-                onClick={() => onChange('theme', 'dark')}
+                onClick={() => onChange('themePreference', 'Oscuro')}
               >
                 <div className="flex justify-center mb-2">
                   <Moon className="h-6 w-6 text-indigo-400" />
@@ -83,10 +100,10 @@ export default function PreferencesTab({ formData, languages, timezones, onChang
                   <input 
                     type="radio" 
                     id="theme-dark" 
-                    name="theme" 
-                    value="dark" 
-                    checked={formData.theme === "dark"} 
-                    onChange={() => onChange('theme', 'dark')}
+                    name="themePreference" 
+                    value="Oscuro" 
+                    checked={formData.themePreference === "Oscuro"} 
+                    onChange={() => onChange('themePreference', 'Oscuro')}
                     className="sr-only"
                   />
                   <label 
@@ -105,12 +122,12 @@ export default function PreferencesTab({ formData, languages, timezones, onChang
                 transition={{ delay: 0.2 }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className={`border rounded-lg p-3 cursor-pointer \${
-                  formData.theme === "system" 
+                className={`border rounded-lg p-3 cursor-pointer ${
+                  formData.themePreference === "System" 
                     ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' 
                     : 'border-gray-200 dark:border-gray-700'
                 }`}
-                onClick={() => onChange('theme', 'system')}
+                onClick={() => onChange('themePreference', 'System')}
               >
                 <div className="flex justify-center mb-2">
                   <div className="h-6 w-6 relative">
@@ -122,10 +139,10 @@ export default function PreferencesTab({ formData, languages, timezones, onChang
                   <input 
                     type="radio" 
                     id="theme-system" 
-                    name="theme" 
-                    value="system" 
-                    checked={formData.theme === "system"} 
-                    onChange={() => onChange('theme', 'system')}
+                    name="themePreference" 
+                    value="System" 
+                    checked={formData.themePreference === "System"} 
+                    onChange={() => onChange('themePreference', 'Systema')}
                     className="sr-only"
                   />
                   <label 
@@ -210,7 +227,7 @@ export default function PreferencesTab({ formData, languages, timezones, onChang
               Preferencias de Notificaciones
             </h4>
             <div className="space-y-3">
-              {/* Email notifications */}
+              {/* Email notifications - FIXED: Using getNotificationValue helper */}
               <motion.div 
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -222,8 +239,8 @@ export default function PreferencesTab({ formData, languages, timezones, onChang
                     id="emailNotifications"
                     name="emailNotifications"
                     type="checkbox"
-                    checked={formData.emailNotifications}
-                    onChange={(e) => onChange('emailNotifications', e.target.checked)}
+                    checked={getNotificationValue('emailNotifications')}
+                    onChange={(e) => handleNotificationChange('emailNotifications', e.target.checked)}
                     className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                   />
                 </div>
@@ -237,7 +254,7 @@ export default function PreferencesTab({ formData, languages, timezones, onChang
                 </div>
               </motion.div>
 
-              {/* Push notifications */}
+              {/* Push notifications - FIXED */}
               <motion.div 
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -249,8 +266,8 @@ export default function PreferencesTab({ formData, languages, timezones, onChang
                     id="pushNotifications"
                     name="pushNotifications"
                     type="checkbox"
-                    checked={formData.pushNotifications}
-                    onChange={(e) => onChange('pushNotifications', e.target.checked)}
+                    checked={getNotificationValue('pushNotifications')}
+                    onChange={(e) => handleNotificationChange('pushNotifications', e.target.checked)}
                     className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                   />
                 </div>
@@ -264,7 +281,7 @@ export default function PreferencesTab({ formData, languages, timezones, onChang
                 </div>
               </motion.div>
 
-              {/* Marketing emails */}
+              {/* Marketing emails - FIXED */}
               <motion.div 
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -276,8 +293,8 @@ export default function PreferencesTab({ formData, languages, timezones, onChang
                     id="marketingEmails"
                     name="marketingEmails"
                     type="checkbox"
-                    checked={formData.marketingEmails}
-                    onChange={(e) => onChange('marketingEmails', e.target.checked)}
+                    checked={getNotificationValue('marketingEmails')}
+                    onChange={(e) => handleNotificationChange('marketingEmails', e.target.checked)}
                     className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                   />
                 </div>

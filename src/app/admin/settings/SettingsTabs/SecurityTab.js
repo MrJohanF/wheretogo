@@ -100,7 +100,7 @@ export default function SecurityTab({ formData, onChange, onRemoveSession, onClo
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className={`p-4 border rounded-lg \${
+                  className={`p-4 border rounded-lg ${
                     session.current 
                       ? 'border-green-200 bg-green-50 dark:border-green-700 dark:bg-green-900/10' 
                       : 'border-gray-200 dark:border-gray-700'

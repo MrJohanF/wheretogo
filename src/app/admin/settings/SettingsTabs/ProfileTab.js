@@ -1,14 +1,44 @@
 import { motion } from "framer-motion";
 import { User, Mail, Save, Camera } from "lucide-react";
+import { useState } from "react";
 
 export default function ProfileTab({ formData, onChange, onSubmit, onAvatarChange }) {
+  // State to track form errors
+  const [errors, setErrors] = useState({});
+  
+  // Handle form submission with validation
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    try {
+      // Filter out invalid avatar values before submission
+      const submissionData = {
+        ...formData,
+        // Only include avatar if it's a valid URL or null if empty
+        avatar: formData.avatar && (
+          formData.avatar.startsWith('http://') || 
+          formData.avatar.startsWith('https://') || 
+          formData.avatar.startsWith('data:image/')
+        ) ? formData.avatar : null
+      };
+      
+      // Clear any previous errors
+      setErrors({});
+      
+      // Call parent onSubmit
+      onSubmit(e);
+    } catch (error) {
+      console.error("Submission error:", error);
+    }
+  };
+  
   return (
     <motion.form 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.4 }}
-      onSubmit={onSubmit}
+      onSubmit={handleSubmit}
     >
       <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
         <div className="px-4 py-5 border-b border-gray-200 dark:border-gray-700 sm:px-6">
@@ -28,6 +58,10 @@ export default function ProfileTab({ formData, onChange, onSubmit, onAvatarChang
                     src={formData.avatar}
                     alt="Foto de perfil"
                     className="h-full w-full object-cover"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 24 24' fill='none' stroke='%23cccccc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'%3E%3C/path%3E%3Ccircle cx='12' cy='7' r='4'%3E%3C/circle%3E%3C/svg%3E";
+                    }}
                   />
                 ) : (
                   <div className="h-full w-full flex items-center justify-center">
@@ -54,6 +88,9 @@ export default function ProfileTab({ formData, onChange, onSubmit, onAvatarChang
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 JPG, GIF o PNG. Máximo 1MB.
               </p>
+              {errors.avatar && (
+                <p className="text-sm text-red-500 mt-1">{errors.avatar}</p>
+              )}
             </div>
           </div>
 
@@ -72,7 +109,7 @@ export default function ProfileTab({ formData, onChange, onSubmit, onAvatarChang
                   type="text"
                   id="name"
                   name="name"
-                  value={formData.name}
+                  value={formData.name || ''}
                   onChange={(e) => onChange('name', e.target.value)}
                   className="block w-full pl-10 rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
                 />
@@ -92,7 +129,7 @@ export default function ProfileTab({ formData, onChange, onSubmit, onAvatarChang
                   type="email"
                   id="email"
                   name="email"
-                  value={formData.email}
+                  value={formData.email || ''}
                   onChange={(e) => onChange('email', e.target.value)}
                   className="block w-full pl-10 rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
                 />
@@ -109,7 +146,7 @@ export default function ProfileTab({ formData, onChange, onSubmit, onAvatarChang
                   type="text"
                   id="phone"
                   name="phone"
-                  value={formData.phone}
+                  value={formData.phone || ''}
                   onChange={(e) => onChange('phone', e.target.value)}
                   className="block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
                 />
@@ -126,7 +163,7 @@ export default function ProfileTab({ formData, onChange, onSubmit, onAvatarChang
                   type="text"
                   id="role"
                   name="role"
-                  value={formData.role}
+                  value={formData.role || ''}
                   disabled
                   className="bg-gray-50 dark:bg-gray-600 dark:text-gray-300 cursor-not-allowed block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm"
                 />
@@ -143,7 +180,7 @@ export default function ProfileTab({ formData, onChange, onSubmit, onAvatarChang
                   id="bio"
                   name="bio"
                   rows={3}
-                  value={formData.bio}
+                  value={formData.bio || ''}
                   onChange={(e) => onChange('bio', e.target.value)}
                   className="block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white"
                 />
