@@ -131,35 +131,13 @@ function mapIconToComponent(iconName) {
 }
 
 function mapColorToGradient(hexColor) {
-  // If no color provided, return default indigo gradient
-  if (!hexColor) return 'linear-gradient(135deg, #6366F1, #4F46E5)';
+  // If no color provided, return default indigo color
+  if (!hexColor) return '#6366F1';
   
-  // Helper function to lighten a hex color
-  const lightenColor = (hex, percent) => {
-    // Convert hex to RGB
-    let r = parseInt(hex.slice(1, 3), 16);
-    let g = parseInt(hex.slice(3, 5), 16);
-    let b = parseInt(hex.slice(5, 7), 16);
-
-    // Lighten
-    r = Math.min(255, Math.floor(r + (255 - r) * percent));
-    g = Math.min(255, Math.floor(g + (255 - g) * percent));
-    b = Math.min(255, Math.floor(b + (255 - b) * percent));
-
-    // Convert back to hex with proper padding
-    const toHex = (c) => {
-      const hex = c.toString(16);
-      return hex.length === 1 ? '0' + hex : hex;
-    };
-
-    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-  };
-
-  // Create a lighter version of the color for the gradient
-  const lighterColor = lightenColor(hexColor, 0.3); // 30% lighter
-
-  // Return a gradient using the original color and the lighter variant
-  return `linear-gradient(135deg, ${hexColor}, ${lighterColor})`;
+  // Just return the original hex color for the icon backgrounds
+  return hexColor;
+  
+  // Note: The gradient overlay effect is now handled directly in the component
 }
 
 export default useCategoryStore;
