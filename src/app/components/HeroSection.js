@@ -29,36 +29,44 @@ export default function HeroSection() {
   // Featured destinations with images and additional metadata
   const destinations = [
     {
-      name: "Barcelona",
-      tagline: "Ciudad de Gaudí y playas mediterráneas",
-      image: "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-      places: 230,
-      country: "Spain",
+      name: "Jardín Botánico",
+      tagline: "Naturaleza, biodiversidad, senderos, belleza",
+      image: "/images/jardin-botanico.jpg",
+      places: " Av. Calle 63 # 68-95",
+      country: "Bogotá",
       rating: 4.8
     },
     {
-      name: "Tokyo",
-      tagline: "Tradición y modernidad en perfecta armonía",
-      image: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-      places: 422,
-      country: "Japan",
-      rating: 4.9
+      name: "Piedra del Peñol",
+      tagline: "Gigantesca roca, vistas impresionantes",
+      image: "/images/piedra-del-penol.avif",
+      places: "Guatapé",
+      country: "Antioquia",
+      rating: 4.4
     },
     {
-      name: "Paris",
-      tagline: "La ciudad del amor y la luz",
-      image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-      places: 368,
-      country: "France",
+      name: "Caño Cristales",
+      tagline: "Río, naturaleza, color, belleza",
+      image: "/images/cano-cristales.avif",
+      places: "Serranía de la Macarena",
+      country: "Meta",
       rating: 4.7
     },
     {
-      name: "Roma",
-      tagline: "La ciudad eterna que cautiva con su historia",
-      image: "https://images.unsplash.com/photo-1525874684015-58379d421a52?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-      places: 291,
-      country: "Italy",
+      name: "Monserrate",
+      tagline: "Montaña, vistas, santuario, naturaleza",
+      image: "/images/monserrate.jpg",
+      places: "Carrera 2 Este #21-48",
+      country: "Bogotá",
       rating: 4.6
+    },
+    {
+      name: "Barú",
+      tagline: "Playas paradisíacas, mar cristalino",
+      image: "/images/baru.jpg",
+      places: "Península, Sur de Colombia",
+      country: "Cartagena",
+      rating: 4.8
     },
   ];
   
@@ -415,7 +423,7 @@ export default function HeroSection() {
                   </div>
                   <div className="flex items-center">
                     <MapPin className="h-3 sm:h-4 w-3 sm:w-4 mr-1 sm:mr-1.5 text-indigo-200" />
-                    <span className="text-indigo-100">{destinations[activeImage].places} lugares</span>
+                    <span className="text-indigo-100">{destinations[activeImage].places}</span>
                   </div>
                 </div>
                 
