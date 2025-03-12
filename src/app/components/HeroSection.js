@@ -1,8 +1,54 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { MapPin, Search, ChevronRight, ChevronLeft, Compass, Map, Globe, X, Loader2 } from "lucide-react";
-import { motion, AnimatePresence, useAnimation } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useMediaQuery } from "react-responsive";
+
+// Constants moved outside component to avoid recreation on every render
+const POPULAR_SEARCHES = ["Barcelona", "Tokyo", "New York", "Paris"];
+const CATEGORY_ITEMS = ["Todo", "Restaurantes", "Museos", "Eventos", "Compras"];
+const DESTINATIONS = [
+  {
+    name: "Jardín Botánico",
+    tagline: "Naturaleza, biodiversidad, senderos, belleza",
+    image: "/images/jardin-botanico.avif",
+    places: " Av. Calle 63 # 68-95",
+    country: "Bogotá",
+    rating: 4.8
+  },
+  {
+    name: "Piedra del Peñol",
+    tagline: "Gigantesca roca, vistas impresionantes",
+    image: "/images/piedra-del-penol.avif",
+    places: "Guatapé",
+    country: "Antioquia",
+    rating: 4.4
+  },
+  {
+    name: "Caño Cristales",
+    tagline: "Río, naturaleza, color, belleza",
+    image: "/images/cano-cristales.avif",
+    places: "Serranía de la Macarena",
+    country: "Meta",
+    rating: 4.7
+  },
+  {
+    name: "Monserrate",
+    tagline: "Montaña, vistas, santuario, naturaleza",
+    image: "/images/monserrate.jpg",
+    places: "Carrera 2 Este #21-48",
+    country: "Bogotá",
+    rating: 4.6
+  },
+  {
+    name: "Barú",
+    tagline: "Playas paradisíacas, mar cristalino",
+    image: "/images/baru.avif",
+    places: "Península, Sur de Colombia",
+    country: "Cartagena",
+    rating: 4.8
+  },
+];
 
 export default function HeroSection() {
   // States
@@ -12,7 +58,6 @@ export default function HeroSection() {
   const [prevImage, setPrevImage] = useState(0);
   const [transitionDirection, setTransitionDirection] = useState("right");
   const [isHovering, setIsHovering] = useState(false);
-  const [popularSearches] = useState(["Barcelona", "Tokyo", "New York", "Paris"]);
   const [recentSearches, setRecentSearches] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   
@@ -21,66 +66,25 @@ export default function HeroSection() {
   const carouselRef = useRef(null);
   const containerRef = useRef(null);
   
-  // Responsive hooks
-  const isMobile = useMediaQuery({ maxWidth: 767 });
-  const isSmallScreen = useMediaQuery({ maxWidth: 639 });
-  const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
+  // Responsive hooks with lazy initialization to improve performance
+  const isMobile = useMediaQuery({ maxWidth: 767 }, undefined, false);
+  const isSmallScreen = useMediaQuery({ maxWidth: 639 }, undefined, false);
+  const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 }, undefined, false);
   
-  // Featured destinations with images and additional metadata
-  const destinations = [
-    {
-      name: "Jardín Botánico",
-      tagline: "Naturaleza, biodiversidad, senderos, belleza",
-      image: "/images/jardin-botanico.avif",
-      places: " Av. Calle 63 # 68-95",
-      country: "Bogotá",
-      rating: 4.8
-    },
-    {
-      name: "Piedra del Peñol",
-      tagline: "Gigantesca roca, vistas impresionantes",
-      image: "/images/piedra-del-penol.avif",
-      places: "Guatapé",
-      country: "Antioquia",
-      rating: 4.4
-    },
-    {
-      name: "Caño Cristales",
-      tagline: "Río, naturaleza, color, belleza",
-      image: "/images/cano-cristales.avif",
-      places: "Serranía de la Macarena",
-      country: "Meta",
-      rating: 4.7
-    },
-    {
-      name: "Monserrate",
-      tagline: "Montaña, vistas, santuario, naturaleza",
-      image: "/images/monserrate.jpg",
-      places: "Carrera 2 Este #21-48",
-      country: "Bogotá",
-      rating: 4.6
-    },
-    {
-      name: "Barú",
-      tagline: "Playas paradisíacas, mar cristalino",
-      image: "/images/baru.avif",
-      places: "Península, Sur de Colombia",
-      country: "Cartagena",
-      rating: 4.8
-    },
-  ];
+  // Memoize current destination to prevent unnecessary re-renders
+  const currentDestination = useMemo(() => DESTINATIONS[activeImage], [activeImage]);
   
-  // Handle image transition with direction
-  const handleImageChange = (newIndex, direction = "right") => {
+  // Handle image transition with direction - memoized
+  const handleImageChange = useCallback((newIndex, direction = "right") => {
     if (newIndex === activeImage) return;
     
     setPrevImage(activeImage);
     setActiveImage(newIndex);
     setTransitionDirection(direction);
-  };
+  }, [activeImage]);
   
-  // Search functionality
-  const handleSearch = (e) => {
+  // Search functionality - memoized
+  const handleSearch = useCallback((e) => {
     e.preventDefault();
     
     if (!searchQuery.trim()) return;
@@ -98,23 +102,34 @@ export default function HeroSection() {
       setSearchQuery("");
       // In a real app, you would navigate to search results page here
     }, 800);
-  };
+  }, [searchQuery, recentSearches]);
   
-  const clearSearch = () => {
+  const clearSearch = useCallback(() => {
     setSearchQuery("");
     searchInputRef.current?.focus();
-  };
+  }, []);
+  
+  // Mouse events - memoized
+  const handleMouseEnter = useCallback(() => setIsHovering(true), []);
+  const handleMouseLeave = useCallback(() => setIsHovering(false), []);
+  
+  // Preload next image for smoother transitions
+  useEffect(() => {
+    const nextIndex = (activeImage + 1) % DESTINATIONS.length;
+    const img = new Image();
+    img.src = DESTINATIONS[nextIndex].image;
+  }, [activeImage]);
   
   // Auto-rotate images when not hovering
   useEffect(() => {
     if (!isHovering && !searchFocused) {
       const timer = setTimeout(() => {
-        const nextImage = (activeImage + 1) % destinations.length;
+        const nextImage = (activeImage + 1) % DESTINATIONS.length;
         handleImageChange(nextImage, "right");
       }, 6000);
       return () => clearTimeout(timer);
     }
-  }, [activeImage, isHovering, destinations.length, searchFocused]);
+  }, [activeImage, isHovering, searchFocused, handleImageChange]);
   
   // Image transition variants - more natural easing
   const slideVariants = {
@@ -158,12 +173,23 @@ export default function HeroSection() {
     }
   };
 
+  // Navigation handlers - memoized
+  const handleNextImage = useCallback(() => {
+    const nextIndex = (activeImage + 1) % DESTINATIONS.length;
+    handleImageChange(nextIndex, "right");
+  }, [activeImage, handleImageChange]);
+  
+  const handlePrevImage = useCallback(() => {
+    const prevIndex = (activeImage - 1 + DESTINATIONS.length) % DESTINATIONS.length;
+    handleImageChange(prevIndex, "left");
+  }, [activeImage, handleImageChange]);
+
   return (
     <section 
       ref={containerRef}
       className="relative w-full h-[100svh] overflow-hidden"
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       aria-label="Discover travel destinations"
     >
       {/* Background gradient with subtle animation */}
@@ -196,17 +222,18 @@ export default function HeroSection() {
             animate="center"
             exit="exit"
           >
-            {/* Image with overlay */}
+            {/* Image with overlay - optimized attributes */}
             <div className="relative w-full h-full">
               <img
-                src={destinations[activeImage].image}
-                alt={`Travel destination: ${destinations[activeImage].name}`}
+                src={currentDestination.image}
+                alt={`Travel destination: ${currentDestination.name}`}
                 className="w-full h-full object-cover"
                 style={{ 
                   WebkitBackfaceVisibility: "hidden",
                   transformStyle: "preserve-3d"
                 }}
-                loading="eager" // Load hero images immediately
+                loading={activeImage === 0 ? "eager" : "lazy"}
+                decoding="async"
               />
               
               {/* Optimized gradient overlays */}
@@ -349,7 +376,7 @@ export default function HeroSection() {
                           <div>
                             <p className="text-xs text-gray-500 mb-2 font-medium">Destinos populares</p>
                             <div className="grid grid-cols-2 gap-2">
-                              {popularSearches.map((search, idx) => (
+                              {POPULAR_SEARCHES.map((search, idx) => (
                                 <button
                                   key={`popular-${idx}`}
                                   className="text-left bg-gray-50 hover:bg-gray-100 text-gray-700 text-sm p-2.5 rounded-lg flex items-center"
@@ -371,7 +398,7 @@ export default function HeroSection() {
               
               {/* Category chips */}
               <div className="mt-4 flex flex-wrap gap-2 overflow-x-auto pb-2 no-scrollbar">
-                {["Todo", "Restaurantes", "Museos", "Eventos", "Compras"].map((item, idx) => (
+                {CATEGORY_ITEMS.map((item, idx) => (
                   <motion.button
                     key={item} 
                     className={`${idx === 0 ? 'bg-white/80 text-indigo-700' : 'bg-white/20 text-white hover:bg-white/30'} text-sm py-1.5 px-4 rounded-full whitespace-nowrap backdrop-blur-sm`}
@@ -408,22 +435,22 @@ export default function HeroSection() {
                 </div>
                 <div className="flex items-center bg-white/20 rounded-lg px-2 py-1">
                   <span className="text-yellow-300 mr-1 text-xs">★</span>
-                  <span className="text-white text-xs font-medium">{destinations[activeImage].rating}</span>
+                  <span className="text-white text-xs font-medium">{currentDestination.rating}</span>
                 </div>
               </div>
               
               <div className="space-y-2 sm:space-y-3">
-                <h2 className="text-2xl sm:text-3xl font-bold text-white">{destinations[activeImage].name}</h2>
-                <p className="text-white/80 text-xs sm:text-sm">{destinations[activeImage].tagline}</p>
+                <h2 className="text-2xl sm:text-3xl font-bold text-white">{currentDestination.name}</h2>
+                <p className="text-white/80 text-xs sm:text-sm">{currentDestination.tagline}</p>
                 
                 <div className="flex items-center space-x-4 text-xs sm:text-sm">
                   <div className="flex items-center">
                     <Globe className="h-3 sm:h-4 w-3 sm:w-4 mr-1 sm:mr-1.5 text-indigo-200" />
-                    <span className="text-indigo-100">{destinations[activeImage].country}</span>
+                    <span className="text-indigo-100">{currentDestination.country}</span>
                   </div>
                   <div className="flex items-center">
                     <MapPin className="h-3 sm:h-4 w-3 sm:w-4 mr-1 sm:mr-1.5 text-indigo-200" />
-                    <span className="text-indigo-100">{destinations[activeImage].places}</span>
+                    <span className="text-indigo-100">{currentDestination.places} </span>
                   </div>
                 </div>
                 
@@ -442,12 +469,12 @@ export default function HeroSection() {
             <div className={`flex justify-center ${isSmallScreen ? 'mb-2' : 'mb-0'} md:justify-end items-center gap-2 sm:gap-4`}>
               {/* Progress bar on desktop, dots on mobile */}
               <div className="hidden md:flex items-center bg-white/10 backdrop-blur-md rounded-full h-2 w-48 overflow-hidden">
-                {destinations.map((_, index) => (
+                {DESTINATIONS.map((_, index) => (
                   <motion.button
                     key={index}
                     className="h-full"
                     style={{
-                      width: `${100 / destinations.length}%`,
+                      width: `${100 / DESTINATIONS.length}%`,
                       backgroundColor: index === activeImage ? 'white' : 'transparent',
                       position: 'relative',
                     }}
@@ -472,7 +499,7 @@ export default function HeroSection() {
 
               {/* Mobile dots */}
               <div className="flex md:hidden space-x-2">
-                {destinations.map((_, index) => (
+                {DESTINATIONS.map((_, index) => (
                   <motion.button
                     key={index}
                     className={`rounded-full ${index === activeImage ? 'bg-white w-6 h-2' : 'bg-white/30 w-2 h-2'}`}
@@ -484,16 +511,13 @@ export default function HeroSection() {
                 ))}
               </div>
               
-              {/* Arrow navigation */}
+              {/* Arrow navigation - using memoized handlers */}
               <div className="flex space-x-2 sm:space-x-3">
                 <motion.button
                   className="bg-white/10 backdrop-blur-md rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center cursor-pointer border border-white/20"
                   whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.2)" }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                    const prevIndex = (activeImage - 1 + destinations.length) % destinations.length;
-                    handleImageChange(prevIndex, "left");
-                  }}
+                  onClick={handlePrevImage}
                   aria-label="Previous destination"
                 >
                   <ChevronLeft className="h-4 sm:h-5 w-4 sm:w-5 text-white" />
@@ -503,10 +527,7 @@ export default function HeroSection() {
                   className="bg-white/10 backdrop-blur-md rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center cursor-pointer border border-white/20"
                   whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.2)" }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                    const nextIndex = (activeImage + 1) % destinations.length;
-                    handleImageChange(nextIndex, "right");
-                  }}
+                  onClick={handleNextImage}
                   aria-label="Next destination"
                 >
                   <ChevronRight className="h-4 sm:h-5 w-4 sm:w-5 text-white" />
