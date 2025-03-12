@@ -31,7 +31,7 @@ export default function HeroSection() {
     {
       name: "Jardín Botánico",
       tagline: "Naturaleza, biodiversidad, senderos, belleza",
-      image: "/images/jardin-botanico.jpg",
+      image: "/images/jardin-botanico.avif",
       places: " Av. Calle 63 # 68-95",
       country: "Bogotá",
       rating: 4.8
@@ -63,7 +63,7 @@ export default function HeroSection() {
     {
       name: "Barú",
       tagline: "Playas paradisíacas, mar cristalino",
-      image: "/images/baru.jpg",
+      image: "/images/baru.avif",
       places: "Península, Sur de Colombia",
       country: "Cartagena",
       rating: 4.8
