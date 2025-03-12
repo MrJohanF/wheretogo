@@ -15,8 +15,8 @@ export async function uploadImageToCloudinary(file, options = {}) {
     formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'ml_default');
     
     // Temporarily remove format restriction for testing
-    formData.append('format', 'avif');
-    formData.append('quality', 'auto');
+    //formData.append('format', 'avif');
+    //formData.append('quality', 'auto');
     
     const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
     console.log("Uploading to:", uploadUrl);
@@ -95,7 +95,7 @@ export async function deleteImageFromCloudinary(publicId) {
   if (!publicId) return false;
   
   try {
-    const response = await fetch('/api/admin/cloudinary', {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/cloudinary`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',

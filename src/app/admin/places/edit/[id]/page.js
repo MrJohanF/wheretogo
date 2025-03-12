@@ -4,29 +4,14 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
-  ImageIcon,
-  Save,
-  ArrowLeft,
-  X,
-  MapPin,
-  Phone,
-  Globe,
-  DollarSign,
-  Star,
-  Info,
-  Clock,
-  LayoutList,
-  PlusCircle,
-  CheckCircle,
-  AlertTriangle,
-  Coffee,
-  Upload,
-  Check,
-  Compass,
-  ChevronDown,
+  ImageIcon, Save, ArrowLeft, X, MapPin, Phone, Globe, DollarSign,
+  Star, Info, Clock, LayoutList, PlusCircle, CheckCircle, AlertTriangle,
+  Coffee, Upload, Check, Compass, ChevronDown, Loader
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import useAdminStore from "@/app/admin/store/adminStore";
+// Import Cloudinary service
+import { uploadImageToCloudinary, getOptimizedImageUrl, deleteImageFromCloudinary } from "@/app/services/cloudinary";
 
 // Import all Lucide icons for dynamic rendering
 import * as LucideIcons from "lucide-react";
@@ -78,6 +63,10 @@ export default function PlaceFormPage({ params }) {
   const [isLoading, setIsLoading] = useState(true);
   const fileInputRef = useRef(null);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [fileInputKey, setFileInputKey] = useState(Date.now());
+  
+  // Track image upload states
+  const [uploadingImages, setUploadingImages] = useState([]);
   
   const [formData, setFormData] = useState({
     name: "",
@@ -106,7 +95,6 @@ export default function PlaceFormPage({ params }) {
     ],
     popularItems: [],
   });
-
 
   // Add UI for managing popular items
   const [newPopularItem, setNewPopularItem] = useState("");
@@ -153,6 +141,14 @@ export default function PlaceFormPage({ params }) {
                 placeData.popularItems?.map((item) =>
                   typeof item === "object" ? item.name : item
                 ) || [],
+              // Make sure images have proper structure
+              images: (placeData.images || []).map(img => ({
+                id: img.id || `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                url: img.url,
+                altText: img.altText || 'Place image',
+                isFeatured: img.isFeatured || false,
+                publicId: img.publicId || extractPublicIdFromUrl(img.url)
+              }))
             });
           }
         }
@@ -174,6 +170,38 @@ export default function PlaceFormPage({ params }) {
       clearSelectedPlace();
     };
   }, [isEditing, resolvedParams.id, fetchCategories, fetchSubcategories, fetchFeatures, fetchPlaceById, clearSelectedPlace]);
+
+  // Cleanup object URLs when component unmounts
+  useEffect(() => {
+    return () => {
+      // Clean up any temporary image URLs when component unmounts
+      formData.images.forEach(img => {
+        if (img.isTemp && img.url) {
+          URL.revokeObjectURL(img.url);
+        }
+      });
+    };
+  }, [formData.images]);
+
+  // Extract public ID from Cloudinary URL
+  const extractPublicIdFromUrl = (url) => {
+    if (!url || !url.includes('cloudinary.com')) return null;
+    
+    try {
+      // URL format: https://res.cloudinary.com/cloud-name/image/upload/v1234567890/folder/image_id.jpg
+      const uploadIndex = url.indexOf('/upload/');
+      if (uploadIndex === -1) return null;
+      
+      const afterUpload = url.substring(uploadIndex + 8);
+      // Remove version number if present (v1234567890/)
+      const withoutVersion = afterUpload.replace(/v\d+\//, '');
+      // Remove file extension
+      return withoutVersion.split('.')[0];
+    } catch (e) {
+      console.error("Error extracting public ID from URL:", e);
+      return null;
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -201,26 +229,82 @@ export default function PlaceFormPage({ params }) {
     }));
   };
 
-  // Enhanced image upload with drag and drop support
+  // Handle setting featured image
+  const handleSetFeaturedImage = (imageId) => {
+    setFormData((prev) => ({
+      ...prev,
+      images: prev.images.map(img => ({
+        ...img,
+        isFeatured: img.id === imageId
+      }))
+    }));
+  };
+
+  // Enhanced image handling with local preview only
   const handleImageUpload = (event) => {
     const files = Array.from(event.target.files || []);
+    if (!files.length) return;
+    
     processNewImages(files);
   };
 
+  // Process images for local preview only, no upload
   const processNewImages = (files) => {
     if (!files.length) return;
     
-    const newImages = files.map((file, index) => ({
+    // Create temporary objects for UI preview only
+    const tempImages = files.map((file, index) => ({
       id: `temp-${Date.now()}-${index}`,
       url: URL.createObjectURL(file),
-      file,
-      altText: file.name,
+      file, // Store the actual file for later upload
+      altText: file.name || 'Image',
+      isTemp: true, // Flag to indicate this is a temporary local file
+      isFeatured: formData.images.length === 0 // Make first image featured by default
     }));
 
+    // Add temporary images to state to show preview
+    setFormData(prev => ({
+      ...prev,
+      images: [...prev.images, ...tempImages],
+    }));
+  };
+
+  // Handle removing an image - updated to fix reselection issue
+  const handleRemoveImage = async (imageId) => {
+    // Find the image to remove
+    const imageToRemove = formData.images.find(img => img.id === imageId);
+    
+    // Remove from form data
     setFormData((prev) => ({
       ...prev,
-      images: [...prev.images, ...newImages],
+      images: prev.images.filter((img) => img.id !== imageId),
     }));
+    
+    // Clean up object URL if it's a temp image
+    if (imageToRemove && imageToRemove.isTemp && imageToRemove.url) {
+      URL.revokeObjectURL(imageToRemove.url);
+    }
+    
+    // Only delete from Cloudinary if it's not a temporary/local image
+    if (imageToRemove && imageToRemove.publicId && !imageToRemove.isTemp) {
+      try {
+        const deleted = await deleteImageFromCloudinary(imageToRemove.publicId);
+        if (deleted) {
+          toast.success('Imagen eliminada correctamente');
+        } else {
+          toast.error('Error al eliminar imagen del servidor');
+        }
+      } catch (error) {
+        console.error('Error deleting image from Cloudinary:', error);
+        toast.error('Error al eliminar imagen: ' + error.message);
+      }
+    }
+    
+    // Reset file input value and change key to allow reselecting the same file
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    setFileInputKey(Date.now()); // This is crucial for allowing reselection
   };
 
   // Drag and drop handlers
@@ -244,24 +328,7 @@ export default function PlaceFormPage({ params }) {
       processNewImages(files);
     }
   };
-
-  const handleRemoveImage = (imageId) => {
-    setFormData((prev) => ({
-      ...prev,
-      images: prev.images.filter((img) => img.id !== imageId),
-    }));
-  };
-
-  const handleSetFeaturedImage = (imageId) => {
-    setFormData((prev) => ({
-      ...prev,
-      images: prev.images.map(img => ({
-        ...img,
-        isFeatured: img.id === imageId
-      }))
-    }));
-  };
-
+    
   const addPopularItem = () => {
     if (newPopularItem.trim()) {
       setFormData((prev) => ({
@@ -279,11 +346,12 @@ export default function PlaceFormPage({ params }) {
     }));
   };
 
-  // Updated handleSubmit function to post new places to the API
+  // Updated submit handler that uploads images when form is saved
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
+      // Validation checks
       if (!formData.name || !formData.address) {
         setFormStatus({
           isSubmitting: false,
@@ -301,7 +369,51 @@ export default function PlaceFormPage({ params }) {
 
       setIsLoading(true);
 
-      // Format the data according to your API structure
+      // Separate temporary images from already-uploaded images
+      const tempImages = formData.images.filter(img => img.isTemp && img.file);
+      const permanentImages = formData.images.filter(img => !img.isTemp);
+      
+      // Track uploading state for UI
+      setUploadingImages(tempImages.map(img => img.id));
+      
+      // Upload all temporary images to Cloudinary now
+      const uploadedImages = [];
+      for (const image of tempImages) {
+        try {
+          // Now we upload to Cloudinary
+          const result = await uploadImageToCloudinary(image.file);
+          
+          uploadedImages.push({
+            id: image.id,
+            url: result.url,
+            altText: image.altText || image.file.name,
+            isFeatured: image.isFeatured || false,
+            publicId: result.publicId,
+            width: result.width,
+            height: result.height,
+            format: result.format
+          });
+          
+          // Remove from uploading tracking
+          setUploadingImages(prev => prev.filter(id => id !== image.id));
+          
+          // Clean up object URL
+          URL.revokeObjectURL(image.url);
+        } catch (error) {
+          console.error(`Error uploading image ${image.file.name}:`, error);
+          setUploadingImages(prev => prev.filter(id => id !== image.id));
+          toast.error(`Error al subir ${image.file.name}: ${error.message || 'Error desconocido'}`);
+          // Skip this image in submission
+        }
+      }
+      
+      // Combine permanent images with newly uploaded ones
+      const allImages = [
+        ...permanentImages,
+        ...uploadedImages
+      ];
+
+      // Format data for API
       const placeData = {
         id: isEditing ? resolvedParams.id : undefined, // Include ID if editing
         // Basic place information
@@ -322,11 +434,15 @@ export default function PlaceFormPage({ params }) {
         subcategories: formData.subcategoryIds || [],
         features: formData.featureIds || [],
 
-        // Format images to match the expected structure
-        images: formData.images.map((img) => ({
+        // Only include successfully uploaded images
+        images: allImages.map((img) => ({
           url: img.url,
-          altText: img.altText || img.name || "Place image",
+          altText: img.altText || "Place image",
           isFeatured: img.isFeatured || false,
+          publicId: img.publicId || null,
+          width: img.width || null,
+          height: img.height || null,
+          format: img.format || null
         })),
 
         operatingHours: formData.operatingHours,
@@ -374,6 +490,12 @@ export default function PlaceFormPage({ params }) {
   };
 
   const handleCancel = () => {
+    // Clean up any temporary image URLs before navigating away
+    formData.images.forEach(img => {
+      if (img.isTemp && img.url) {
+        URL.revokeObjectURL(img.url);
+      }
+    });
     router.push("/admin/places");
   };
 
@@ -837,6 +959,7 @@ export default function PlaceFormPage({ params }) {
                           </div>
                           <input
                             id="image-upload"
+                            key={fileInputKey}
                             ref={fileInputRef}
                             type="file"
                             multiple
@@ -848,11 +971,32 @@ export default function PlaceFormPage({ params }) {
                       </div>
                     </motion.div>
 
+                    {/* Display uploading status during form submission */}
+                    {uploadingImages.length > 0 && (
+                      <motion.div 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4"
+                      >
+                        <div className="flex items-center">
+                          <Loader className="h-5 w-5 text-blue-500 dark:text-blue-400 animate-spin mr-3" />
+                          <div>
+                            <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                              Subiendo {uploadingImages.length} {uploadingImages.length === 1 ? 'imagen' : 'imágenes'}...
+                            </p>
+                            <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5">
+                              Por favor espera mientras se completa la carga
+                            </p>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+
                     {formData.images.length > 0 && (
                       <motion.div variants={itemFadeIn}>
                         <div className="flex items-center justify-between mb-3">
                           <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Imágenes Subidas ({formData.images.length})
+                            Imágenes Seleccionadas ({formData.images.length})
                           </h4>
                           <span className="text-xs text-gray-500 dark:text-gray-400">
                             Haz clic en una imagen para establecerla como destacada
@@ -872,15 +1016,29 @@ export default function PlaceFormPage({ params }) {
                                   image.isFeatured 
                                     ? 'border-purple-400 dark:border-purple-600 ring-2 ring-purple-300 dark:ring-purple-500/30' 
                                     : 'border-gray-200 dark:border-gray-700 group-hover:border-purple-200 dark:group-hover:border-purple-700/50'
+                                } ${
+                                  image.hasError ? 'border-red-400 dark:border-red-600 bg-red-50 dark:bg-red-900/10' : ''
+                                } ${
+                                  image.isTemp ? 'border-amber-300 dark:border-amber-600/50' : ''
                                 }`}
-                                onClick={() => handleSetFeaturedImage(image.id)}
+                                onClick={() => !image.hasError && handleSetFeaturedImage(image.id)}
                               >
+                                {/* Show indicator for temporary local images */}
+                                {image.isTemp && (
+                                  <div className="absolute top-0 right-0 bg-amber-500 text-white text-xs px-1.5 py-0.5 rounded-bl-md">
+                                    Local
+                                  </div>
+                                )}
+                                
                                 <img
                                   src={image.url}
                                   alt={image.altText || "Imagen del lugar"}
-                                  className="h-full w-full object-cover"
+                                  className={`h-full w-full object-cover ${
+                                    image.hasError ? 'opacity-50' : ''
+                                  }`}
                                 />
-                                {image.isFeatured && (
+                                
+                                {image.isFeatured && !image.hasError && (
                                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent flex items-end justify-center p-2">
                                     <span className="text-xs font-medium text-white bg-purple-600 px-2 py-0.5 rounded-full">
                                       Imagen Principal
@@ -888,6 +1046,7 @@ export default function PlaceFormPage({ params }) {
                                   </div>
                                 )}
                               </div>
+                              
                               <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <motion.button
                                   whileHover={{ scale: prefersReducedMotion ? 1 : 1.1 }}
@@ -902,13 +1061,16 @@ export default function PlaceFormPage({ params }) {
                                   <X size={14} />
                                 </motion.button>
                               </div>
-                              {image.isFeatured && (
-                                <div className="absolute top-2 left-2">
-                                  <span className="bg-purple-600 text-white rounded-full p-1 shadow-lg">
-                                    <Check size={14} />
-                                  </span>
-                                </div>
-                              )}
+                              
+                              {/* Show information about upload status */}
+                              <div className="absolute bottom-0 inset-x-0 bg-black/60 text-white text-xs py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <p className="truncate">
+                                  {image.isTemp 
+                                    ? 'Se subirá al guardar el formulario'
+                                    : (image.format && image.width ? `${image.width}x${image.height} ${image.format.toUpperCase()}` : 'Imagen guardada')
+                                  }
+                                </p>
+                              </div>
                             </motion.div>
                           ))}
                         </div>
@@ -1267,12 +1429,20 @@ export default function PlaceFormPage({ params }) {
                 {formStatus.isSubmitting ? (
                   <>
                     <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>
-                    Guardando...
+                    {uploadingImages.length > 0 
+                      ? `Subiendo imágenes (${uploadingImages.length})...` 
+                      : "Guardando..."
+                    }
                   </>
                 ) : (
                   <>
                     <Save size={18} className="mr-2" />
                     {isEditing ? "Actualizar Lugar" : "Guardar Lugar"}
+                    {formData.images.filter(img => img.isTemp).length > 0 && (
+                      <span className="ml-1 text-xs bg-white/20 rounded-full px-2 py-0.5">
+                        {formData.images.filter(img => img.isTemp).length} imágenes
+                      </span>
+                    )}
                   </>
                 )}
               </motion.button>
