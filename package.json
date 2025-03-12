@@ -10,8 +10,6 @@
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
-    "@react-three/drei": "^10.0.4",
-    "@react-three/fiber": "^9.1.0",
     "cloudinary": "^2.6.0",
     "framer-motion": "^12.4.7",
     "gsap": "^3.12.7",
@@ -25,10 +23,7 @@
     "react-hot-toast": "^2.5.2",
     "react-map-gl": "^8.0.1",
     "react-responsive": "^10.0.1",
-    "react-tsparticles": "^2.12.2",
     "recharts": "^2.15.1",
-    "three": "^0.174.0",
-    "tsparticles": "^3.8.1",
     "zustand": "^5.0.3"
   },
   "devDependencies": {
