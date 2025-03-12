@@ -175,7 +175,7 @@ export default function Header() {
       </AnimatePresence>
 
       {/* Header container with backdrop blur */}
-      <div className={`${isTransparent ? 'bg-transparent backdrop-blur-sm bg-black/5' : 'bg-white'} transition-all duration-300`}>
+      <div className={`${isTransparent ? 'bg-transparent backdrop-blur-sm' : 'bg-white'} transition-all duration-300`}>
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           {/* Logo with increased margin */}
           <Link href="/" className="flex items-center gap-2 mr-8">
