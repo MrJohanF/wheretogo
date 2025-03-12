@@ -138,7 +138,7 @@ export default function AboutPage() {
     {
       question: "¿En qué ciudades está disponible WhereToGo?",
       answer:
-        "Actualmente estamos disponibles en las principales ciudades de España, con planes de expansión a otras ciudades europeas en los próximos meses. ¡Estamos creciendo rápidamente!",
+        "Actualmente estamos disponibles en las principales ciudades de Colombia, con planes de expansión a otras ciudades en los próximos meses. ¡Estamos creciendo rápidamente!",
     },
   ];
 
@@ -146,8 +146,8 @@ export default function AboutPage() {
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50">
       {/* Hero Section */}
       <div className="relative bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
-                {/* Home Button in Header */}
-                <button
+        {/* Home Button in Header */}
+        <button
           onClick={goToHomePage}
           className="absolute top-4 left-4 md:top-6 md:left-6 bg-white/20 hover:bg-white/30 backdrop-blur-sm p-2.5 rounded-full transition-all duration-300"
           aria-label="Go to home page"
@@ -335,24 +335,36 @@ export default function AboutPage() {
       </section>
 
       {/* Team Section */}
-      <section className="py-20 bg-white" ref={teamRef}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section
+        className="py-20 bg-gradient-to-b from-white to-indigo-50 relative overflow-hidden"
+        ref={teamRef}
+      >
+        {/* Decorative background elements */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+          <div className="absolute top-20 right-0 w-72 h-72 bg-indigo-100 rounded-full opacity-20"></div>
+          <div className="absolute bottom-10 left-10 w-64 h-64 bg-blue-100 rounded-full opacity-20"></div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={
               isTeamInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }
             }
             transition={{ duration: 0.7 }}
-            className="text-center mb-16"
+            className="text-center mb-12"
           >
-            <h2 className="text-3xl font-bold text-gray-900">Nuestro Equipo</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+              Nuestro Equipo
+            </h2>
+            <div className="w-20 h-1 bg-indigo-600 mx-auto my-4 rounded-full"></div>
             <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
               Un grupo apasionado de profesionales dedicados a crear la mejor
               plataforma para descubrir lugares increíbles
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
             {team.map((member, index) => (
               <motion.div
                 key={index}
@@ -361,38 +373,49 @@ export default function AboutPage() {
                   isTeamInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }
                 }
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow"
+                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 group transform hover:-translate-y-1"
               >
-                <div className="aspect-square relative">
-                  <Image
-                    src={member.image}
-                    alt={member.name}
-                    fill
-                    className="object-cover"
-                  />
+                <div className="relative">
+                  {/* Changed aspect ratio to be less tall */}
+                  <div className="aspect-[4/3] relative">
+                    <Image
+                      src={member.image}
+                      alt={member.name}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  </div>
+                  {/* Accent bar */}
+                  <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-600 to-blue-500"></div>
                 </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-semibold text-gray-900">
+
+                <div className="p-4">
+                  <h3 className="text-base font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">
                     {member.name}
                   </h3>
-                  <p className="text-indigo-600 font-medium mb-3">
+                  <p className="text-indigo-600 font-medium text-xs mb-2 inline-block px-2 py-0.5 bg-indigo-50 rounded-full mt-1">
                     {member.role}
                   </p>
-                  <p className="text-gray-600 text-sm">{member.bio}</p>
+                  <p className="text-gray-600 text-sm line-clamp-3">
+                    {member.bio}
+                  </p>
 
-                  <div className="mt-4 flex space-x-3">
+                  <div className="mt-3 flex space-x-2">
                     <a
                       href="#"
-                      className="text-gray-400 hover:text-indigo-600 transition-colors"
+                      className="bg-gray-100 hover:bg-indigo-100 p-1.5 rounded-full text-gray-500 hover:text-indigo-600 transition-all duration-200"
+                      aria-label="LinkedIn profile"
                     >
-                      <Linkedin size={18} />
+                      <Linkedin size={16} />
                     </a>
                     <a
                       href="#"
-                      className="text-gray-400 hover:text-indigo-600 transition-colors"
+                      className="bg-gray-100 hover:bg-indigo-100 p-1.5 rounded-full text-gray-500 hover:text-indigo-600 transition-all duration-200"
+                      aria-label="GitHub profile"
                     >
                       <svg
-                        className="w-5 h-5 text-gray-400"
+                        className="w-4 h-4"
                         viewBox="0 0 24 24"
                         fill="currentColor"
                       >
@@ -401,9 +424,10 @@ export default function AboutPage() {
                     </a>
                     <a
                       href={`mailto:${member.email}`}
-                      className="text-gray-400 hover:text-indigo-600 transition-colors"
+                      className="bg-gray-100 hover:bg-indigo-100 p-1.5 rounded-full text-gray-500 hover:text-indigo-600 transition-all duration-200"
+                      aria-label={`Email ${member.name}`}
                     >
-                      <Mail size={18} />
+                      <Mail size={16} />
                     </a>
                   </div>
                 </div>
@@ -555,77 +579,187 @@ export default function AboutPage() {
               </div>
             </div>
 
-            <div className="bg-indigo-50 rounded-xl p-6 shadow-sm">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+            <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-2xl p-8 shadow-lg border border-indigo-100">
+              <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                <span className="bg-indigo-100 p-2 rounded-full mr-3">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 text-indigo-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+                    />
+                  </svg>
+                </span>
                 Envíanos un mensaje
               </h3>
-              <form className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="name"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Nombre
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    placeholder="Tu nombre"
-                  />
+
+              <form className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="name"
+                      className="text-sm font-medium text-gray-700 block"
+                    >
+                      Nombre
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-gray-400"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                          />
+                        </svg>
+                      </div>
+                      <input
+                        type="text"
+                        id="name"
+                        className="w-full pl-10 pr-4 py-3 border-0 bg-white rounded-xl text-gray-800 placeholder-gray-400 shadow-sm focus:ring-2 focus:ring-indigo-500 transition duration-200"
+                        placeholder="Tu nombre"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="email"
+                      className="text-sm font-medium text-gray-700 block"
+                    >
+                      Email
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-gray-400"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
+                          />
+                        </svg>
+                      </div>
+                      <input
+                        type="email"
+                        id="email"
+                        className="w-full pl-10 pr-4 py-3 border-0 bg-white rounded-xl text-gray-800 placeholder-gray-400 shadow-sm focus:ring-2 focus:ring-indigo-500 transition duration-200"
+                        placeholder="tu@email.com"
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    placeholder="tu@email.com"
-                  />
-                </div>
-
-                <div>
+                <div className="space-y-2">
                   <label
                     htmlFor="subject"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className="text-sm font-medium text-gray-700 block"
                   >
                     Asunto
                   </label>
-                  <input
-                    type="text"
-                    id="subject"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    placeholder="Asunto de tu mensaje"
-                  />
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 text-gray-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+                        />
+                      </svg>
+                    </div>
+                    <input
+                      type="text"
+                      id="subject"
+                      className="w-full pl-10 pr-4 py-3 border-0 bg-white rounded-xl text-gray-800 placeholder-gray-400 shadow-sm focus:ring-2 focus:ring-indigo-500 transition duration-200"
+                      placeholder="Asunto de tu mensaje"
+                    />
+                  </div>
                 </div>
 
-                <div>
+                <div className="space-y-2">
                   <label
                     htmlFor="message"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className="text-sm font-medium text-gray-700 block"
                   >
                     Mensaje
                   </label>
-                  <textarea
-                    id="message"
-                    rows={4}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    placeholder="¿En qué podemos ayudarte?"
-                  ></textarea>
+                  <div className="relative">
+                    <div className="absolute top-3 left-3 pointer-events-none">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 text-gray-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                        />
+                      </svg>
+                    </div>
+                    <textarea
+                      id="message"
+                      rows={5}
+                      className="w-full pl-10 pr-4 py-3 border-0 bg-white rounded-xl text-gray-800 placeholder-gray-400 shadow-sm focus:ring-2 focus:ring-indigo-500 transition duration-200"
+                      placeholder="¿En qué podemos ayudarte?"
+                    ></textarea>
+                  </div>
                 </div>
 
-                <button
-                  type="submit"
-                  className="w-full bg-indigo-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
-                >
-                  Enviar mensaje
-                </button>
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 text-white px-6 py-4 rounded-xl font-medium hover:from-indigo-700 hover:to-indigo-800 transform hover:translate-y-[-2px] transition-all duration-300 shadow-md flex items-center justify-center"
+                  >
+                    <span className="mr-2">Enviar mensaje</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 7l5 5m0 0l-5 5m5-5H6"
+                      />
+                    </svg>
+                  </button>
+                  <p className="text-xs text-gray-500 mt-3 text-center">
+                    Te responderemos a la mayor brevedad posible
+                  </p>
+                </div>
               </form>
             </div>
           </div>
