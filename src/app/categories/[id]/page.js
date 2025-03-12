@@ -1,3 +1,5 @@
+// app/categories/[id]/page.js
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -7,7 +9,6 @@ import {
   ArrowLeft,
   MapPin,
   Star,
-  Clock,
   Phone,
   Globe,
   Filter,
@@ -16,11 +17,8 @@ import {
   Grid2X2,
   Heart,
   ChevronDown,
-  X,
   Search,
-  Navigation,
   Clock3,
-  Bookmark,
   Share2,
   MenuSquare,
   AlertCircle,
@@ -58,7 +56,7 @@ export default function CategoryDetail() {
   const [error, setError] = useState(null);
   
   // Get category and loading state from Zustand store
-  const { categories, getCategoryById, fetchCategories, isLoading: loadingCategories } = useCategoryStore();
+  const { categories, getCategoryById, fetchCategories, isLoading: loadingCategories , getOptimizedImageUrl} = useCategoryStore();
   const category = getCategoryById(categoryId);
   
   // If categories are empty, fetch them (might happen on direct page load)
