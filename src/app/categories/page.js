@@ -38,7 +38,7 @@ export default function CategoriesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [viewMode, setViewMode] = useState("list");
+  const [viewMode, setViewMode] = useState("grid"); // grid or list
   const [filterMode, setFilterMode] = useState("all");
   const [savedCategories, setSavedCategories] = useState(new Set());
 
