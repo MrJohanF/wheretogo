@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import debounce from 'lodash.debounce';
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
-import Image from "next/image"; // Added for optimized images
+import Image from "next/image";
 import {
   ArrowLeft,
   MapPin,
@@ -21,7 +22,8 @@ import {
   Share2,
   MenuSquare,
   AlertCircle,
-  Loader
+  Loader,
+  X
 } from "lucide-react";
 import useCategoryStore from "../../store/categoryStore";
 import dynamic from "next/dynamic";
@@ -64,6 +66,7 @@ export default function CategoryDetail() {
   const [viewMode, setViewMode] = useState("grid");
   const [favorites, setFavorites] = useState(new Set());
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [activeFilters, setActiveFilters] = useState([]);
   const [places, setPlaces] = useState([]);
   const [loadingPlaces, setLoadingPlaces] = useState(true);
@@ -72,6 +75,24 @@ export default function CategoryDetail() {
   // Get category and state from Zustand store
   const { categories, getCategoryById, fetchCategories, isLoading: loadingCategories, getOptimizedImageUrl } = useCategoryStore();
   const category = getCategoryById(categoryId);
+  
+  // Create a debounced search function (300ms delay)
+  const handleDebouncedSearch = useCallback(
+    debounce((value) => {
+      setDebouncedSearchTerm(value);
+    }, 300),
+    []
+  );
+  
+  // Update debounced value when searchQuery changes
+  useEffect(() => {
+    handleDebouncedSearch(searchQuery);
+    
+    // Cleanup function to cancel pending debounced calls
+    return () => {
+      handleDebouncedSearch.cancel();
+    };
+  }, [searchQuery, handleDebouncedSearch]);
   
   // If categories are empty, fetch them (might happen on direct page load)
   useEffect(() => {
@@ -143,6 +164,11 @@ export default function CategoryDetail() {
     );
   };
 
+  const clearSearch = () => {
+    setSearchQuery("");
+    setDebouncedSearchTerm("");
+  };
+
   // Helper function to get featured image URL with optimization
   const getFeaturedImageUrl = (place) => {
     if (place.images && place.images.length > 0) {
@@ -156,9 +182,9 @@ export default function CategoryDetail() {
 
   // Filter places based on search query and active filters
   const filteredPlaces = places.filter(place => {
-    // Search query filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+    // Search query filter using debounced value for better performance
+    if (debouncedSearchTerm) {
+      const query = debouncedSearchTerm.toLowerCase();
       const matchesSearch = 
         place.name?.toLowerCase().includes(query) ||
         place.description?.toLowerCase().includes(query) ||
@@ -170,7 +196,6 @@ export default function CategoryDetail() {
     
     // Active filters
     if (activeFilters.length > 0) {
-      // This is a simplified example - adjust for your actual filter structure
       // Check if any feature matches active filters
       const hasMatchingFeature = !place.features?.length || place.features.some(feature => 
         activeFilters.includes(feature.feature?.name)
@@ -180,7 +205,7 @@ export default function CategoryDetail() {
         return false;
       }
       
-      if (activeFilters.includes("Precio") && place.priceLevel === "$$$" || place.priceLevel === "$$$$") {
+      if (activeFilters.includes("Precio") && (place.priceLevel === "$$$" || place.priceLevel === "$$$$")) {
         return false;
       }
       
@@ -312,7 +337,7 @@ export default function CategoryDetail() {
         {/* Search and Filters Bar */}
         <div className="bg-white p-4 rounded-xl shadow-sm mb-6">
           <div className="flex flex-col md:flex-row gap-4">
-            {/* Search Box */}
+            {/* Search Box with Debounce */}
             <div className="relative flex-grow">
               <Search
                 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
@@ -323,8 +348,16 @@ export default function CategoryDetail() {
                 placeholder={`Buscar en ${category?.name.toLowerCase()}...`}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 transition-colors"
+                className="w-full pl-10 pr-10 py-2.5 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 transition-colors"
               />
+              {searchQuery && (
+                <button
+                  onClick={clearSearch}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <X size={18} />
+                </button>
+              )}
             </div>
 
             {/* Filter Button */}
@@ -681,6 +714,7 @@ export default function CategoryDetail() {
                       onClick={() => {
                         setActiveFilters([]);
                         setSearchQuery("");
+                        setDebouncedSearchTerm("");
                       }}
                       className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
                     >
