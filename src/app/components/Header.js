@@ -8,7 +8,6 @@ import {
   User,
   MapPin,
   ArrowLeft,
-  ArrowRight,
   LogOut,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
