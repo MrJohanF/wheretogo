@@ -6,8 +6,6 @@ import {
   Search,
   ChevronRight,
   TrendingUp,
-  Loader,
-  AlertCircle,
   X,
   Filter,
   Bookmark,
