@@ -1,10 +1,9 @@
-// app/categories/[id]/page.js
-
 "use client";
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
+import Image from "next/image"; // Added for optimized images
 import {
   ArrowLeft,
   MapPin,
@@ -24,7 +23,7 @@ import {
   AlertCircle,
   Loader
 } from "lucide-react";
-import useCategoryStore from "../../store/categoryStore"; // Import the store
+import useCategoryStore from "../../store/categoryStore";
 import dynamic from "next/dynamic";
 
 // Dynamically import the map component to avoid SSR issues
@@ -40,12 +39,27 @@ const MapComponent = dynamic(() => import("../../components/MapComponent"), {
   ),
 });
 
+// Animation variants
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08 }
+  }
+};
+
+const item = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 }
+};
+
 export default function CategoryDetail() {
   const router = useRouter();
   const params = useParams();
   const categoryId = params?.id;
   
   const [sortBy, setSortBy] = useState("rating");
+  const [sortDropdownVisible, setSortDropdownVisible] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState("grid");
   const [favorites, setFavorites] = useState(new Set());
@@ -55,8 +69,8 @@ export default function CategoryDetail() {
   const [loadingPlaces, setLoadingPlaces] = useState(true);
   const [error, setError] = useState(null);
   
-  // Get category and loading state from Zustand store
-  const { categories, getCategoryById, fetchCategories, isLoading: loadingCategories , getOptimizedImageUrl} = useCategoryStore();
+  // Get category and state from Zustand store
+  const { categories, getCategoryById, fetchCategories, isLoading: loadingCategories, getOptimizedImageUrl } = useCategoryStore();
   const category = getCategoryById(categoryId);
   
   // If categories are empty, fetch them (might happen on direct page load)
@@ -75,7 +89,10 @@ export default function CategoryDetail() {
       setError(null);
       
       try {
-        const response = await fetch(`https://api.mywheretogo.com/api/categories/${categoryId}/places`, {
+        // Use environment variable for API URL
+        const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/categories/${categoryId}/places`;
+        
+        const response = await fetch(apiUrl, {
           credentials: 'include',
         });
         
@@ -101,7 +118,8 @@ export default function CategoryDetail() {
     fetchPlaces();
   }, [categoryId]);
 
-  const toggleFavorite = (placeId) => {
+  const toggleFavorite = (e, placeId) => {
+    e.stopPropagation(); // Prevent triggering card click
     setFavorites((prev) => {
       const newFavorites = new Set(prev);
       if (newFavorites.has(placeId)) {
@@ -125,38 +143,70 @@ export default function CategoryDetail() {
     );
   };
 
-  // Helper function to get featured image URL
+  // Helper function to get featured image URL with optimization
   const getFeaturedImageUrl = (place) => {
     if (place.images && place.images.length > 0) {
       const featuredImage = place.images.find(img => img.isFeatured);
-      return featuredImage ? featuredImage.url : place.images[0].url;
+      const imageUrl = featuredImage ? featuredImage.url : place.images[0].url;
+      // Use the optimized image URL utility from the store
+      return getOptimizedImageUrl(imageUrl, 600, 400);
     }
-    return 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4'; // Placeholder image
+    return '/images/placeholder.jpg';
   };
 
-  // Filter places based on search query
+  // Filter places based on search query and active filters
   const filteredPlaces = places.filter(place => {
-    if (!searchQuery) return true;
+    // Search query filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const matchesSearch = 
+        place.name?.toLowerCase().includes(query) ||
+        place.description?.toLowerCase().includes(query) ||
+        place.cuisine?.toLowerCase().includes(query) ||
+        place.address?.toLowerCase().includes(query);
+      
+      if (!matchesSearch) return false;
+    }
     
-    return (
-      place.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      place.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      place.cuisine?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      place.address?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    // Active filters
+    if (activeFilters.length > 0) {
+      // This is a simplified example - adjust for your actual filter structure
+      // Check if any feature matches active filters
+      const hasMatchingFeature = !place.features?.length || place.features.some(feature => 
+        activeFilters.includes(feature.feature?.name)
+      );
+      
+      if (activeFilters.includes("Valoración") && (!place.rating || place.rating < 4)) {
+        return false;
+      }
+      
+      if (activeFilters.includes("Precio") && place.priceLevel === "$$$" || place.priceLevel === "$$$$") {
+        return false;
+      }
+      
+      // If none of the conditions match active filters, exclude this place
+      if (!hasMatchingFeature) return false;
+    }
+    
+    return true;
   });
 
   // Sort places based on selected sort option
   const sortedPlaces = [...filteredPlaces].sort((a, b) => {
     if (sortBy === "rating") {
       return (b.rating || 0) - (a.rating || 0);
+    } else if (sortBy === "distance") {
+      return (a.distance || 999) - (b.distance || 999);
+    } else if (sortBy === "reviews") {
+      return (b.reviewCount || 0) - (a.reviewCount || 0);
     }
-    // Additional sorting options can be implemented here
     return 0;
   });
 
-  // Loading state for the entire page - FIXED THIS LINE
-  if (loadingCategories || (loadingPlaces && !error)) {
+  // Loading state for the entire page
+  const isLoading = loadingCategories || (loadingPlaces && !error);
+  
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
@@ -195,21 +245,6 @@ export default function CategoryDetail() {
       </div>
     );
   }
-
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.08,
-      },
-    },
-  };
-
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 },
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 pb-10">
@@ -312,41 +347,52 @@ export default function CategoryDetail() {
 
             {/* Sort Dropdown */}
             <div className="relative">
-              <button className="flex items-center justify-between w-48 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors">
+              <button 
+                onClick={() => setSortDropdownVisible(!sortDropdownVisible)}
+                className="flex items-center justify-between w-48 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+              >
                 <div className="flex items-center">
                   <SortAsc size={18} className="mr-2 text-gray-500" />
                   <span className="text-sm font-medium">
-                    {sortBy === "rating"
-                      ? "Mejor valorados"
-                      : sortBy === "distance"
-                      ? "Más cercanos"
-                      : "Más reseñas"}
+                    {sortBy === "rating" ? "Mejor valorados" : 
+                     sortBy === "distance" ? "Más cercanos" : "Más reseñas"}
                   </span>
                 </div>
                 <ChevronDown size={16} />
               </button>
 
-              {/* Dropdown Menu - Would need JS toggle logic */}
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-10 hidden">
-                <button
-                  onClick={() => setSortBy("rating")}
-                  className={`w-full text-left px-4 py-2 text-sm ${sortBy === 'rating' ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-gray-50'}`}
-                >
-                  Mejor valorados
-                </button>
-                <button
-                  onClick={() => setSortBy("distance")}
-                  className={`w-full text-left px-4 py-2 text-sm ${sortBy === 'distance' ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-gray-50'}`}
-                >
-                  Más cercanos
-                </button>
-                <button
-                  onClick={() => setSortBy("reviews")}
-                  className={`w-full text-left px-4 py-2 text-sm ${sortBy === 'reviews' ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-gray-50'}`}
-                >
-                  Más reseñas
-                </button>
-              </div>
+              {/* Dropdown Menu */}
+              {sortDropdownVisible && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-10">
+                  <button
+                    onClick={() => {
+                      setSortBy("rating");
+                      setSortDropdownVisible(false);
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm ${sortBy === 'rating' ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-gray-50'}`}
+                  >
+                    Mejor valorados
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSortBy("distance");
+                      setSortDropdownVisible(false);
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm ${sortBy === 'distance' ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-gray-50'}`}
+                  >
+                    Más cercanos
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSortBy("reviews");
+                      setSortDropdownVisible(false);
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm ${sortBy === 'reviews' ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-gray-50'}`}
+                  >
+                    Más reseñas
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* View Toggle */}
@@ -399,9 +445,9 @@ export default function CategoryDetail() {
                   </div>
 
                   <div className="flex flex-wrap gap-2 md:gap-3">
-                    {category?.filters?.map((filter) => (
+                    {category?.filters?.map((filter, index) => (
                       <button
-                        key={filter}
+                        key={index}
                         onClick={() => toggleFilter(filter)}
                         className={`px-4 py-2 rounded-full text-sm transition-all ${
                           activeFilters.includes(filter)
@@ -428,186 +474,222 @@ export default function CategoryDetail() {
             animate="show"
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
-            {sortedPlaces.map((place) => (
-              <motion.div
-                key={place.id}
-                variants={item}
-                whileHover={{ y: -4 }}
-                className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-all duration-300"
-              >
-                {/* Card Header with Image */}
-                <div
-                  className="aspect-video relative cursor-pointer"
-                  onClick={() => handlePlaceClick(place)}
+            {sortedPlaces.length > 0 ? (
+              sortedPlaces.map((place) => (
+                <motion.div
+                  key={place.id}
+                  variants={item}
+                  whileHover={{ y: -4 }}
+                  className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-all duration-300"
                 >
-                  {place.images && place.images.length > 0 ? (
-                    <img
-                      src={getFeaturedImageUrl(place)}
-                      alt={place.name}
-                      className="object-cover w-full h-full transform hover:scale-105 transition-transform duration-700"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                      <MenuSquare size={40} className="text-gray-400" />
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80"></div>
-
-                  {/* Quick Action Buttons */}
-                  <div className="absolute top-3 right-3 flex flex-col gap-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleFavorite(place.id);
-                      }}
-                      className="p-2 rounded-full bg-white/90 hover:bg-white shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                      aria-label={
-                        favorites.has(place.id)
-                          ? "Quitar de favoritos"
-                          : "Añadir a favoritos"
-                      }
-                    >
-                      <Heart
-                        size={16}
-                        className={
-                          favorites.has(place.id)
-                            ? "fill-red-500 text-red-500"
-                            : "text-gray-700"
-                        }
-                      />
-                    </button>
-                    <button
-                      onClick={(e) => e.stopPropagation()}
-                      className="p-2 rounded-full bg-white/90 hover:bg-white shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                      aria-label="Compartir"
-                    >
-                      <Share2 size={16} className="text-gray-700" />
-                    </button>
-                  </div>
-
-                  {/* Status Pills */}
-                  <div className="absolute bottom-3 left-3 flex flex-wrap gap-2">
-                    {place.isOpenNow && (
-                      <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium flex items-center">
-                        <Clock3 size={12} className="mr-1" />
-                        Abierto
-                      </span>
-                    )}
-                    {place.priceLevel && (
-                      <span className="bg-gray-100/90 backdrop-blur-sm text-gray-800 text-xs px-2 py-1 rounded-full font-medium">
-                        {place.priceLevel}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Card Content */}
-                <div className="p-4">
+                  {/* Card Header with Image */}
                   <div
+                    className="aspect-video relative cursor-pointer"
                     onClick={() => handlePlaceClick(place)}
-                    className="cursor-pointer"
                   >
-                    <h3 className="font-bold text-gray-800 text-lg">
-                      {place.name}
-                    </h3>
-                    <div className="flex items-center mt-1.5">
-                      {place.rating ? (
-                        <div className="flex items-center bg-green-50 text-green-700 px-2 py-0.5 rounded mr-2">
-                          <Star
-                            size={14}
-                            className="text-yellow-500 fill-current"
-                          />
-                          <span className="ml-1 text-sm font-medium">
-                            {place.rating}
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center bg-gray-50 text-gray-500 px-2 py-0.5 rounded mr-2">
-                          <Star size={14} />
-                          <span className="ml-1 text-sm font-medium">
-                            N/D
-                          </span>
-                        </div>
+                    {place.images && place.images.length > 0 ? (
+                      <Image
+                        src={getFeaturedImageUrl(place)}
+                        alt={place.name}
+                        width={600}
+                        height={400}
+                        className="object-cover w-full h-full transform hover:scale-105 transition-transform duration-700"
+                        priority={false}
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                        <MenuSquare size={40} className="text-gray-400" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80"></div>
+
+                    {/* Quick Action Buttons */}
+                    <div className="absolute top-3 right-3 flex flex-col gap-2">
+                      <button
+                        onClick={(e) => toggleFavorite(e, place.id)}
+                        className="p-2 rounded-full bg-white/90 hover:bg-white shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                        aria-label={favorites.has(place.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
+                      >
+                        <Heart
+                          size={16}
+                          className={favorites.has(place.id) ? "fill-red-500 text-red-500" : "text-gray-700"}
+                        />
+                      </button>
+                      <button
+                        onClick={(e) => e.stopPropagation()}
+                        className="p-2 rounded-full bg-white/90 hover:bg-white shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                        aria-label="Compartir"
+                      >
+                        <Share2 size={16} className="text-gray-700" />
+                      </button>
+                    </div>
+
+                    {/* Status Pills */}
+                    <div className="absolute bottom-3 left-3 flex flex-wrap gap-2">
+                      {place.isOpenNow && (
+                        <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium flex items-center">
+                          <Clock3 size={12} className="mr-1" />
+                          Abierto
+                        </span>
+                      )}
+                      {place.priceLevel && (
+                        <span className="bg-gray-100/90 backdrop-blur-sm text-gray-800 text-xs px-2 py-1 rounded-full font-medium">
+                          {place.priceLevel}
+                        </span>
                       )}
                     </div>
                   </div>
 
-                  {/* Place Description */}
-                  {place.description && (
-                    <p className="text-gray-600 text-sm mt-2 line-clamp-2">
-                      {place.description}
-                    </p>
-                  )}
-
-                  {/* Place Details */}
-                  <div className="mt-3">
-                    {place.address && (
-                      <div className="flex items-center text-gray-600 text-sm mb-2">
-                        <MapPin size={14} className="mr-1.5 flex-shrink-0" />
-                        <span className="truncate">{place.address}</span>
-                      </div>
-                    )}
-
-                    {place.cuisine && (
-                      <div className="flex items-center text-gray-600 text-sm mb-2">
-                        <MenuSquare
-                          size={14}
-                          className="mr-1.5 flex-shrink-0"
-                        />
-                        <span>{place.cuisine}</span>
-                      </div>
-                    )}
-
-                    {place.phone && (
-                      <div className="flex items-center text-gray-600 text-sm mb-2">
-                        <Phone size={14} className="mr-1.5 flex-shrink-0" />
-                        <span>{place.phone}</span>
-                      </div>
-                    )}
-
-                    {place.website && (
-                      <div className="flex items-center text-gray-600 text-sm mb-2">
-                        <Globe size={14} className="mr-1.5 flex-shrink-0" />
-                        <a href={place.website} target="_blank" rel="noopener noreferrer" 
-                           className="text-indigo-600 hover:underline truncate"
-                           onClick={(e) => e.stopPropagation()}>
-                          {new URL(place.website).hostname}
-                        </a>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Features */}
-                  {place.features && place.features.length > 0 && (
-                    <div className="mt-3">
-                      <div className="text-xs text-gray-500 mb-1.5">
-                        Características:
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {place.features.map((feature, index) => (
-                          <span
-                            key={index}
-                            className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full"
-                          >
-                            {feature.feature.name}
+                  {/* Card Content */}
+                  <div className="p-4">
+                    <div
+                      onClick={() => handlePlaceClick(place)}
+                      className="cursor-pointer"
+                    >
+                      <h3 className="font-bold text-gray-800 text-lg">
+                        {place.name}
+                      </h3>
+                      <div className="flex items-center mt-1.5">
+                        {place.rating ? (
+                          <div className="flex items-center bg-green-50 text-green-700 px-2 py-0.5 rounded mr-2">
+                            <Star
+                              size={14}
+                              className="text-yellow-500 fill-current"
+                            />
+                            <span className="ml-1 text-sm font-medium">
+                              {place.rating}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center bg-gray-50 text-gray-500 px-2 py-0.5 rounded mr-2">
+                            <Star size={14} />
+                            <span className="ml-1 text-sm font-medium">
+                              N/D
+                            </span>
+                          </div>
+                        )}
+                        
+                        {place.reviewCount > 0 && (
+                          <span className="text-xs text-gray-500">
+                            ({place.reviewCount} reseñas)
                           </span>
-                        ))}
+                        )}
                       </div>
                     </div>
-                  )}
 
-                  {/* Call To Action */}
-                  <div className="mt-4 pt-3 border-t border-gray-100">
+                    {/* Place Description */}
+                    {place.description && (
+                      <p className="text-gray-600 text-sm mt-2 line-clamp-2">
+                        {place.description}
+                      </p>
+                    )}
+
+                    {/* Place Details */}
+                    <div className="mt-3">
+                      {place.address && (
+                        <div className="flex items-center text-gray-600 text-sm mb-2">
+                          <MapPin size={14} className="mr-1.5 flex-shrink-0" />
+                          <span className="truncate">{place.address}</span>
+                        </div>
+                      )}
+
+                      {place.cuisine && (
+                        <div className="flex items-center text-gray-600 text-sm mb-2">
+                          <MenuSquare
+                            size={14}
+                            className="mr-1.5 flex-shrink-0"
+                          />
+                          <span>{place.cuisine}</span>
+                        </div>
+                      )}
+
+                      {place.phone && (
+                        <div className="flex items-center text-gray-600 text-sm mb-2">
+                          <Phone size={14} className="mr-1.5 flex-shrink-0" />
+                          <span>{place.phone}</span>
+                        </div>
+                      )}
+
+                      {place.website && (
+                        <div className="flex items-center text-gray-600 text-sm mb-2">
+                          <Globe size={14} className="mr-1.5 flex-shrink-0" />
+                          <a 
+                            href={place.website} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="text-indigo-600 hover:underline truncate"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {new URL(place.website).hostname}
+                          </a>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Features */}
+                    {place.features && place.features.length > 0 && (
+                      <div className="mt-3">
+                        <div className="text-xs text-gray-500 mb-1.5">
+                          Características:
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {place.features.slice(0, 3).map((feature, index) => (
+                            <span
+                              key={index}
+                              className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full"
+                            >
+                              {feature.feature.name}
+                            </span>
+                          ))}
+                          {place.features.length > 3 && (
+                            <span className="text-xs bg-gray-50 text-gray-500 px-2.5 py-1 rounded-full">
+                              +{place.features.length - 3} más
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Call To Action */}
+                    <div className="mt-4 pt-3 border-t border-gray-100">
+                      <button
+                        onClick={() => handlePlaceClick(place)}
+                        className="w-full py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg transition-colors font-medium"
+                      >
+                        Ver detalles
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))
+            ) : (
+              // Empty state within grid view
+              <div className="col-span-1 md:col-span-2 lg:col-span-3 text-center py-12 bg-white rounded-xl shadow-sm">
+                <div className="mx-auto h-24 w-24 text-gray-300">
+                  <MapPin size={64} strokeWidth={1} className="mx-auto" />
+                </div>
+                <h3 className="mt-2 text-lg font-medium text-gray-900">
+                  No hay lugares en esta categoría
+                </h3>
+                <p className="mt-1 text-gray-500">
+                  No se encontraron lugares que coincidan con tu búsqueda
+                </p>
+                {(searchQuery || activeFilters.length > 0) && (
+                  <div className="mt-6">
                     <button
-                      onClick={() => handlePlaceClick(place)}
-                      className="w-full py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg transition-colors font-medium"
+                      onClick={() => {
+                        setActiveFilters([]);
+                        setSearchQuery("");
+                      }}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
                     >
-                      Ver detalles
+                      Limpiar filtros
                     </button>
                   </div>
-                </div>
-              </motion.div>
-            ))}
+                )}
+              </div>
+            )}
           </motion.div>
         ) : (
           /* Map View */
@@ -621,37 +703,11 @@ export default function CategoryDetail() {
           </div>
         )}
 
-        {/* Empty State */}
-        {!loadingPlaces && sortedPlaces.length === 0 && (
-          <div className="text-center py-12 bg-white rounded-xl shadow-sm">
-            <div className="mx-auto h-24 w-24 text-gray-300">
-              <Filter size={64} strokeWidth={1} className="mx-auto" />
-            </div>
-            <h3 className="mt-2 text-lg font-medium text-gray-900">
-              No hay resultados
-            </h3>
-            <p className="mt-1 text-gray-500">
-              Prueba a cambiar tus filtros de búsqueda
-            </p>
-            <div className="mt-6">
-              <button
-                onClick={() => {
-                  setActiveFilters([]);
-                  setSearchQuery("");
-                }}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-              >
-                Limpiar filtros
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* Results Counter */}
-        {!loadingPlaces && sortedPlaces.length > 0 && (
+        {sortedPlaces.length > 0 && (
           <div className="mt-5 text-center text-gray-500">
             Mostrando {sortedPlaces.length}{" "}
-            {sortedPlaces.length === 1 ? "lugar" : "lugares"}
+            {sortedPlaces.length === 1 ? "lugar" : "lugares"} en {category?.name}
           </div>
         )}
       </div>
