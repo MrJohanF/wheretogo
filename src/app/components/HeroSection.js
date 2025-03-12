@@ -23,6 +23,7 @@ export default function HeroSection() {
   
   // Responsive hooks
   const isMobile = useMediaQuery({ maxWidth: 767 });
+  const isSmallScreen = useMediaQuery({ maxWidth: 639 });
   const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
   
   // Featured destinations with images and additional metadata
@@ -208,9 +209,10 @@ export default function HeroSection() {
         </AnimatePresence>
       </div>
       
-      {/* Content overlay */}
-      <div className="absolute inset-0 z-10 flex items-center">
-        <div className="container mx-auto px-5 flex flex-col items-center lg:items-start">
+      {/* Content overlay with improved responsive layout */}
+      <div className="absolute inset-0 z-10 flex flex-col justify-between pt-20 pb-6">
+        {/* Main content - top section */}
+        <div className="container mx-auto px-5">
           <div className="w-full max-w-3xl mx-auto lg:mx-0 lg:ml-10 xl:ml-20 text-center lg:text-left">
             {/* Badge */}
             <motion.span 
@@ -226,7 +228,7 @@ export default function HeroSection() {
             
             {/* Main heading */}
             <motion.h1
-              className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 leading-[1.1] text-white tracking-tight"
+              className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold mb-5 sm:mb-6 leading-[1.1] text-white tracking-tight"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.8 }}
@@ -236,7 +238,7 @@ export default function HeroSection() {
             
             {/* Description */}
             <motion.p
-              className="text-lg mb-8 text-white/80 max-w-lg mx-auto lg:mx-0 leading-relaxed"
+              className="text-lg mb-6 sm:mb-8 text-white/80 max-w-lg mx-auto lg:mx-0 leading-relaxed"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.8 }}
@@ -259,14 +261,14 @@ export default function HeroSection() {
                   }`}
                 >
                   <div className="flex items-center">
-                    <div className="pl-5">
+                    <div className="pl-4 sm:pl-5">
                       <MapPin className="h-5 w-5 text-indigo-500" />
                     </div>
                     <input
                       ref={searchInputRef}
                       type="text"
                       placeholder="¿A dónde vas?"
-                      className="px-4 py-5 w-full text-gray-700 focus:outline-none bg-transparent"
+                      className="px-3 sm:px-4 py-4 sm:py-5 w-full text-gray-700 focus:outline-none bg-transparent"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onFocus={() => setSearchFocused(true)}
@@ -277,28 +279,30 @@ export default function HeroSection() {
                       <button
                         type="button"
                         onClick={clearSearch}
-                        className="text-gray-400 hover:text-gray-600 p-2"
+                        className="text-gray-400 hover:text-gray-600 p-1 sm:p-2"
                         aria-label="Clear search"
                       >
-                        <X className="h-5 w-5" />
+                        <X className="h-4 sm:h-5 w-4 sm:w-5" />
                       </button>
                     )}
                     <motion.button
                       type="submit"
-                      className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-5 font-medium flex items-center gap-2 min-w-[135px] justify-center"
+                      className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-4 sm:px-6 py-4 sm:py-5 font-medium flex items-center gap-2 min-w-[100px] sm:min-w-[135px] justify-center"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       disabled={isSearching}
                     >
                       {isSearching ? (
                         <>
-                          <Loader2 className="h-5 w-5 animate-spin" />
-                          <span>Buscando...</span>
+                          <Loader2 className="h-4 sm:h-5 w-4 sm:w-5 animate-spin" />
+                          <span className="hidden sm:inline">Buscando...</span>
+                          <span className="sm:hidden">...</span>
                         </>
                       ) : (
                         <>
-                          <Search className="h-5 w-5" />
-                          <span>Explorar</span>
+                          <Search className="h-4 sm:h-5 w-4 sm:w-5" />
+                          <span className="hidden sm:inline">Explorar</span>
+                          <span className="sm:hidden">Buscar</span>
                         </>
                       )}
                     </motion.button>
@@ -358,8 +362,8 @@ export default function HeroSection() {
               </form>
               
               {/* Category chips */}
-              <div className="mt-4 flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                {["Todo", "Restaurantes", "Museos", "Eventos", "Cafés", "Aventuras", "Compras"].map((item, idx) => (
+              <div className="mt-4 flex flex-wrap gap-2 overflow-x-auto pb-2 no-scrollbar">
+                {["Todo", "Restaurantes", "Museos", "Eventos", "Compras"].map((item, idx) => (
                   <motion.button
                     key={item} 
                     className={`${idx === 0 ? 'bg-white/80 text-indigo-700' : 'bg-white/20 text-white hover:bg-white/30'} text-sm py-1.5 px-4 rounded-full whitespace-nowrap backdrop-blur-sm`}
@@ -373,129 +377,135 @@ export default function HeroSection() {
             </motion.div>
           </div>
         </div>
-      </div>
-      
-      {/* Enhanced destination info panel */}
-      <motion.div
-        className={`absolute ${isMobile ? 'bottom-24 left-4 right-4' : 'bottom-16 right-10 max-w-sm'} backdrop-blur-lg bg-black/40 p-6 rounded-2xl border border-white/10 z-10`}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8, duration: 0.8 }}
-        style={{ 
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-        }}
-      >
-        <div className="flex justify-between items-start mb-3">
-          <div className="flex items-center">
-            <Map className="h-5 w-5 mr-2 text-purple-300" />
-            <span className="text-purple-200 text-sm font-medium">Destino destacado</span>
-          </div>
-          <div className="flex items-center bg-white/20 rounded-lg px-2 py-1">
-            <span className="text-yellow-300 mr-1 text-xs">★</span>
-            <span className="text-white text-xs font-medium">{destinations[activeImage].rating}</span>
-          </div>
-        </div>
-        
-        <div className="space-y-3">
-          <h2 className="text-3xl font-bold text-white">{destinations[activeImage].name}</h2>
-          <p className="text-white/80 text-sm">{destinations[activeImage].tagline}</p>
-          
-          <div className="flex items-center space-x-4 text-sm">
-            <div className="flex items-center">
-              <Globe className="h-4 w-4 mr-1.5 text-indigo-200" />
-              <span className="text-indigo-100">{destinations[activeImage].country}</span>
-            </div>
-            <div className="flex items-center">
-              <MapPin className="h-4 w-4 mr-1.5 text-indigo-200" />
-              <span className="text-indigo-100">{destinations[activeImage].places} lugares</span>
-            </div>
-          </div>
-          
-          <motion.button
-            className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-lg w-full px-6 py-3.5 flex items-center justify-center font-medium mt-2"
-            whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.25)" }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <Compass className="h-5 w-5 mr-2" />
-            Explorar destino
-          </motion.button>
-        </div>
-      </motion.div>
-      
-      {/* Carousel navigation */}
-      <div className="absolute z-20 bottom-6 left-1/2 transform -translate-x-1/2 flex items-center space-x-4">
-        {/* Progress bar instead of dots */}
-        <div className="hidden md:flex items-center bg-white/10 backdrop-blur-md rounded-full h-2 w-48 overflow-hidden">
-          {destinations.map((_, index) => (
-            <motion.button
-              key={index}
-              className="h-full"
-              style={{
-                width: `${100 / destinations.length}%`,
-                backgroundColor: index === activeImage ? 'white' : 'transparent',
-                position: 'relative',
-              }}
-              onClick={() => handleImageChange(
-                index, 
-                index > activeImage ? "right" : "left"
-              )}
-              whileHover={{ backgroundColor: index === activeImage ? 'white' : 'rgba(255,255,255,0.3)' }}
-            >
-              {index === activeImage && (
-                <motion.div 
-                  className="absolute inset-0 bg-white"
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ duration: 6, ease: "linear" }}
-                  style={{ originX: 0 }}
-                />
-              )}
-            </motion.button>
-          ))}
-        </div>
 
-        {/* Mobile dots */}
-        <div className="flex md:hidden space-x-2">
-          {destinations.map((_, index) => (
-            <motion.button
-              key={index}
-              className={`rounded-full ${index === activeImage ? 'bg-white w-6 h-2' : 'bg-white/30 w-2 h-2'}`}
-              onClick={() => handleImageChange(index, index > activeImage ? "right" : "left")}
-              whileHover={{ scale: 1.2 }}
-              transition={{ duration: 0.3 }}
-              layout
-            />
-          ))}
-        </div>
-        
-        {/* Arrow navigation */}
-        <div className="flex space-x-3">
-          <motion.button
-            className="bg-white/10 backdrop-blur-md rounded-full w-10 h-10 flex items-center justify-center cursor-pointer border border-white/20"
-            whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.2)" }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => {
-              const prevIndex = (activeImage - 1 + destinations.length) % destinations.length;
-              handleImageChange(prevIndex, "left");
-            }}
-            aria-label="Previous destination"
-          >
-            <ChevronLeft className="h-5 w-5 text-white" />
-          </motion.button>
-          
-          <motion.button
-            className="bg-white/10 backdrop-blur-md rounded-full w-10 h-10 flex items-center justify-center cursor-pointer border border-white/20"
-            whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.2)" }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => {
-              const nextIndex = (activeImage + 1) % destinations.length;
-              handleImageChange(nextIndex, "right");
-            }}
-            aria-label="Next destination"
-          >
-            <ChevronRight className="h-5 w-5 text-white" />
-          </motion.button>
+        {/* Bottom container for destination info panel and navigation */}
+        <div className="container mx-auto px-5 mt-8 flex flex-col">
+          <div className="flex flex-col-reverse md:flex-row md:items-end justify-between gap-4">
+            {/* Enhanced destination info panel - repositioned in mobile view */}
+            <motion.div
+              className={`backdrop-blur-lg bg-black/40 p-4 sm:p-6 rounded-2xl border border-white/10 z-10
+                w-full ${isSmallScreen ? 'mb-4' : 'mb-0'} md:max-w-sm`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8, duration: 0.8 }}
+              style={{ 
+                backdropFilter: "blur(16px)",
+                WebkitBackdropFilter: "blur(16px)",
+              }}
+            >
+              <div className="flex justify-between items-start mb-3">
+                <div className="flex items-center">
+                  <Map className="h-4 sm:h-5 w-4 sm:w-5 mr-2 text-purple-300" />
+                  <span className="text-purple-200 text-xs sm:text-sm font-medium">Destino destacado</span>
+                </div>
+                <div className="flex items-center bg-white/20 rounded-lg px-2 py-1">
+                  <span className="text-yellow-300 mr-1 text-xs">★</span>
+                  <span className="text-white text-xs font-medium">{destinations[activeImage].rating}</span>
+                </div>
+              </div>
+              
+              <div className="space-y-2 sm:space-y-3">
+                <h2 className="text-2xl sm:text-3xl font-bold text-white">{destinations[activeImage].name}</h2>
+                <p className="text-white/80 text-xs sm:text-sm">{destinations[activeImage].tagline}</p>
+                
+                <div className="flex items-center space-x-4 text-xs sm:text-sm">
+                  <div className="flex items-center">
+                    <Globe className="h-3 sm:h-4 w-3 sm:w-4 mr-1 sm:mr-1.5 text-indigo-200" />
+                    <span className="text-indigo-100">{destinations[activeImage].country}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <MapPin className="h-3 sm:h-4 w-3 sm:w-4 mr-1 sm:mr-1.5 text-indigo-200" />
+                    <span className="text-indigo-100">{destinations[activeImage].places} lugares</span>
+                  </div>
+                </div>
+                
+                <motion.button
+                  className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-lg w-full px-4 sm:px-6 py-2.5 sm:py-3.5 flex items-center justify-center font-medium mt-1 sm:mt-2"
+                  whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.25)" }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Compass className="h-4 sm:h-5 w-4 sm:w-5 mr-2" />
+                  Explorar destino
+                </motion.button>
+              </div>
+            </motion.div>
+            
+            {/* Carousel navigation - moved to right on desktop */}
+            <div className={`flex justify-center ${isSmallScreen ? 'mb-2' : 'mb-0'} md:justify-end items-center gap-2 sm:gap-4`}>
+              {/* Progress bar on desktop, dots on mobile */}
+              <div className="hidden md:flex items-center bg-white/10 backdrop-blur-md rounded-full h-2 w-48 overflow-hidden">
+                {destinations.map((_, index) => (
+                  <motion.button
+                    key={index}
+                    className="h-full"
+                    style={{
+                      width: `${100 / destinations.length}%`,
+                      backgroundColor: index === activeImage ? 'white' : 'transparent',
+                      position: 'relative',
+                    }}
+                    onClick={() => handleImageChange(
+                      index, 
+                      index > activeImage ? "right" : "left"
+                    )}
+                    whileHover={{ backgroundColor: index === activeImage ? 'white' : 'rgba(255,255,255,0.3)' }}
+                  >
+                    {index === activeImage && (
+                      <motion.div 
+                        className="absolute inset-0 bg-white"
+                        initial={{ scaleX: 0 }}
+                        animate={{ scaleX: 1 }}
+                        transition={{ duration: 6, ease: "linear" }}
+                        style={{ originX: 0 }}
+                      />
+                    )}
+                  </motion.button>
+                ))}
+              </div>
+
+              {/* Mobile dots */}
+              <div className="flex md:hidden space-x-2">
+                {destinations.map((_, index) => (
+                  <motion.button
+                    key={index}
+                    className={`rounded-full ${index === activeImage ? 'bg-white w-6 h-2' : 'bg-white/30 w-2 h-2'}`}
+                    onClick={() => handleImageChange(index, index > activeImage ? "right" : "left")}
+                    whileHover={{ scale: 1.2 }}
+                    transition={{ duration: 0.3 }}
+                    layout
+                  />
+                ))}
+              </div>
+              
+              {/* Arrow navigation */}
+              <div className="flex space-x-2 sm:space-x-3">
+                <motion.button
+                  className="bg-white/10 backdrop-blur-md rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center cursor-pointer border border-white/20"
+                  whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.2)" }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    const prevIndex = (activeImage - 1 + destinations.length) % destinations.length;
+                    handleImageChange(prevIndex, "left");
+                  }}
+                  aria-label="Previous destination"
+                >
+                  <ChevronLeft className="h-4 sm:h-5 w-4 sm:w-5 text-white" />
+                </motion.button>
+                
+                <motion.button
+                  className="bg-white/10 backdrop-blur-md rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center cursor-pointer border border-white/20"
+                  whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.2)" }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    const nextIndex = (activeImage + 1) % destinations.length;
+                    handleImageChange(nextIndex, "right");
+                  }}
+                  aria-label="Next destination"
+                >
+                  <ChevronRight className="h-4 sm:h-5 w-4 sm:w-5 text-white" />
+                </motion.button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       
