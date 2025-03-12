@@ -49,7 +49,7 @@ const useCategoryStore = create((set, get) => ({
             name: category.name,
             icon: mapIconToComponent(category.icon) || "📍",
             count: category._count?.places || 0,
-            description: category.description || `Explora lugares en ${category.name}`,
+            description: category.description || `Explora en ${category.name}`,
             color: mapColorToGradient(category.color),
             image: imageUrl,
             imagePublicId: category.imagePublicId,

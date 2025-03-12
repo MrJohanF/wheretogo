@@ -1,3 +1,5 @@
+// app/components/CategorySection.js
+
 "use client";
 import { 
   Utensils, Camera, Coffee, ShoppingBag, 
