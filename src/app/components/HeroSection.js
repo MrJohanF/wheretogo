@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { MapPin, Search, ChevronRight, ChevronLeft, Compass, Map, Globe, X, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMediaQuery } from "react-responsive";
+import { getOptimizedImageUrl } from "../services/cloudinary";
 
 // Constants moved outside component to avoid recreation on every render
 const POPULAR_SEARCHES = ["Barcelona", "Tokyo", "New York", "Paris"];
@@ -11,7 +12,7 @@ const DESTINATIONS = [
   {
     name: "Jardín Botánico",
     tagline: "Naturaleza, biodiversidad, senderos, belleza",
-    image: "/images/jardin-botanico.avif",
+    image: "https://res.cloudinary.com/ds4oxnii2/image/upload/v1741841144/chwhr6ukxdgloweukwnd.avif",
     places: " Av. Calle 63 # 68-95",
     country: "Bogotá",
     rating: 4.8
@@ -19,7 +20,7 @@ const DESTINATIONS = [
   {
     name: "Piedra del Peñol",
     tagline: "Gigantesca roca, vistas impresionantes",
-    image: "/images/piedra-del-penol.avif",
+    image: "https://res.cloudinary.com/ds4oxnii2/image/upload/v1741841144/ftaimzfrhvspcuizlh3y.avif",
     places: "Guatapé",
     country: "Antioquia",
     rating: 4.4
@@ -27,7 +28,7 @@ const DESTINATIONS = [
   {
     name: "Caño Cristales",
     tagline: "Río, naturaleza, color, belleza",
-    image: "/images/cano-cristales.avif",
+    image: "https://res.cloudinary.com/ds4oxnii2/image/upload/v1741841144/vskxk7oofb9yagjxca0z.jpg",
     places: "Serranía de la Macarena",
     country: "Meta",
     rating: 4.7
@@ -35,7 +36,7 @@ const DESTINATIONS = [
   {
     name: "Monserrate",
     tagline: "Montaña, vistas, santuario, naturaleza",
-    image: "/images/monserrate.jpg",
+    image: "https://res.cloudinary.com/ds4oxnii2/image/upload/v1741841144/xwjkzn9ql6kfkq9jvytv.avif",
     places: "Carrera 2 Este #21-48",
     country: "Bogotá",
     rating: 4.6
@@ -43,7 +44,7 @@ const DESTINATIONS = [
   {
     name: "Barú",
     tagline: "Playas paradisíacas, mar cristalino",
-    image: "/images/baru.avif",
+    image: "https://res.cloudinary.com/ds4oxnii2/image/upload/v1741841144/wvtmzqhuo9d9cm45xqxp.avif",
     places: "Península, Sur de Colombia",
     country: "Cartagena",
     rating: 4.8
@@ -70,6 +71,35 @@ export default function HeroSection() {
   const isMobile = useMediaQuery({ maxWidth: 767 }, undefined, false);
   const isSmallScreen = useMediaQuery({ maxWidth: 639 }, undefined, false);
   const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 }, undefined, false);
+  
+  // Create a responsive image URL generator based on device size
+  const getResponsiveImageUrl = useCallback((url) => {
+    if (isMobile) {
+      // Mobile optimization: smaller size, maintain aspect ratio
+      return getOptimizedImageUrl(url, {
+        width: 640,
+        height: 960,
+        quality: "auto",
+        crop: "fill"
+      });
+    } else if (isTablet) {
+      // Tablet optimization: medium size
+      return getOptimizedImageUrl(url, {
+        width: 1024,
+        height: 1200,
+        quality: "auto",
+        crop: "fill"
+      });
+    } else {
+      // Desktop: higher resolution
+      return getOptimizedImageUrl(url, {
+        width: 1920,
+        height: 1080,
+        quality: "auto",
+        crop: "fill"
+      });
+    }
+  }, [isMobile, isTablet]);
   
   // Memoize current destination to prevent unnecessary re-renders
   const currentDestination = useMemo(() => DESTINATIONS[activeImage], [activeImage]);
@@ -113,12 +143,12 @@ export default function HeroSection() {
   const handleMouseEnter = useCallback(() => setIsHovering(true), []);
   const handleMouseLeave = useCallback(() => setIsHovering(false), []);
   
-  // Preload next image for smoother transitions
+  // Preload next image for smoother transitions with responsive URLs
   useEffect(() => {
     const nextIndex = (activeImage + 1) % DESTINATIONS.length;
     const img = new Image();
-    img.src = DESTINATIONS[nextIndex].image;
-  }, [activeImage]);
+    img.src = getResponsiveImageUrl(DESTINATIONS[nextIndex].image);
+  }, [activeImage, getResponsiveImageUrl]);
   
   // Auto-rotate images when not hovering
   useEffect(() => {
@@ -222,10 +252,21 @@ export default function HeroSection() {
             animate="center"
             exit="exit"
           >
-            {/* Image with overlay - optimized attributes */}
+            {/* Image with overlay - enhanced with responsive images */}
             <div className="relative w-full h-full">
               <img
-                src={currentDestination.image}
+                src={getOptimizedImageUrl(currentDestination.image, {
+                  width: 1920,
+                  height: 1080,
+                  quality: "auto",
+                  crop: "fill"
+                })}
+                srcSet={`
+                  ${getOptimizedImageUrl(currentDestination.image, { width: 640, height: 960, quality: "auto", crop: "fill" })} 640w,
+                  ${getOptimizedImageUrl(currentDestination.image, { width: 1024, height: 1200, quality: "auto", crop: "fill" })} 1024w,
+                  ${getOptimizedImageUrl(currentDestination.image, { width: 1920, height: 1080, quality: "auto", crop: "fill" })} 1920w
+                `}
+                sizes="(max-width: 640px) 640px, (max-width: 1024px) 1024px, 1920px"
                 alt={`Travel destination: ${currentDestination.name}`}
                 className="w-full h-full object-cover"
                 style={{ 
