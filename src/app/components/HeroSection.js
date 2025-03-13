@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { MapPin, Search, ChevronRight, ChevronLeft, Compass, Map, Globe, X, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMediaQuery } from "react-responsive";
-import { getOptimizedImageUrl } from "../services/cloudinary";
+import { getOptimizedImageUrl } from "../services/cloudinary"; // Adjust path as needed
 
 // Constants moved outside component to avoid recreation on every render
 const POPULAR_SEARCHES = ["Barcelona", "Tokyo", "New York", "Paris"];
@@ -161,41 +161,41 @@ export default function HeroSection() {
     }
   }, [activeImage, isHovering, searchFocused, handleImageChange]);
   
-  // Image transition variants - more natural easing
+  // Image transition variants - simplified for mobile
   const slideVariants = {
     enter: (direction) => ({
-      x: direction === "right" ? "5%" : "-5%",
-      scale: 1.05,
+      x: isMobile ? 0 : direction === "right" ? "5%" : "-5%",
       opacity: 0,
+      scale: isMobile ? 1 : 1.05,
     }),
     center: {
       x: 0,
-      scale: 1,
       opacity: 1,
+      scale: 1,
       transition: {
-        x: { type: "spring", stiffness: 200, damping: 30 },
-        opacity: { duration: 0.6 },
-        scale: { duration: 0.6 }
+        x: { type: isMobile ? "tween" : "spring", stiffness: 200, damping: 30, duration: isMobile ? 0.3 : 0.6 },
+        opacity: { duration: isMobile ? 0.3 : 0.6 },
+        scale: { duration: isMobile ? 0.3 : 0.6 }
       }
     },
     exit: (direction) => ({
-      x: direction === "right" ? "-5%" : "5%",
-      scale: 1.05,
+      x: isMobile ? 0 : direction === "right" ? "-5%" : "5%",
       opacity: 0,
+      scale: isMobile ? 1 : 1.05,
       transition: {
-        x: { type: "spring", stiffness: 200, damping: 30 },
-        opacity: { duration: 0.6 },
-        scale: { duration: 0.6 }
+        x: { type: isMobile ? "tween" : "spring", stiffness: 200, damping: 30, duration: isMobile ? 0.3 : 0.6 },
+        opacity: { duration: isMobile ? 0.3 : 0.6 },
+        scale: { duration: isMobile ? 0.3 : 0.6 }
       }
     })
   };
 
-  // More subtle background animation
+  // Background animation - simplified for mobile
   const backgroundVariants = {
     animate: {
-      backgroundPosition: ["0% 0%", "100% 100%"],
+      backgroundPosition: isMobile ? ["0% 0%", "100% 100%"] : ["0% 0%", "100% 100%"],
       transition: {
-        duration: 30,
+        duration: isMobile ? 60 : 30, // Slower on mobile to reduce CPU load
         ease: "linear",
         repeat: Infinity,
         repeatType: "reverse"
@@ -222,7 +222,7 @@ export default function HeroSection() {
       onMouseLeave={handleMouseLeave}
       aria-label="Discover travel destinations"
     >
-      {/* Background gradient with subtle animation */}
+      {/* Background gradient with simplified animation */}
       <motion.div
         className="absolute inset-0 bg-gradient-to-br from-indigo-950 via-purple-900 to-indigo-900"
         variants={backgroundVariants}
@@ -232,12 +232,14 @@ export default function HeroSection() {
         }}
       />
       
-      {/* Abstract shapes for visual interest */}
-      <div className="absolute inset-0 overflow-hidden opacity-20">
-        <div className="absolute top-1/4 right-1/4 w-96 h-96 rounded-full bg-blue-400 blur-[120px]" />
-        <div className="absolute bottom-1/3 left-1/3 w-80 h-80 rounded-full bg-purple-400 blur-[100px]" />
-        <div className="absolute top-2/3 right-1/3 w-64 h-64 rounded-full bg-indigo-300 blur-[80px]" />
-      </div>
+      {/* Abstract shapes - fewer on mobile */}
+      {!isMobile && (
+        <div className="absolute inset-0 overflow-hidden opacity-20">
+          <div className="absolute top-1/4 right-1/4 w-96 h-96 rounded-full bg-blue-400 blur-[120px]" />
+          <div className="absolute bottom-1/3 left-1/3 w-80 h-80 rounded-full bg-purple-400 blur-[100px]" />
+          <div className="absolute top-2/3 right-1/3 w-64 h-64 rounded-full bg-indigo-300 blur-[80px]" />
+        </div>
+      )}
       
       {/* Full-width carousel */}
       <div ref={carouselRef} className="absolute inset-0 w-full h-full">
@@ -285,66 +287,66 @@ export default function HeroSection() {
         </AnimatePresence>
       </div>
       
-      {/* Content overlay with improved responsive layout */}
-      <div className="absolute inset-0 z-10 flex flex-col justify-between pt-20 pb-6">
+      {/* Content overlay with improved responsive layout and enough padding for the info card */}
+      <div className="absolute inset-0 z-10 flex flex-col justify-between pt-16 md:pt-20 pb-24 md:pb-6">
         {/* Main content - top section */}
-        <div className="container mx-auto px-5">
+        <div className="container mx-auto px-4 md:px-5">
           <div className="w-full max-w-3xl mx-auto lg:mx-0 lg:ml-10 xl:ml-20 text-center lg:text-left">
-            {/* Badge */}
+            {/* Badge - simplified animation for mobile */}
             <motion.span 
-              className="inline-block bg-white/15 backdrop-blur-md text-white/90 text-sm px-4 py-1.5 rounded-full mb-6 border border-white/10"
-              initial={{ opacity: 0, y: 20 }}
+              className="inline-block bg-white/15 backdrop-blur-md text-white/90 text-xs sm:text-sm px-3 sm:px-4 py-1 sm:py-1.5 rounded-full mb-4 sm:mb-6 border border-white/10"
+              initial={{ opacity: 0, y: isMobile ? 10 : 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              whileHover={{ scale: 1.03, backgroundColor: "rgba(255,255,255,0.2)" }}
+              transition={{ delay: isMobile ? 0.2 : 0.4, duration: isMobile ? 0.4 : 0.6 }}
+              whileHover={isMobile ? {} : { scale: 1.03, backgroundColor: "rgba(255,255,255,0.2)" }}
             >
-              <Globe className="h-3.5 w-3.5 inline mr-2" />
+              <Globe className="h-3 w-3 sm:h-3.5 sm:w-3.5 inline mr-1 sm:mr-2" />
               +10.000 experiencias por descubrir
             </motion.span>
             
-            {/* Main heading */}
+            {/* Main heading - simplified animation for mobile */}
             <motion.h1
-              className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold mb-5 sm:mb-6 leading-[1.1] text-white tracking-tight"
-              initial={{ opacity: 0, y: 30 }}
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-5 leading-[1.15] sm:leading-[1.1] text-white tracking-tight"
+              initial={{ opacity: 0, y: isMobile ? 15 : 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.8 }}
+              transition={{ delay: isMobile ? 0.1 : 0.2, duration: isMobile ? 0.5 : 0.8 }}
             >
               Descubre las <span className="bg-gradient-to-r from-sky-200 via-blue-100 to-indigo-100 bg-clip-text text-transparent">Mejores</span> Experiencias Locales
             </motion.h1>
             
-            {/* Description */}
+            {/* Description - simplified animation for mobile */}
             <motion.p
-              className="text-lg mb-6 sm:mb-8 text-white/80 max-w-lg mx-auto lg:mx-0 leading-relaxed"
-              initial={{ opacity: 0, y: 30 }}
+              className="text-base sm:text-lg mb-5 sm:mb-6 md:mb-8 text-white/80 max-w-lg mx-auto lg:mx-0 leading-relaxed"
+              initial={{ opacity: 0, y: isMobile ? 15 : 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.8 }}
+              transition={{ delay: isMobile ? 0.2 : 0.4, duration: isMobile ? 0.5 : 0.8 }}
             >
               Recomendaciones personalizadas de lugares para visitar, comer y comprar,
               seleccionados por locales que conocen mejor su ciudad.
             </motion.p>
 
-            {/* Enhanced Search Box */}
+            {/* Enhanced Search Box - simplified animation for mobile */}
             <motion.div
               className="relative w-full max-w-xl mx-auto lg:mx-0 z-20"
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: isMobile ? 15 : 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.8 }}
+              transition={{ delay: isMobile ? 0.3 : 0.6, duration: isMobile ? 0.5 : 0.8 }}
             >
               <form onSubmit={handleSearch}>
                 <div 
-                  className={`bg-white/90 backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl transition-all duration-300 ${
-                    searchFocused ? 'ring-4 ring-white/30 shadow-lg shadow-indigo-500/20' : ''
+                  className={`bg-white/90 backdrop-blur-xl rounded-xl sm:rounded-2xl overflow-hidden shadow-lg sm:shadow-2xl transition-all duration-300 ${
+                    searchFocused ? 'ring-2 sm:ring-4 ring-white/30 shadow-lg shadow-indigo-500/20' : ''
                   }`}
                 >
                   <div className="flex items-center">
-                    <div className="pl-4 sm:pl-5">
-                      <MapPin className="h-5 w-5 text-indigo-500" />
+                    <div className="pl-3 sm:pl-4 md:pl-5">
+                      <MapPin className="h-4 sm:h-5 w-4 sm:w-5 text-indigo-500" />
                     </div>
                     <input
                       ref={searchInputRef}
                       type="text"
                       placeholder="¿A dónde vas?"
-                      className="px-3 sm:px-4 py-4 sm:py-5 w-full text-gray-700 focus:outline-none bg-transparent"
+                      className="px-2 sm:px-3 md:px-4 py-3 sm:py-4 md:py-5 w-full text-gray-700 focus:outline-none bg-transparent"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onFocus={() => setSearchFocused(true)}
@@ -363,9 +365,9 @@ export default function HeroSection() {
                     )}
                     <motion.button
                       type="submit"
-                      className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-4 sm:px-6 py-4 sm:py-5 font-medium flex items-center gap-2 min-w-[100px] sm:min-w-[135px] justify-center"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
+                      className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 font-medium flex items-center gap-1 sm:gap-2 min-w-[80px] sm:min-w-[100px] md:min-w-[135px] justify-center"
+                      whileHover={isMobile ? {} : { scale: 1.02 }}
+                      whileTap={isMobile ? { scale: 0.98 } : { scale: 0.98 }}
                       disabled={isSearching}
                     >
                       {isSearching ? (
@@ -384,7 +386,7 @@ export default function HeroSection() {
                     </motion.button>
                   </div>
                   
-                  {/* Enhanced Search Suggestions */}
+                  {/* Enhanced Search Suggestions - simplified animation for mobile */}
                   <AnimatePresence>
                     {searchFocused && (
                       <motion.div 
@@ -392,21 +394,21 @@ export default function HeroSection() {
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
+                        transition={{ duration: isMobile ? 0.15 : 0.2 }}
                       >
-                        <div className="p-4">
+                        <div className="p-3 sm:p-4">
                           {recentSearches.length > 0 && (
-                            <div className="mb-4">
-                              <p className="text-xs text-gray-500 mb-2 font-medium">Búsquedas recientes</p>
-                              <div className="flex flex-wrap gap-2">
+                            <div className="mb-3 sm:mb-4">
+                              <p className="text-xs text-gray-500 mb-1.5 sm:mb-2 font-medium">Búsquedas recientes</p>
+                              <div className="flex flex-wrap gap-1.5 sm:gap-2">
                                 {recentSearches.map((search, idx) => (
                                   <button
                                     key={`recent-${idx}`}
-                                    className="bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm px-3 py-1.5 rounded-full flex items-center"
+                                    className="bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs sm:text-sm px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full flex items-center"
                                     onClick={() => setSearchQuery(search)}
                                     type="button"
                                   >
-                                    <MapPin className="h-3 w-3 mr-1 text-indigo-500" />
+                                    <MapPin className="h-2.5 sm:h-3 w-2.5 sm:w-3 mr-1 text-indigo-500" />
                                     {search}
                                   </button>
                                 ))}
@@ -415,16 +417,16 @@ export default function HeroSection() {
                           )}
                           
                           <div>
-                            <p className="text-xs text-gray-500 mb-2 font-medium">Destinos populares</p>
-                            <div className="grid grid-cols-2 gap-2">
+                            <p className="text-xs text-gray-500 mb-1.5 sm:mb-2 font-medium">Destinos populares</p>
+                            <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
                               {POPULAR_SEARCHES.map((search, idx) => (
                                 <button
                                   key={`popular-${idx}`}
-                                  className="text-left bg-gray-50 hover:bg-gray-100 text-gray-700 text-sm p-2.5 rounded-lg flex items-center"
+                                  className="text-left bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs sm:text-sm p-2 sm:p-2.5 rounded-lg flex items-center"
                                   onClick={() => setSearchQuery(search)}
                                   type="button"
                                 >
-                                  <Compass className="h-4 w-4 mr-2 text-indigo-500" />
+                                  <Compass className="h-3 sm:h-4 w-3 sm:w-4 mr-1.5 sm:mr-2 text-indigo-500" />
                                   {search}
                                 </button>
                               ))}
@@ -437,14 +439,14 @@ export default function HeroSection() {
                 </div>
               </form>
               
-              {/* Category chips */}
-              <div className="mt-4 flex flex-wrap gap-2 overflow-x-auto pb-2 no-scrollbar">
+              {/* Category chips - simplified animations for mobile */}
+              <div className="mt-3 sm:mt-4 flex flex-wrap gap-1.5 sm:gap-2 overflow-x-auto pb-2 no-scrollbar">
                 {CATEGORY_ITEMS.map((item, idx) => (
                   <motion.button
                     key={item} 
-                    className={`${idx === 0 ? 'bg-white/80 text-indigo-700' : 'bg-white/20 text-white hover:bg-white/30'} text-sm py-1.5 px-4 rounded-full whitespace-nowrap backdrop-blur-sm`}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    className={`${idx === 0 ? 'bg-white/80 text-indigo-700' : 'bg-white/20 text-white hover:bg-white/30'} text-xs sm:text-sm py-1 sm:py-1.5 px-3 sm:px-4 rounded-full whitespace-nowrap backdrop-blur-sm`}
+                    whileHover={isMobile ? {} : { scale: 1.05 }}
+                    whileTap={{ scale: isMobile ? 0.97 : 0.95 }}
                   >
                     {item}
                   </motion.button>
@@ -454,60 +456,60 @@ export default function HeroSection() {
           </div>
         </div>
 
-        {/* Bottom container for destination info panel and navigation */}
-        <div className="container mx-auto px-5 mt-8 flex flex-col">
-          <div className="flex flex-col-reverse md:flex-row md:items-end justify-between gap-4">
-            {/* Enhanced destination info panel - repositioned in mobile view */}
+        {/* Bottom container for destination info panel and navigation - increased bottom padding on mobile */}
+        <div className="container mx-auto px-4 md:px-5 mt-auto">
+          <div className="flex flex-col-reverse md:flex-row md:items-end justify-between gap-3 md:gap-4">
+            {/* Enhanced destination info panel - fixed positioning for mobile view */}
             <motion.div
-              className={`backdrop-blur-lg bg-black/40 p-4 sm:p-6 rounded-2xl border border-white/10 z-10
-                w-full ${isSmallScreen ? 'mb-4' : 'mb-0'} md:max-w-sm`}
-              initial={{ opacity: 0, y: 20 }}
+              className={`backdrop-blur-lg bg-black/40 p-3 sm:p-4 md:p-6 rounded-xl sm:rounded-2xl border border-white/10 z-10
+                w-full ${isMobile ? 'mb-2' : 'mb-0'} md:max-w-sm`}
+              initial={{ opacity: 0, y: isMobile ? 15 : 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8, duration: 0.8 }}
+              transition={{ delay: isMobile ? 0.4 : 0.8, duration: isMobile ? 0.5 : 0.8 }}
               style={{ 
                 backdropFilter: "blur(16px)",
                 WebkitBackdropFilter: "blur(16px)",
               }}
             >
-              <div className="flex justify-between items-start mb-3">
+              <div className="flex justify-between items-start mb-2 sm:mb-3">
                 <div className="flex items-center">
-                  <Map className="h-4 sm:h-5 w-4 sm:w-5 mr-2 text-purple-300" />
+                  <Map className="h-3.5 sm:h-4 md:h-5 w-3.5 sm:w-4 md:w-5 mr-1.5 sm:mr-2 text-purple-300" />
                   <span className="text-purple-200 text-xs sm:text-sm font-medium">Destino destacado</span>
                 </div>
-                <div className="flex items-center bg-white/20 rounded-lg px-2 py-1">
-                  <span className="text-yellow-300 mr-1 text-xs">★</span>
+                <div className="flex items-center bg-white/20 rounded-lg px-1.5 sm:px-2 py-0.5 sm:py-1">
+                  <span className="text-yellow-300 mr-0.5 sm:mr-1 text-xs">★</span>
                   <span className="text-white text-xs font-medium">{currentDestination.rating}</span>
                 </div>
               </div>
               
-              <div className="space-y-2 sm:space-y-3">
-                <h2 className="text-2xl sm:text-3xl font-bold text-white">{currentDestination.name}</h2>
+              <div className="space-y-1.5 sm:space-y-2 md:space-y-3">
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">{currentDestination.name}</h2>
                 <p className="text-white/80 text-xs sm:text-sm">{currentDestination.tagline}</p>
                 
-                <div className="flex items-center space-x-4 text-xs sm:text-sm">
+                <div className="flex items-center space-x-3 sm:space-x-4 text-xs sm:text-sm">
                   <div className="flex items-center">
-                    <Globe className="h-3 sm:h-4 w-3 sm:w-4 mr-1 sm:mr-1.5 text-indigo-200" />
+                    <Globe className="h-3 sm:h-3.5 md:h-4 w-3 sm:w-3.5 md:w-4 mr-1 sm:mr-1.5 text-indigo-200" />
                     <span className="text-indigo-100">{currentDestination.country}</span>
                   </div>
                   <div className="flex items-center">
-                    <MapPin className="h-3 sm:h-4 w-3 sm:w-4 mr-1 sm:mr-1.5 text-indigo-200" />
-                    <span className="text-indigo-100">{currentDestination.places} </span>
+                    <MapPin className="h-3 sm:h-3.5 md:h-4 w-3 sm:w-3.5 md:w-4 mr-1 sm:mr-1.5 text-indigo-200" />
+                    <span className="text-indigo-100">{currentDestination.places}</span>
                   </div>
                 </div>
                 
                 <motion.button
-                  className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-lg w-full px-4 sm:px-6 py-2.5 sm:py-3.5 flex items-center justify-center font-medium mt-1 sm:mt-2"
-                  whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.25)" }}
-                  whileTap={{ scale: 0.98 }}
+                  className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-lg w-full px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3.5 flex items-center justify-center font-medium mt-1 sm:mt-2"
+                  whileHover={isMobile ? {} : { scale: 1.02, backgroundColor: "rgba(255,255,255,0.25)" }}
+                  whileTap={{ scale: isMobile ? 0.97 : 0.98 }}
                 >
-                  <Compass className="h-4 sm:h-5 w-4 sm:w-5 mr-2" />
+                  <Compass className="h-3.5 sm:h-4 md:h-5 w-3.5 sm:w-4 md:w-5 mr-1.5 sm:mr-2" />
                   Explorar destino
                 </motion.button>
               </div>
             </motion.div>
             
-            {/* Carousel navigation - moved to right on desktop */}
-            <div className={`flex justify-center ${isSmallScreen ? 'mb-2' : 'mb-0'} md:justify-end items-center gap-2 sm:gap-4`}>
+            {/* Carousel navigation - simplified for mobile */}
+            <div className={`flex justify-center mb-1 sm:mb-2 md:mb-0 md:justify-end items-center gap-1.5 sm:gap-2 md:gap-4`}>
               {/* Progress bar on desktop, dots on mobile */}
               <div className="hidden md:flex items-center bg-white/10 backdrop-blur-md rounded-full h-2 w-48 overflow-hidden">
                 {DESTINATIONS.map((_, index) => (
@@ -539,39 +541,39 @@ export default function HeroSection() {
               </div>
 
               {/* Mobile dots */}
-              <div className="flex md:hidden space-x-2">
+              <div className="flex md:hidden space-x-1.5 sm:space-x-2">
                 {DESTINATIONS.map((_, index) => (
                   <motion.button
                     key={index}
-                    className={`rounded-full ${index === activeImage ? 'bg-white w-6 h-2' : 'bg-white/30 w-2 h-2'}`}
+                    className={`rounded-full ${index === activeImage ? 'bg-white w-5 sm:w-6 h-1.5 sm:h-2' : 'bg-white/30 w-1.5 sm:w-2 h-1.5 sm:h-2'}`}
                     onClick={() => handleImageChange(index, index > activeImage ? "right" : "left")}
-                    whileHover={{ scale: 1.2 }}
-                    transition={{ duration: 0.3 }}
+                    whileHover={isMobile ? {} : { scale: 1.2 }}
+                    transition={{ duration: isMobile ? 0.2 : 0.3 }}
                     layout
                   />
                 ))}
               </div>
               
-              {/* Arrow navigation - using memoized handlers */}
-              <div className="flex space-x-2 sm:space-x-3">
+              {/* Arrow navigation - simplified for mobile */}
+              <div className="flex space-x-1.5 sm:space-x-2 md:space-x-3">
                 <motion.button
-                  className="bg-white/10 backdrop-blur-md rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center cursor-pointer border border-white/20"
-                  whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.2)" }}
-                  whileTap={{ scale: 0.95 }}
+                  className="bg-white/10 backdrop-blur-md rounded-full w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 flex items-center justify-center cursor-pointer border border-white/20"
+                  whileHover={isMobile ? {} : { scale: 1.1, backgroundColor: "rgba(255,255,255,0.2)" }}
+                  whileTap={{ scale: isMobile ? 0.92 : 0.95 }}
                   onClick={handlePrevImage}
                   aria-label="Previous destination"
                 >
-                  <ChevronLeft className="h-4 sm:h-5 w-4 sm:w-5 text-white" />
+                  <ChevronLeft className="h-3.5 sm:h-4 md:h-5 w-3.5 sm:w-4 md:w-5 text-white" />
                 </motion.button>
                 
                 <motion.button
-                  className="bg-white/10 backdrop-blur-md rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center cursor-pointer border border-white/20"
-                  whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.2)" }}
-                  whileTap={{ scale: 0.95 }}
+                  className="bg-white/10 backdrop-blur-md rounded-full w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 flex items-center justify-center cursor-pointer border border-white/20"
+                  whileHover={isMobile ? {} : { scale: 1.1, backgroundColor: "rgba(255,255,255,0.2)" }}
+                  whileTap={{ scale: isMobile ? 0.92 : 0.95 }}
                   onClick={handleNextImage}
                   aria-label="Next destination"
                 >
-                  <ChevronRight className="h-4 sm:h-5 w-4 sm:w-5 text-white" />
+                  <ChevronRight className="h-3.5 sm:h-4 md:h-5 w-3.5 sm:w-4 md:w-5 text-white" />
                 </motion.button>
               </div>
             </div>
