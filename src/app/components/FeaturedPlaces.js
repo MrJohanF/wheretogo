@@ -132,8 +132,10 @@ export default function FeaturedPlaces() {
         </motion.div>
         
         <div className="mt-8 text-center md:hidden">
-          <button className="px-6 py-2 text-indigo-600 border border-indigo-600 rounded-lg hover:bg-indigo-50 transform hover:scale-105 active:scale-95 transition-transform duration-150">
-            View All Places
+          <button 
+            onClick={() => router.push('/explore')}
+            className="px-6 py-2 text-indigo-600 border border-indigo-600 rounded-lg hover:bg-indigo-50 transform hover:scale-105 active:scale-95 transition-transform duration-150">
+            Ver Todos
           </button>
         </div>
       </div>
