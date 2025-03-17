@@ -1,52 +1,26 @@
 "use client";
 import { MapPin, Star, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useInView } from 'framer-motion';
+import usePlaceStore from '../store/placeStore';
 
 export default function FeaturedPlaces() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [hoveredHearts, setHoveredHearts] = useState({});
   
-  const places = [
-    {
-      id: 1,
-      name: "Café y Bistró Junto al Mar",
-      type: "Café",
-      image: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
-      location: "Venice Beach, CA",
-      rating: 4.8,
-      reviews: 354
-    },
-    {
-      id: 2,
-      name: "Plaza del Mercado Vintage",
-      type: "Compras",
-      image: "https://images.unsplash.com/photo-1516559828984-fb3b99548b21?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
-      location: "Portland, OR",
-      rating: 4.7,
-      reviews: 283
-    },
-    {
-      id: 3,
-      name: "Mirador Skyline",
-      type: "Punto Fotográfico",
-      image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
-      location: "Seattle, WA",
-      rating: 4.9,
-      reviews: 467
-    },
-    {
-      id: 4,
-      name: "Sendero del Bosque Oculto",
-      type: "Naturaleza",
-      image: "https://images.unsplash.com/photo-1426604966848-d7adac402bff?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
-      location: "Asheville, NC",
-      rating: 4.8,
-      reviews: 215
-    },
-  ];
+  const { 
+    featuredPlaces,
+    isFeaturedLoading,
+    error,
+    fetchFeaturedPlaces,
+    getPrimaryImage
+  } = usePlaceStore();
+  
+  useEffect(() => {
+    fetchFeaturedPlaces(4); // Fetch 4 featured places
+  }, [fetchFeaturedPlaces]);
 
   const container = {
     hidden: { opacity: 0 },
@@ -60,6 +34,19 @@ export default function FeaturedPlaces() {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0 }
   };
+
+  // Loading indicator
+  if (isFeaturedLoading) {
+    return (
+      <section className="py-16 bg-gray-50" ref={ref}>
+        <div className="container mx-auto px-4">
+          <div className="flex justify-center items-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-16 bg-gray-50" ref={ref}>
@@ -87,7 +74,7 @@ export default function FeaturedPlaces() {
           initial="hidden"
           animate={isInView ? "show" : "hidden"}
         >
-          {places.map((place) => (
+          {featuredPlaces.map((place) => (
             <div key={place.id} className="place-card">
               <motion.div 
                 className="bg-white rounded-xl overflow-hidden shadow-md card-translate"
@@ -100,7 +87,7 @@ export default function FeaturedPlaces() {
                 <div className="relative overflow-hidden">
                   <div className="w-full h-48 overflow-hidden">
                     <img 
-                      src={place.image} 
+                      src={getPrimaryImage(place, 500, 300)}
                       alt={place.name} 
                       className="w-full h-full object-cover card-image"
                     />
@@ -111,7 +98,7 @@ export default function FeaturedPlaces() {
                     onMouseLeave={() => setHoveredHearts({...hoveredHearts, [place.id]: false})}
                   >
                     <Heart 
-                      className={`h-5 w-5 ${hoveredHearts[place.id] ? 'text-red-500' : 'text-gray-600'}`} 
+                      className={`h-5 w-5 \${hoveredHearts[place.id] ? 'text-red-500' : 'text-gray-600'}`} 
                     />
                   </button>
                   <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm py-1 px-3 rounded-full text-xs font-medium text-indigo-700">
@@ -125,14 +112,14 @@ export default function FeaturedPlaces() {
                   </h3>
                   <div className="flex items-center text-sm text-gray-500 mb-3">
                     <MapPin className="h-4 w-4 mr-1" />
-                    <span>{place.location}</span>
+                    <span>{place.address || "Ubicación no disponible"}</span>
                   </div>
                   
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
                       <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 mr-1" />
-                      <span className="font-medium text-gray-900">{place.rating}</span>
-                      <span className="text-gray-500 ml-1">({place.reviews})</span>
+                      <span className="font-medium text-gray-900">{place.rating || "N/A"}</span>
+                      <span className="text-gray-500 ml-1">({place.reviewsCount || 0})</span>
                     </div>
                     <button className="text-sm font-medium text-indigo-600 hover:underline details-button">
                       Details
@@ -151,7 +138,7 @@ export default function FeaturedPlaces() {
         </div>
       </div>
 
-      {/* Add this style tag for ultra-smooth hover animations */}
+      {/* Style preserved from original */}
       <style jsx global>{`
         .place-card {
           transform-style: preserve-3d;
