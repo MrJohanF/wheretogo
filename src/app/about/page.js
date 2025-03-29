@@ -149,12 +149,12 @@ export default function AboutPage() {
         {/* Home Button in Header */}
         <button
           onClick={goToHomePage}
-          className="absolute top-4 left-4 md:top-6 md:left-6 bg-white/20 hover:bg-white/30 backdrop-blur-sm p-2.5 rounded-full transition-all duration-300"
+          className="absolute top-4 left-4 md:top-6 md:left-6 bg-white/20 hover:bg-white/30 backdrop-blur-sm p-2.5 rounded-full transition-all duration-300 z-10"
           aria-label="Go to home page"
         >
           <Home className="w-5 h-5 text-white" />
         </button>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -177,7 +177,7 @@ export default function AboutPage() {
                 Explorar lugares
               </Link>
               <Link
-                href="#contact"
+                href="#contacto"
                 className="px-6 py-3 bg-indigo-700 text-white rounded-lg font-medium hover:bg-indigo-800 transition-colors shadow-md"
               >
                 Contactar
@@ -187,7 +187,7 @@ export default function AboutPage() {
         </div>
 
         {/* Wave Divider */}
-        <div className="absolute bottom-0 left-0 right-0">
+        <div className="absolute bottom-0 left-0 right-0 z-0">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 160">
             <path
               fill="#f8fafc"
