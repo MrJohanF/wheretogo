@@ -32,10 +32,16 @@ A modern platform for discovering, reviewing, and booking places like restaurant
 
 ## 🛠️ Technical Stack
 
-- **Backend Framework**: [Your Framework]
+- **Backend Framework**: Node.js
+- **Frontend Framework**: React.js
+- **CSS Framework**: Tailwind
 - **Database**: PostgreSQL
+- **Map**: Mapbox-gl
 - **ORM**: Prisma
-- **Authentication**: [Your Auth Solution]
+- **Authentication**: JWT
+- **Assets**: Cloudinary
+- **Context**: Zustand
+- **Animations**: Framer Motion
 
 ## 📦 Installation
 
