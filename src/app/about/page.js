@@ -171,13 +171,13 @@ export default function AboutPage() {
 
             <div className="mt-10 flex flex-wrap justify-center gap-4">
               <Link
-                href="/"
+                href="/explore"
                 className="px-6 py-3 bg-white text-indigo-600 rounded-lg font-medium hover:bg-indigo-50 transition-colors shadow-md"
               >
                 Explorar lugares
               </Link>
               <Link
-                href="#contacto"
+                href="#contact"
                 className="px-6 py-3 bg-indigo-700 text-white rounded-lg font-medium hover:bg-indigo-800 transition-colors shadow-md"
               >
                 Contactar
