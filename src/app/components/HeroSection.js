@@ -28,7 +28,7 @@ const DESTINATIONS = [
   {
     name: "Caño Cristales",
     tagline: "Río, naturaleza, color, belleza",
-    image: "https://res.cloudinary.com/ds4oxnii2/image/upload/v1741841144/vskxk7oofb9yagjxca0z.jpg",
+    image: "https://res.cloudinary.com/ds4oxnii2/image/upload/v1741841144/xwjkzn9ql6kfkq9jvytv.avif",
     places: "Serranía de la Macarena",
     country: "Meta",
     rating: 4.7
@@ -36,7 +36,7 @@ const DESTINATIONS = [
   {
     name: "Monserrate",
     tagline: "Montaña, vistas, santuario, naturaleza",
-    image: "https://res.cloudinary.com/ds4oxnii2/image/upload/v1741841144/xwjkzn9ql6kfkq9jvytv.avif",
+    image: "https://res.cloudinary.com/ds4oxnii2/image/upload/v1741841144/vskxk7oofb9yagjxca0z.jpg",
     places: "Carrera 2 Este #21-48",
     country: "Bogotá",
     rating: 4.6
