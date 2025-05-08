@@ -26,20 +26,20 @@ const DESTINATIONS = [
     rating: 4.4
   },
   {
-    name: "Monserrate",
-    tagline: "Montaña, vistas, santuario, naturaleza",
-    image: "https://res.cloudinary.com/ds4oxnii2/image/upload/v1741841144/xwjkzn9ql6kfkq9jvytv.avif",
-    places: "Carrera 2 Este #21-48",
-    country: "Bogotá",
-    rating: 4.6
-  },
-  {
     name: "Caño Cristales",
     tagline: "Río, naturaleza, color, belleza",
     image: "https://res.cloudinary.com/ds4oxnii2/image/upload/v1741841144/vskxk7oofb9yagjxca0z.jpg",
     places: "Serranía de la Macarena",
     country: "Meta",
     rating: 4.7
+  },
+  {
+    name: "Monserrate",
+    tagline: "Montaña, vistas, santuario, naturaleza",
+    image: "https://res.cloudinary.com/ds4oxnii2/image/upload/v1741841144/xwjkzn9ql6kfkq9jvytv.avif",
+    places: "Carrera 2 Este #21-48",
+    country: "Bogotá",
+    rating: 4.6
   },
   {
     name: "Barú",
