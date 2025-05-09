@@ -149,7 +149,7 @@ export default function AboutPage() {
         {/* Home Button in Header */}
         <button
           onClick={goToHomePage}
-          className="absolute top-4 left-4 md:top-6 md:left-6 bg-white/20 hover:bg-white/30 backdrop-blur-sm p-2.5 rounded-full transition-all duration-300 z-10"
+          className="absolute top-4 left-4 md:top-6 md:left-6 bg-white/20 hover:bg-white/30 backdrop-blur-sm p-2.5 rounded-full transition-all duration-300 z-20"
           aria-label="Go to home page"
         >
           <Home className="w-5 h-5 text-white" />
